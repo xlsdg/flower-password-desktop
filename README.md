@@ -3,6 +3,10 @@ Flower Password Mac Desktop App, based on Electron.
 
 ![Screen Shot](http://ww3.sinaimg.cn/large/aab16a36gw1f9neda4o87j20hc0i6gop.jpg)
 
+## 0.全局快捷键
+
+Command + Alt + S
+
 ## 1.“花密”是用来干什么的
 
 “花密”提供一种简单的密码管理方法，你只需要记住一个“记忆密码”，为不同的账号设置不同的“区分代号”，然后通过“花密”计算就可以得到对应的不同的复杂密码。
