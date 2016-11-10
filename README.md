@@ -1,7 +1,7 @@
 # flower-password-desktop
 Flower Password Mac Desktop App, based on Electron.
 
-![](http://ww3.sinaimg.cn/large/aab16a36gw1f9neda4o87j20hc0i6gop.jpg)
+![Screen Shot](http://ww3.sinaimg.cn/large/aab16a36gw1f9neda4o87j20hc0i6gop.jpg)
 
 ## 1.“花密”是用来干什么的
 
