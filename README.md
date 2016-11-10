@@ -1,5 +1,5 @@
 # flower-password-desktop
-Flower Password Desktop App, based on Electron(atom-shell).
+Flower Password Mac Desktop App, based on Electron.
 
 ## 1.“花密”是用来干什么的
 
