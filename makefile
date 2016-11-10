@@ -1,5 +1,5 @@
 publish:
-	-rm -rf dist/FlowerPassword-darwin-x64/FlowerPassword.app dist/FlowerPassword-darwin-x64/FlowerPassword.zip
+	-rm -rf dist/ FlowerPassword.zip
 	npm run build
 	@# ditto creates a much better compressed zip file compared to the zip command
 	@# these flags come from ditto's man page on how to create an archive in the
