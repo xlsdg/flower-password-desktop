@@ -39,6 +39,7 @@
     font-weight: 700;
     margin: 0 0 5px 0;
     color: #168bc3;
+    cursor: default;
 }
 
 .flower-password .input-wrap,
