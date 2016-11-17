@@ -40,6 +40,9 @@ function initProcess() {
 }
 
 function initIpc() {
+    ipc.on('show', function(event, arg) {
+        fpMenuBar.showWindow();
+    });
     ipc.on('hide', function(event, arg) {
         fpMenuBar.hideWindow();
     });
@@ -87,6 +90,13 @@ function initMenu() {
 
 function initContextMenu() {
     let contextMenu = Menu.buildFromTemplate([{
+        'label': '显示',
+        'click': function() {
+            fpMenuBar.showWindow();
+        }
+    }, {
+        'type': 'separator'
+    }, {
         'label': '退出',
         'click': confirmQuit
     }]);
