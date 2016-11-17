@@ -33,14 +33,6 @@ function hide() {
     ipc.send('hide', 'hide');
 }
 
-function quit() {
-    ipc.send('quit', 'quit');
-}
-
-function confirmQuit() {
-    ipc.send('confirmQuit', 'confirmQuit');
-}
-
 function showCode(e) {
     let password = iptPassword.value;
     let key = iptKey.value;
@@ -58,7 +50,7 @@ function showCode(e) {
 }
 
 btnClose.addEventListener('click', function(e) {
-    confirmQuit();
+    hide();
 }, false);
 
 btnCode.addEventListener('click', function(e) {

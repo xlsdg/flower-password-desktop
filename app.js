@@ -6,6 +6,7 @@ const menuBar = require('menubar');
 const electron = require('electron');
 
 
+const Menu = electron.Menu;
 const dialog = electron.dialog;
 const ipc = electron.ipcMain;
 const globalShortcut = electron.globalShortcut;
@@ -22,7 +23,7 @@ const opts = {
     'showOnRightClick': false
 };
 
-const menu = menuBar(opts);
+const fpMenuBar = menuBar(opts);
 
 main();
 
@@ -34,56 +35,110 @@ function initProcess() {
 
     process.on('uncaughtException', function(err) {
         dialog.showErrorBox('Uncaught Exception: ' + err.message, err.stack || '');
-        menu.app.quit();
+        fpMenuBar.app.quit();
     })
 }
 
 function initIpc() {
     ipc.on('hide', function(event, arg) {
-        menu.hideWindow();
+        fpMenuBar.hideWindow();
     });
     ipc.on('quit', function(event, arg) {
-        menu.app.quit();
+        fpMenuBar.app.quit();
     });
     ipc.on('confirmQuit', confirmQuit);
 }
 
+function initMenu() {
+    let template = [{
+        label: 'Edit',
+        submenu: [{
+            label: 'Undo',
+            accelerator: 'CmdOrCtrl+Z',
+            role: 'undo'
+        }, {
+            label: 'Redo',
+            accelerator: 'Shift+CmdOrCtrl+Z',
+            role: 'redo'
+        }, {
+            type: 'separator'
+        }, {
+            label: 'Cut',
+            accelerator: 'CmdOrCtrl+X',
+            role: 'cut'
+        }, {
+            label: 'Copy',
+            accelerator: 'CmdOrCtrl+C',
+            role: 'copy'
+        }, {
+            label: 'Paste',
+            accelerator: 'CmdOrCtrl+V',
+            role: 'paste'
+        }, {
+            label: 'Select All',
+            accelerator: 'CmdOrCtrl+A',
+            role: 'selectall'
+        }]
+    }];
+
+    let menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+}
+
+function initContextMenu() {
+    let contextMenu = Menu.buildFromTemplate([{
+        'label': '退出',
+        'click': confirmQuit
+    }]);
+
+    fpMenuBar.tray.on('right-click', function() {
+        fpMenuBar.hideWindow();
+        fpMenuBar.tray.popUpContextMenu(contextMenu);
+    });
+}
+
+function initShortcut() {
+    if (!globalShortcut.isRegistered('CmdOrCtrl+Alt+S')) {
+        globalShortcut.register('CmdOrCtrl+Alt+S', function() {
+            fpMenuBar.showWindow();
+        });
+    }
+}
+
 function init() {
-    // try to fix the $PATH on OS X
-    fixPath();
     initProcess();
     initIpc();
+    initMenu();
+    initContextMenu();
+    initShortcut();
 }
 
 function main() {
-    init();
+    // try to fix the $PATH on OS X
+    fixPath();
 
-    menu.on('ready', ready);
-    // menu.on('create-window', createWindow);
-    // menu.on('after-create-window', function(e) {
-    //     menu.window.openDevTools();
+    fpMenuBar.on('ready', ready);
+    // fpMenuBar.on('create-window', createWindow);
+    // fpMenuBar.on('after-create-window', function(e) {
+    //     fpMenuBar.window.openDevTools();
     // });
-    // menu.on('show', show);
-    // menu.on('after-show', afterShow);
-    // menu.on('hide', hide);
-    // menu.on('after-hide', afterHide);
-    // menu.on('after-close', afterClose);
-    // menu.on('focus-lost', focusLost);
-    menu.app.on('will-quit', function(e) {
+    // fpMenuBar.on('show', show);
+    // fpMenuBar.on('after-show', afterShow);
+    // fpMenuBar.on('hide', hide);
+    // fpMenuBar.on('after-hide', afterHide);
+    // fpMenuBar.on('after-close', afterClose);
+    // fpMenuBar.on('focus-lost', focusLost);
+    fpMenuBar.app.on('will-quit', function(e) {
         globalShortcut.unregisterAll();
     });
 }
 
 function ready(e) {
-    if (!globalShortcut.isRegistered('Command+Alt+S')) {
-        globalShortcut.register('Command+Alt+S', function() {
-            menu.showWindow();
-        });
-    }
+    init();
 }
 
 function confirmQuit(event, arg) {
-    menu.hideWindow();
+    fpMenuBar.hideWindow();
     dialog.showMessageBox({
         'type': 'question',
         'buttons': ['确定', '取消'],
@@ -94,7 +149,7 @@ function confirmQuit(event, arg) {
         'cancelId': 1
     }, function(index) {
         if (index === 0) {
-            menu.app.quit();
+            fpMenuBar.app.quit();
         }
     });
 }
