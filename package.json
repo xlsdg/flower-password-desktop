@@ -17,16 +17,18 @@
   "author": "xLsDg",
   "license": "MIT",
   "dependencies": {
-    "electron": "^1.4.10",
+    "electron": "^1.4.12",
     "fix-path": "^2.1.0",
     "menubar": "^5.1.0",
     "node-flower-password": "^1.0.1",
+    "psl": "^1.1.15",
+    "urlite": "^1.2.8",
     "user-env": "^2.0.0"
   },
   "devDependencies": {
-    "electron-packager": "^8.3.0",
-    "electron-prebuilt": "^1.4.10",
-    "publish-release": "^1.3.2",
+    "electron-packager": "^8.4.0",
+    "electron-prebuilt": "^1.4.12",
+    "publish-release": "^1.3.3",
     "standard": "^8.6.0"
   },
   "standard": {

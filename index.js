@@ -1,20 +1,26 @@
 const electron = require('electron');
 const fpCode = require('node-flower-password');
 
+
+// const remote = electron.remote;
 const shell = electron.shell;
 const ipc = electron.ipcRenderer;
 const clipboard = electron.clipboard;
-// const dialog = electron.remote.dialog;
+
 
 const btnClose = document.getElementById('close');
 const iptPassword = document.getElementById('password');
 const iptKey = document.getElementById('key');
+const iptPrefix = document.getElementById('prefix');
+const iptSuffix = document.getElementById('suffix');
 const btnCode = document.getElementById('code');
 const selLength = document.getElementById('length');
 
 
 iptPassword.addEventListener('input', showCode, false);
 iptKey.addEventListener('input', showCode, false);
+iptPrefix.addEventListener('input', showCode, false);
+iptSuffix.addEventListener('input', showCode, false);
 selLength.addEventListener('change', showCode, false);
 
 iptKey.addEventListener('keypress', function(e) {
@@ -28,6 +34,10 @@ iptKey.addEventListener('keypress', function(e) {
     }
 }, false);
 
+ipc.on('key-from-clipboard', function(event, message) {
+    iptKey.value = message;
+    showCode();
+});
 
 function hide() {
     ipc.send('hide', 'hide');
@@ -36,6 +46,8 @@ function hide() {
 function showCode(e) {
     let password = iptPassword.value;
     let key = iptKey.value;
+    let prefix = iptPrefix.value;
+    let suffix = iptSuffix.value;
     let length = selLength.value;
     let code = '生成密码(点击复制)';
 
@@ -44,6 +56,7 @@ function showCode(e) {
         return false;
     }
 
+    key = prefix + key + suffix;
     code = fpCode(password, key, length);
     btnCode.textContent = code;
     return code;

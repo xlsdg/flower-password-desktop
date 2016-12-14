@@ -4,19 +4,23 @@ const fixPath = require('fix-path');
 const userEnv = require('user-env');
 const menuBar = require('menubar');
 const electron = require('electron');
+const psl = require('psl');
+const urlite = require('urlite');
 
 
-const Menu = electron.Menu;
+const menu = electron.Menu;
 const dialog = electron.dialog;
 const ipc = electron.ipcMain;
+const clipboard = electron.clipboard;
 const globalShortcut = electron.globalShortcut;
+
 
 const opts = {
     'tooltip': '花密',
     'dir': __dirname,
     'icon': path.join(__dirname, 'images', 'IconTemplate.png'),
     'width': 300,
-    'height': 300,
+    'height': 334,
     'preloadWindow': true,
     'resizable': false,
     'showDockIcon': false,
@@ -84,12 +88,12 @@ function initMenu() {
         }]
     }];
 
-    let menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+    let _menu = menu.buildFromTemplate(template);
+    menu.setApplicationMenu(_menu);
 }
 
 function initContextMenu() {
-    let contextMenu = Menu.buildFromTemplate([{
+    let contextMenu = menu.buildFromTemplate([{
         'label': '显示',
         'click': function() {
             fpMenuBar.showWindow();
@@ -133,7 +137,7 @@ function main() {
     //     fpMenuBar.window.openDevTools();
     // });
     // fpMenuBar.on('show', show);
-    // fpMenuBar.on('after-show', afterShow);
+    fpMenuBar.on('after-show', afterShow);
     // fpMenuBar.on('hide', hide);
     // fpMenuBar.on('after-hide', afterHide);
     // fpMenuBar.on('after-close', afterClose);
@@ -143,8 +147,20 @@ function main() {
     });
 }
 
-function ready(e) {
+function ready() {
     init();
+    // fpMenuBar.window.openDevTools();
+}
+
+function afterShow() {
+    const text = clipboard.readText();
+    if (text && text.length) {
+        const url = urlite.parse(text);
+        if (url && url.hostname && psl.isValid(url.hostname)) {
+            const parsed = psl.parse(url.hostname);
+            fpMenuBar.window.webContents.send('key-from-clipboard', parsed.sld);
+        }
+    }
 }
 
 function confirmQuit(event, arg) {

@@ -44,17 +44,38 @@
 
 .flower-password .input-wrap,
 .flower-password .ctrl-wrap {
+    font-size: 0;
     margin: 10px 0;
 }
 
 .flower-password .password,
-.flower-password .key {
+.flower-password .key,
+.flower-password .prefix,
+.flower-password .suffix {
     font-size: 14px;
     width: 100%;
     line-height: 1;
     padding: 5px;
     border: 1px solid #999;
     border-radius: 3px;
+}
+
+.flower-password .prefix,
+.flower-password .suffix {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+}
+
+.flower-password .prefix {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+}
+
+.flower-password .suffix {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 .ctrl-wrap {

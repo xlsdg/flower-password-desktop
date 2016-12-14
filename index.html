@@ -20,8 +20,8 @@
             <input id="key" class="key" name="key" type="text" placeholder="区分代号" tabindex="2" />
         </div>
         <div class="ctrl-wrap">
-            <button id="code" class="btn-code">生成密码(点击复制)</button>
-            <select id="length" class="sel-length">
+            <button id="code" class="btn-code" tabindex="3">生成密码(点击复制)</button>
+            <select id="length" class="sel-length" tabindex="4">
               <option value="6">06位</option>
               <option value="7">07位</option>
               <option value="8">08位</option>
@@ -50,6 +50,10 @@
               <option value="31">31位</option>
               <option value="32">32位</option>
             </select>
+        </div>
+        <div class="input-wrap">
+            <input id="prefix" class="prefix" name="prefix" type="text" placeholder="区分代号前缀" tabindex="5" />
+            <input id="suffix" class="suffix" name="suffix" type="text" placeholder="区分代号后缀" tabindex="6" />
         </div>
         <p class="hint">· 记忆密码：可选择一个简单易记的密码，用于生成其他高强度密码。</p>
         <p class="hint">· 区分代号：用于区别不同用途密码的简短代号，如淘宝账号可用“taobao”或“tb”等。</p>
