@@ -27,7 +27,7 @@ iptKey.addEventListener('keypress', function(e) {
     if (e.keyCode === 13) {
         let code = showCode();
         if (code !== false) {
-            clipboard.writeText(code);
+            clipboard.writeText(code, 'text');
             e.preventDefault();
             hide();
         }

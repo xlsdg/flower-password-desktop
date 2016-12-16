@@ -153,7 +153,7 @@ function ready() {
 }
 
 function afterShow() {
-    const text = clipboard.readText();
+    const text = clipboard.readText('text');
     if (text && text.length) {
         const url = urlite.parse(text);
         if (url && url.hostname && psl.isValid(url.hostname)) {
