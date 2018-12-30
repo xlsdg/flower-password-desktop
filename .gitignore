@@ -1,8 +1,11 @@
 .DS_Store
-node_modules/
-dist/
-npm-debug.log
-test/meta
-.idea/
+/node_modules
+/dist
+/.idea
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock
+package-lock.json
 FlowerPassword.app
 FlowerPassword.zip
