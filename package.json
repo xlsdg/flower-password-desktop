@@ -9,9 +9,9 @@
     "start": "electron ./",
     "build": "electron-packager . FlowerPassword --platform=darwin --arch=x64 --icon=images/FlowerPassword.icns --out=dist --overwrite --app-bundle-id=org.xlsdg.flowerpassword --app-version=$npm_package_version",
     "publish": "publish-release --assets FlowerPassword.zip",
-    "release:minor": "npm version minor && npm run publish",
-    "release:major": "npm version major && npm run publish",
-    "release:patch": "npm version patch && npm run publish"
+    "release:minor": "npm version minor && make publish",
+    "release:major": "npm version major && make publish",
+    "release:patch": "npm version patch && make publish"
   },
   "repository": {
     "type": "git",
