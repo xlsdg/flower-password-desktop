@@ -32,6 +32,9 @@ const opts = {
     // showOnAllWorkspaces: ,
     // windowPosition: ,
     'resizable': false,
+    'webPreferences': {
+      'nodeIntegration': true,
+    },
     'showDockIcon': false,
     'showOnRightClick': false
 };
@@ -124,6 +127,7 @@ function initShortcut() {
     if (!globalShortcut.isRegistered('CmdOrCtrl+Alt+S')) {
         globalShortcut.register('CmdOrCtrl+Alt+S', function() {
             fpMenuBar.showWindow();
+            // fpMenuBar.window.openDevTools();
         });
     }
 }
