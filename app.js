@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const fixPath = require('fix-path');
 const userEnv = require('user-env');
-const menuBar = require('menubar');
+const { menubar } = require('menubar');
 const electron = require('electron');
 const psl = require('psl');
 const urlite = require('urlite');
@@ -16,18 +16,27 @@ const globalShortcut = electron.globalShortcut;
 
 
 const opts = {
-    'tooltip': '花密',
     'dir': __dirname,
+    // index: ,
+    'browserWindow': {
+      // x: ,
+      // y: ,
+      'width': 300,
+      'height': 334,
+      // 'alwaysOnTop': true,
+    },
     'icon': path.join(__dirname, 'images', 'IconTemplate.png'),
-    'width': 300,
-    'height': 334,
+    'tooltip': '花密',
+    // tray: ,
     'preloadWindow': true,
+    // showOnAllWorkspaces: ,
+    // windowPosition: ,
     'resizable': false,
     'showDockIcon': false,
     'showOnRightClick': false
 };
 
-const fpMenuBar = menuBar(opts);
+const fpMenuBar = menubar(opts);
 
 main();
 
