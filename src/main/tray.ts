@@ -2,14 +2,7 @@ import { Tray, Menu, nativeImage, clipboard, dialog, app } from 'electron';
 import * as path from 'node:path';
 import * as psl from 'psl';
 import { parse as parseUrl } from 'urlite';
-import {
-  toggleWindow,
-  showWindow,
-  hideWindow,
-  setWindowPosition,
-  getWindowBounds,
-  sendToRenderer,
-} from './window';
+import { toggleWindow, showWindow, hideWindow, setWindowPosition, getWindowBounds, sendToRenderer } from './window';
 import { IPC_CHANNELS } from '../shared/types';
 import type { ParsedURL, ParsedDomain } from '../shared/types';
 

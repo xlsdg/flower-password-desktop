@@ -299,7 +299,7 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - Prettier for code formatting
 - **Semicolons required**, single quotes (Prettier enforced)
 - ES5 trailing commas
-- 100 character line width
+- 120 character line width
 - 2 spaces for indentation
 - LF line endings
 - Comprehensive JSDoc comments for all public functions
@@ -323,11 +323,16 @@ Configured in [.prettierrc.json](.prettierrc.json):
 - `semi`: true (semicolons required)
 - `singleQuote`: true (single quotes)
 - `trailingComma`: "es5" (trailing commas where valid in ES5)
-- `printWidth`: 100 (max line width)
+- `printWidth`: 120 (max line width)
 - `tabWidth`: 2 (2 spaces per indentation level)
 - `useTabs`: false (spaces, not tabs)
-- `arrowParens`: "always" (always include parens around arrow function parameters)
+- `arrowParens`: "avoid" (omit parens when possible for arrow functions)
 - `endOfLine`: "lf" (Unix-style line endings)
+- `bracketSpacing`: true (spaces inside object literals)
+- `quoteProps`: "consistent" (consistent quote style for object properties)
+- `jsxSingleQuote`: false (double quotes in JSX)
+- `htmlWhitespaceSensitivity`: "css" (respect CSS display property)
+- `proseWrap`: "preserve" (preserve markdown/prose wrapping)
 
 ## CI/CD
 

@@ -134,10 +134,10 @@ function handleCodeButtonClick(elements: DOMElements): void {
 function setupExternalLinks(): void {
   const links = document.querySelectorAll<HTMLAnchorElement>('a[href]');
 
-  links.forEach((link) => {
+  links.forEach(link => {
     const url = link.getAttribute('href');
     if (url && url.startsWith('https')) {
-      link.addEventListener('click', (event) => {
+      link.addEventListener('click', event => {
         event.preventDefault();
         window.electronAPI.openExternal(url).catch((error: Error) => {
           console.error('Failed to open external URL:', error);
@@ -162,7 +162,7 @@ function initialize(): void {
     elements.selLength.addEventListener('change', () => handleInputChange(elements), false);
 
     // 监听回车键
-    elements.iptKey.addEventListener('keypress', (event) => handleKeyPress(event, elements), false);
+    elements.iptKey.addEventListener('keypress', event => handleKeyPress(event, elements), false);
 
     // 接收从剪贴板提取的域名
     window.electronAPI.onKeyFromClipboard((message: string) => {
