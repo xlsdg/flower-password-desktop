@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rspack build -c rspack.config.js",
     "watch": "rspack build -c rspack.config.js --watch",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,js,json,md,css,html}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md,css,html}\"",
     "start": "npm run build && electron-forge start",
@@ -35,14 +35,14 @@
     "@electron/fuses": "^1.8.0",
     "@rspack/cli": "^1.5.8",
     "@rspack/core": "^1.5.8",
-    "@types/node": "^22.10.5",
-    "@typescript-eslint/eslint-plugin": "^8.20.0",
-    "@typescript-eslint/parser": "^8.20.0",
+    "@types/node": "^22.18.11",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
     "electron": "^38.3.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }
