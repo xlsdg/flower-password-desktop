@@ -110,7 +110,8 @@ function createApplicationMenu (): void {
 
 function registerGlobalShortcuts (): void {
   if (!globalShortcut.isRegistered('CmdOrCtrl+Alt+S')) {
-    const ok = globalShortcut.register('CmdOrCtrl+Alt+S', () => showWindow())
+    // Shortcut shows the window near the mouse cursor (different from tray click)
+    const ok = globalShortcut.register('CmdOrCtrl+Alt+S', () => showWindowAtCursor())
     if (!ok) console.warn('Failed to register global shortcut: CmdOrCtrl+Alt+S')
   }
 }
@@ -162,9 +163,53 @@ function getWindowPositionForTray (): { x: number; y: number } {
   return { x, y }
 }
 
+// Compute a position where the window's top-left corner is slightly offset
+// to the bottom-right of the current mouse cursor, clamped to the active work area.
+function getWindowPositionForCursor (): { x: number; y: number } {
+  if (!mainWindow) return { x: 0, y: 0 }
+
+  const cursor = screen.getCursorScreenPoint()
+  const display = screen.getDisplayNearestPoint(cursor)
+  const workArea = display.workArea
+  const windowBounds = mainWindow.getBounds()
+
+  const padding = 8 // small gap so the cursor isn't exactly on the window corner
+
+  // Start from cursor bottom-right with padding
+  let x = cursor.x + padding
+  let y = cursor.y + padding
+
+  // Clamp to the current display work area so the window remains fully visible
+  x = Math.round(
+    Math.max(
+      workArea.x,
+      Math.min(x, workArea.x + workArea.width - windowBounds.width)
+    )
+  )
+
+  y = Math.round(
+    Math.max(
+      workArea.y,
+      Math.min(y, workArea.y + workArea.height - windowBounds.height)
+    )
+  )
+
+  return { x, y }
+}
+
 function showWindow (): void {
   if (!mainWindow) return
   const position = getWindowPositionForTray()
+  mainWindow.setPosition(position.x, position.y, false)
+  mainWindow.show()
+  mainWindow.focus()
+  prefillKeyFromClipboard()
+}
+
+// Only used by the global shortcut: position relative to the mouse cursor.
+function showWindowAtCursor (): void {
+  if (!mainWindow) return
+  const position = getWindowPositionForCursor()
   mainWindow.setPosition(position.x, position.y, false)
   mainWindow.show()
   mainWindow.focus()
