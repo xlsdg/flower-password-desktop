@@ -1,4 +1,5 @@
 # flower-password-desktop
+
 Flower Password Mac Desktop App, based on Electron.
 
 ![Screen Shot](screenshot.png)
@@ -29,4 +30,4 @@ Command + Alt + S
 
 ## 4.官网地址
 
-https://flowerpassword.com/
+<https://flowerpassword.com/>

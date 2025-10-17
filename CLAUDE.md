@@ -4,17 +4,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FlowerPassword is a macOS menubar application built with Electron that implements a deterministic password generation system. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
+FlowerPassword is a macOS menubar application built with Electron and TypeScript that implements a deterministic password generation system. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
 
 ## Development Commands
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Building TypeScript
+
+Build all processes (main, preload, renderer) with Rspack:
+
+```bash
+npm run build
+```
+
+**Note**: All three processes (main, preload, renderer) are now built using **Rspack** with a unified configuration ([rspack.config.js](rspack.config.js)). This simplifies the build pipeline and uses Rspack's built-in SWC loader for fast TypeScript compilation. The renderer process bundles dependencies into a browser-compatible IIFE format, while main and preload processes output CommonJS for Node.js.
 
 ### Linting
 
 ```bash
-npm test
+npm run lint
 ```
 
-Uses StandardJS for code linting. Ignores `FlowerPassword.app/**` directory.
+Uses ESLint with TypeScript support for code linting. Ignores `dist/`, `out/`, `FlowerPassword.app/**` and `node_modules/` directories.
+
+### Code Formatting
+
+```bash
+# Format all files
+npm run format
+
+# Check formatting without modifying files
+npm run format:check
+```
+
+Uses Prettier to format TypeScript, JavaScript, JSON, Markdown, CSS, and HTML files.
+
+### Development Mode
+
+```bash
+# Build with watch mode (auto-rebuild on changes)
+npm run watch
+```
+
+Watches for file changes and automatically rebuilds with Rspack.
 
 ### Running the App
 
@@ -22,90 +59,315 @@ Uses StandardJS for code linting. Ignores `FlowerPassword.app/**` directory.
 npm start
 ```
 
-Launches the Electron app in development mode.
+Automatically builds TypeScript and launches the Electron app in development mode.
 
 ### Building for Production
 
+The project uses **Electron Forge** for building and packaging:
+
 ```bash
-npm run build
+# Build for Apple Silicon (ARM64) - default
+npm run make
+
+# Build for Intel (x64)
+npm run make:x64
+
+# Build for both architectures
+npm run make:all
 ```
 
-Packages the app for macOS (darwin/x64) using electron-packager. Output goes to `dist/` directory. Uses `images/FlowerPassword.icns` as the app icon.
+Output goes to `out/make/zip/darwin/[arch]/` directory. Uses `src/renderer/assets/FlowerPassword.icns` as the app icon.
+
+**Note**: Universal binary builds are currently not supported due to code signing conflicts in Electron 38. The project builds separate ARM64 and x64 binaries instead.
 
 ### Publishing a Release
 
+Releases are automatically published via GitHub Actions when you push a version tag:
+
+1. Update version in package.json:
+
 ```bash
-make publish
+npm version [major|minor|patch]
 ```
 
-This command:
+2. Push the version tag:
 
-1. Cleans up `dist/` and `FlowerPassword.zip`
-2. Runs `npm run build`
-3. Creates a properly compressed zip using `ditto` (macOS's Finder-compatible compression)
-4. Publishes the release to GitHub (requires `$TOKEN` environment variable)
+```bash
+git push && git push --tags
+```
 
-Version bump commands:
+3. GitHub Actions will automatically:
+   - Build ARM64 binary (Apple Silicon)
+   - Build x64 binary (Intel)
+   - Create FlowerPassword-arm64.zip and FlowerPassword-x64.zip
+   - Create a GitHub release with both zip files attached
 
-- `npm run release:major` - Major version bump
-- `npm run release:minor` - Minor version bump
-- `npm run release:patch` - Patch version bump
+You can also manually build locally with `npm run make:all`.
 
 ## Architecture
 
-### Entry Point
+### Project Structure
 
-- **app.js**: Main Electron process that creates the menubar application using the `menubar` package
-- **index.html + index.js**: Renderer process containing the UI and password generation logic
+The project follows modern Electron best practices with a modular TypeScript structure:
 
-### Key Components
+```
+src/
+├── main/              # Main process (TypeScript)
+│   ├── main.ts        # Application entry point
+│   ├── window.ts      # Window management
+│   ├── tray.ts        # Tray icon and menu management
+│   ├── menu.ts        # Application menu and shortcuts
+│   └── ipc.ts         # IPC message handlers
+├── preload/           # Preload scripts (TypeScript)
+│   └── index.ts       # Context bridge API exposure
+├── renderer/          # Renderer process
+│   ├── index.ts       # UI logic and password generation (TypeScript)
+│   ├── global.d.ts    # Global type declarations for renderer
+│   ├── html/          # HTML files
+│   │   └── index.html # Main UI template
+│   ├── css/           # Stylesheets
+│   │   ├── reset.css  # CSS reset
+│   │   └── index.css  # Main styles
+│   └── assets/        # Static assets
+│       ├── FlowerPassword.icns      # App icon for packaging
+│       ├── Icon.png                 # Dialog icon
+│       ├── IconTemplate.png         # Tray icon (1x)
+│       └── IconTemplate@2x.png      # Tray icon (2x)
+└── shared/            # Shared types and constants
+    └── types.ts       # Common type definitions
 
-#### Main Process (app.js)
+dist/                  # Compiled JavaScript output
+├── main/
+├── preload/
+└── renderer/
+```
 
-- **menubar instance**: Creates a menubar app with a 300x334 window that appears on the menubar
-- **IPC handlers**: Listens for `show`, `hide`, `quit`, and `confirmQuit` events from renderer
-- **Global shortcut**: Registers `Cmd+Alt+S` to show the app window
-- **Clipboard integration**: On window show, reads clipboard and attempts to extract domain from URLs using `urlite` and `psl` (Public Suffix List)
-- **Context menu**: Right-click on tray icon shows "Show" and "Quit" options
-- **Environment handling**: Uses `fix-path` and `user-env` to ensure proper PATH on macOS
+### TypeScript Configuration
 
-#### Renderer Process (index.js)
+The project uses a single unified TypeScript configuration:
 
+- **tsconfig.json**: Single configuration for all processes (main, preload, renderer)
+  - Includes all source files (`src/**/*`)
+  - Module: `ESNext` with `moduleResolution: bundler`
+  - `noEmit: true` (Rspack handles compilation)
+  - Strict type checking enabled
+  - Full DOM types available for renderer process
+
+**Note**: TypeScript is used only for type checking and editor support. All compilation is handled by Rspack's built-in SWC loader, eliminating the need for separate `tsc` builds.
+
+### Modern Electron Security Architecture
+
+This project uses Electron's modern security best practices:
+
+- **contextIsolation**: Enabled to isolate preload scripts from renderer
+- **nodeIntegration**: Disabled to prevent direct Node.js access in renderer
+- **sandbox**: Disabled only where necessary for specific functionality
+- **preload script**: Uses `contextBridge` to safely expose APIs to renderer
+- **TypeScript**: Full type safety across all processes
+
+### Entry Points
+
+- **dist/main/main.js**: Main Electron process (compiled from [src/main/main.ts](src/main/main.ts))
+- **dist/preload/index.js**: Preload script (compiled from [src/preload/index.ts](src/preload/index.ts))
+- **src/renderer/html/index.html + dist/renderer/index.js**: Renderer process UI
+
+### Main Process (src/main/)
+
+Modular architecture with separated concerns:
+
+**main.ts** - Application lifecycle:
+
+- Error handling
+- App initialization
+- Event listeners
+- macOS dock hiding
+
+**window.ts** - Window management:
+
+- Creates and manages the main BrowserWindow
+- Handles window show/hide/toggle
+- Window positioning
+- Communication with renderer process
+
+**tray.ts** - Tray icon and menu:
+
+- Creates system tray icon
+- Handles tray click events
+- Clipboard URL parsing and domain extraction
+- Window positioning below tray icon
+- Quit confirmation dialog
+
+**menu.ts** - Application menu:
+
+- Creates Edit menu (Undo, Redo, Cut, Copy, Paste, Select All)
+- Registers global shortcut (`Cmd+Alt+S`)
+- Shortcut cleanup on quit
+
+**ipc.ts** - IPC handlers:
+
+- `hide`: Hides window
+- `quit`: Shows confirmation dialog then quits
+- `clipboard:writeText`: Writes text to clipboard
+- `shell:openExternal`: Opens URLs in default browser
+
+### Preload Script (src/preload/index.ts)
+
+Safely exposes APIs using `contextBridge.exposeInMainWorld`:
+
+```typescript
+window.electronAPI = {
+  hide: () => void
+  quit: () => void
+  writeText: (text: string) => Promise<void>
+  openExternal: (url: string) => Promise<void>
+  onKeyFromClipboard: (callback: (value: string) => void) => void
+}
+```
+
+This prevents direct access to `ipcRenderer` and other Electron internals from the renderer process.
+
+### Renderer Process (src/renderer/index.ts)
+
+- **Modern ES module imports**: Uses standard `import { fpCode } from 'flowerpassword.js'` syntax
+- **Bundled with Rspack**: All dependencies bundled into a single IIFE for browser compatibility
 - **Password generation**: Uses `flowerpassword.js` library to generate passwords from:
   - Memory password (base password to remember)
   - Key/distinction code (prefix + key + suffix)
   - Length (6-32 characters)
-- **Auto-fill from clipboard**: Receives domain via IPC (`key-from-clipboard` event) and populates the key field
+- **Auto-fill from clipboard**: Receives domain via `window.electronAPI.onKeyFromClipboard`
 - **Enter key shortcut**: Pressing Enter in key field generates and copies password, then hides window
 - **Click to copy**: Clicking the generated password button copies it to clipboard and hides window
+- **External links**: Opens HTTPS links in default browser via `window.electronAPI.openExternal`
+- **Type-safe DOM manipulation**: All DOM elements are properly typed
 
-#### UI Flow
+### Shared Types (src/shared/types.ts)
 
-1. User opens app via menubar icon or global shortcut `Cmd+Alt+S`
-2. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
-3. User enters memory password and distinction code
-4. Password is generated in real-time as user types
-5. User presses Enter or clicks generated password to copy and close window
+Centralized type definitions for:
+
+- ElectronAPI interface
+- IPC channel constants
+- Window and tray configuration
+- URL parsing results
+
+### Global Type Declarations (src/renderer/global.d.ts)
+
+Extends the global `Window` interface to include the `electronAPI` property, providing type safety for renderer process IPC communication.
+
+### UI Flow
+
+1. User opens app via menubar icon (click), global shortcut (`Cmd+Alt+S`), or right-click menu
+2. Window appears below tray icon
+3. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
+4. User enters memory password and distinction code
+5. Password is generated in real-time as user types
+6. User presses Enter or clicks generated password to copy and close window
+7. Window auto-hides when it loses focus
 
 ### Dependencies
 
-- **menubar**: Creates the menubar application
+**Production:**
+
 - **flowerpassword.js**: Core password generation algorithm
 - **psl**: Public Suffix List parser for extracting domains
 - **urlite**: Lightweight URL parser
-- **fix-path**: Fixes PATH on macOS for spawned processes
-- **user-env**: Gets current user's environment variables
+
+**Development:**
+
+- **TypeScript**: v5.7.3 for type-safe development
+- **Rspack**: Fast Rust-based bundler (v1.5.8+)
+- **@rspack/core**: Rspack core library
+- **@rspack/cli**: Rspack CLI tool
+- **@types/node**: Node.js type definitions
+- **@typescript-eslint/**: TypeScript ESLint plugin and parser (v8.20.0+)
+- **Prettier**: Code formatter (v3.6.2+)
+- **eslint-config-prettier**: Disables conflicting ESLint rules
+- **eslint-plugin-prettier**: Runs Prettier as an ESLint rule
+- **@electron-forge/cli**: Electron Forge CLI for building and packaging (v7.10.2+)
+- **@electron-forge/maker-zip**: ZIP maker for macOS distributables
+- **@electron-forge/plugin-auto-unpack-natives**: Auto-unpacks native dependencies
+- **@electron-forge/plugin-fuses**: Electron Fuses for security configuration
+- **@electron/fuses**: Fuses configuration library
+- **electron**: v38.3.0+
+- **eslint**: TypeScript-aware linting (v8.57.0+)
 
 ## Code Style
 
-- Uses StandardJS code style (enforced via `npm test`)
-- Node.js style with CommonJS modules
-- No semicolons (StandardJS convention)
+- TypeScript with strict mode enabled
+- **No `any` types allowed** - all code is fully typed
+- Explicit function return types required
+- ESLint with TypeScript plugin for code linting
+- Prettier for code formatting
+- **Semicolons required**, single quotes (Prettier enforced)
+- ES5 trailing commas
+- 100 character line width
+- 2 spaces for indentation
+- LF line endings
+- Comprehensive JSDoc comments for all public functions
+
+### ESLint Rules
+
+Key ESLint rules configured in [.eslintrc.json](.eslintrc.json):
+
+- `@typescript-eslint/no-unused-vars`: Error (with `_` prefix exception for unused parameters)
+- `@typescript-eslint/explicit-function-return-type`: Error (all functions must have explicit return types)
+- `@typescript-eslint/no-explicit-any`: Error (no `any` types allowed)
+- `@typescript-eslint/no-floating-promises`: Error (all Promises must be handled)
+- `@typescript-eslint/await-thenable`: Error (only await on Promises)
+- `@typescript-eslint/no-misused-promises`: Error (prevent Promise misuse)
+- `no-console`: Warning (only `console.warn` and `console.error` allowed)
+
+### Prettier Configuration
+
+Configured in [.prettierrc.json](.prettierrc.json):
+
+- `semi`: true (semicolons required)
+- `singleQuote`: true (single quotes)
+- `trailingComma`: "es5" (trailing commas where valid in ES5)
+- `printWidth`: 100 (max line width)
+- `tabWidth`: 2 (2 spaces per indentation level)
+- `useTabs`: false (spaces, not tabs)
+- `arrowParens`: "always" (always include parens around arrow function parameters)
+- `endOfLine`: "lf" (Unix-style line endings)
+
+## CI/CD
+
+### GitHub Actions Workflow
+
+The project uses GitHub Actions for automated building and releasing:
+
+- **Trigger**: Automatically runs when a version tag (e.g., `v3.6.4`) is pushed
+- **Runner**: macOS-latest (required for building macOS apps)
+- **Build process**:
+  1. Checkout code
+  2. Setup Node.js 20
+  3. Install dependencies with `npm ci`
+  4. Build ARM64 binary with `npm run make`
+  5. Build x64 binary with `npm run make:x64`
+  6. Rename and organize zip files
+  7. Create GitHub release with both zip files attached
+
+- **Permissions**: Requires `contents: write` permission to create releases
+- **Workflow file**: [.github/workflows/release.yml](.github/workflows/release.yml)
+
+### Electron Forge Configuration
+
+The project uses [forge.config.js](forge.config.js) for Electron Forge configuration:
+
+- **packagerConfig**: Basic packaging options (asar, icon, app bundle ID)
+  - Excludes TypeScript source files and build artifacts
+- **makers**: Only ZIP maker for macOS (removed Windows/Linux makers)
+- **plugins**:
+  - `auto-unpack-natives`: Automatically unpacks native dependencies
+  - `fuses`: Security fuses for Electron (RunAsNode disabled, Cookie encryption enabled, etc.)
 
 ## Important Notes
 
 - This is a macOS-only application (darwin platform)
-- The app runs in the menubar with no dock icon (`showDockIcon: false`)
+- The app runs in the menubar with no dock icon
 - All text and UI labels are in Chinese
-- NodeIntegration is enabled in webPreferences (legacy Electron approach)
-- The app window is not resizable
+- **TypeScript with strict typing** - no `any` types allowed
+- Uses modern Electron security practices with `contextIsolation` and `contextBridge`
+- Supports both Intel (x64) and Apple Silicon (arm64) architectures with separate builds
+- Uses Electron Forge for modern build tooling and packaging
+- Modular architecture with separated concerns
+- Type-safe IPC communication between processes

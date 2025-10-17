@@ -3,15 +3,18 @@
   "productName": "FlowerPassword",
   "version": "3.6.4",
   "description": "flower password electron app",
-  "main": "app.js",
+  "main": "dist/main/main.js",
   "scripts": {
-    "test": "standard",
-    "start": "electron ./",
-    "build": "electron-packager . FlowerPassword --platform=darwin --arch=x64 --icon=images/FlowerPassword.icns --out=dist --overwrite --app-bundle-id=org.xlsdg.flowerpassword --app-version=$npm_package_version",
-    "publish": "publish-release --assets FlowerPassword.zip --notes Update --token $TOKEN",
-    "release:major": "npm version major && make publish",
-    "release:minor": "npm version minor && make publish",
-    "release:patch": "npm version patch && make publish"
+    "build": "rspack build -c rspack.config.js",
+    "watch": "rspack build -c rspack.config.js --watch",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.{ts,js,json,md,css,html}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,css,html}\"",
+    "start": "npm run build && electron-forge start",
+    "package": "npm run build && electron-forge package",
+    "make": "npm run build && electron-forge make --arch=arm64",
+    "make:x64": "npm run build && electron-forge make --arch=x64",
+    "make:all": "npm run make && npm run make:x64"
   },
   "repository": {
     "type": "git",
@@ -20,23 +23,26 @@
   "author": "xLsDg",
   "license": "MIT",
   "dependencies": {
-    "fix-path": "^3.0.0",
-    "flowerpassword.js": "^3.0.2",
-    "menubar": "^9.0.1",
-    "psl": "^1.8.0",
-    "urlite": "^2.0.2",
-    "user-env": "^2.0.0"
+    "flowerpassword.js": "^5.0.2",
+    "psl": "^1.15.0",
+    "urlite": "^3.1.0"
   },
   "devDependencies": {
-    "electron": "^9.0.2",
-    "electron-packager": "^14.2.1",
-    "electron-prebuilt": "^1.4.13",
-    "publish-release": "^1.6.1",
-    "standard": "^14.3.4"
-  },
-  "standard": {
-    "ignore": [
-      "FlowerPassword.app/**"
-    ]
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+    "@electron-forge/plugin-fuses": "^7.10.2",
+    "@electron/fuses": "^1.8.0",
+    "@rspack/cli": "^1.5.8",
+    "@rspack/core": "^1.5.8",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "electron": "^38.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "typescript": "^5.7.3"
   }
 }

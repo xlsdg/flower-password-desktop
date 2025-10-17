@@ -1,0 +1,66 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app (ARM64)
+        run: npm run make
+
+      - name: Build app (x64)
+        run: npm run make:x64
+
+      - name: Rename zip files
+        run: |
+          mv out/make/zip/darwin/arm64/FlowerPassword-darwin-arm64-*.zip FlowerPassword-arm64.zip
+          mv out/make/zip/darwin/x64/FlowerPassword-darwin-x64-*.zip FlowerPassword-x64.zip
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            FlowerPassword-arm64.zip
+            FlowerPassword-x64.zip
+          body: |
+            ## FlowerPassword v${{ steps.get_version.outputs.VERSION }}
+
+            ### 下载
+            - [FlowerPassword-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-arm64.zip) - macOS Apple Silicon (M1/M2/M3)
+            - [FlowerPassword-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-x64.zip) - macOS Intel
+
+            ### 安装
+            1. 下载适合你 Mac 的版本(Apple Silicon 或 Intel)
+            2. 解压缩
+            3. 将 FlowerPassword.app 拖到应用程序文件夹
+
+            ### 更新日志
+            查看完整更新日志: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
