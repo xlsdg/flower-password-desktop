@@ -78,6 +78,8 @@ function createWindow (): void {
 
   if (process.platform === 'darwin' && app.dock) {
     app.dock.hide()
+    // Prevent fullscreen spaces from reclaiming the window
+    mainWindow.setFullScreenable(false)
   }
 
   mainWindow.on('blur', () => {
@@ -204,6 +206,9 @@ function getWindowPositionForCursor (): { x: number; y: number } {
 
 function showWindow (): void {
   if (!mainWindow) return
+  if (process.platform === 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  }
   const position = getWindowPositionForTray()
   mainWindow.setPosition(position.x, position.y, false)
   mainWindow.show()
@@ -214,6 +219,9 @@ function showWindow (): void {
 // Only used by the global shortcut: position relative to the mouse cursor.
 function showWindowAtCursor (): void {
   if (!mainWindow) return
+  if (process.platform === 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  }
   const position = getWindowPositionForCursor()
   mainWindow.setPosition(position.x, position.y, false)
   mainWindow.show()
@@ -221,7 +229,13 @@ function showWindowAtCursor (): void {
   prefillKeyFromClipboard()
 }
 
-function hideWindow (): void { if (mainWindow) mainWindow.hide() }
+function hideWindow (): void {
+  if (!mainWindow) return
+  if (process.platform === 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(false)
+  }
+  mainWindow.hide()
+}
 
 function toggleWindow (): void { if (mainWindow) (mainWindow.isVisible() ? hideWindow() : showWindow()) }
 
