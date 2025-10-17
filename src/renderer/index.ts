@@ -1,81 +1,78 @@
 import { shell, ipcRenderer as ipc, clipboard } from 'electron'
 import fpCode from 'flowerpassword.js'
 
-const btnClose = document.getElementById('close') as HTMLElement
-const iptPassword = document.getElementById('password') as HTMLInputElement
-const iptKey = document.getElementById('key') as HTMLInputElement
-const iptPrefix = document.getElementById('prefix') as HTMLInputElement
-const iptSuffix = document.getElementById('suffix') as HTMLInputElement
-const btnCode = document.getElementById('code') as HTMLButtonElement
-const selLength = document.getElementById('length') as HTMLSelectElement
+const DEFAULT_BUTTON_TEXT = '生成密码(点击复制)'
 
-iptPassword.addEventListener('input', showCode, false)
-iptKey.addEventListener('input', showCode, false)
-iptPrefix.addEventListener('input', showCode, false)
-iptSuffix.addEventListener('input', showCode, false)
-selLength.addEventListener('change', showCode, false)
+// UI elements
+const closeButton = document.getElementById('close') as HTMLElement
+const passwordInput = document.getElementById('password') as HTMLInputElement
+const keyInput = document.getElementById('key') as HTMLInputElement
+const prefixInput = document.getElementById('prefix') as HTMLInputElement
+const suffixInput = document.getElementById('suffix') as HTMLInputElement
+const codeButton = document.getElementById('code') as HTMLButtonElement
+const lengthSelect = document.getElementById('length') as HTMLSelectElement
 
-iptKey.addEventListener('keypress', function (e) {
-  if ((e as KeyboardEvent).key === 'Enter' || (e as any).keyCode === 13) {
-    const code = showCode()
-    if (code !== false) {
-      clipboard.writeText(code as string)
+passwordInput.addEventListener('input', updateCode, false)
+keyInput.addEventListener('input', updateCode, false)
+prefixInput.addEventListener('input', updateCode, false)
+suffixInput.addEventListener('input', updateCode, false)
+lengthSelect.addEventListener('change', updateCode, false)
+
+// Press Enter in the key field to copy & hide quickly
+keyInput.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    const code = updateCode()
+    if (code) {
+      clipboard.writeText(code)
       e.preventDefault()
       hide()
     }
   }
 }, false)
 
-ipc.on('key-from-clipboard', function (_event, message) {
-  iptKey.value = message
-  showCode()
+ipc.on('key-from-clipboard', (_, message: string) => {
+  keyInput.value = message
+  updateCode()
 })
 
-function hide () {
+function hide (): void {
   ipc.send('hide', 'hide')
 }
 
-function showCode (_e?: Event) {
-  const password = iptPassword.value
-  let key = iptKey.value
-  const prefix = iptPrefix.value
-  const suffix = iptSuffix.value
-  const length = parseInt(selLength.value, 10)
-  let code = '生成密码(点击复制)'
+function updateCode (): string | null {
+  const password = passwordInput.value
+  let key = keyInput.value
+  const prefix = prefixInput.value
+  const suffix = suffixInput.value
+  const length = parseInt(lengthSelect.value, 10)
 
-  if ((password.length < 1) || (key.length < 1)) {
-    btnCode.textContent = code as string
-    return false
-  }
-
-  if (!fpCode) {
-    btnCode.textContent = code as string
-    return false
+  if (password.length < 1 || key.length < 1) {
+    codeButton.textContent = DEFAULT_BUTTON_TEXT
+    return null
   }
 
   key = prefix + key + suffix
-  code = fpCode(password, key, length)
-  btnCode.textContent = code as string
+  const code = fpCode(password, key, length)
+  codeButton.textContent = code
   return code
 }
 
-btnClose.addEventListener('click', function () { hide() }, false)
+closeButton.addEventListener('click', () => hide(), false)
 
-btnCode.addEventListener('click', function () {
-  const code = showCode()
-  if (code !== false) {
-    clipboard.writeText(code as string)
+codeButton.addEventListener('click', () => {
+  const code = updateCode()
+  if (code) {
+    clipboard.writeText(code)
     hide()
   }
 }, false)
 
-const links = document.querySelectorAll('a[href]')
-Array.prototype.forEach.call(links, function (link: HTMLAnchorElement) {
-  const url = link.getAttribute('href') || ''
-  if (url.indexOf('https') === 0) {
-    link.addEventListener('click', function (e) {
-      e.preventDefault()
-      shell.openExternal(url)
-    })
-  }
+// Open external https links in the system browser
+const links = document.querySelectorAll<HTMLAnchorElement>('a[href^="https"]')
+links.forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault()
+    // Use href to ensure absolute URL
+    shell.openExternal(link.href)
+  })
 })
