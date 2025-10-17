@@ -264,9 +264,16 @@ function prefillKeyFromClipboard (): void {
   }
 }
 
-function confirmAndQuit (): void {
+async function confirmAndQuit (): Promise<void> {
   hideWindow()
-  dialog.showMessageBox({
+  if (process.platform === 'darwin') {
+    // Steal focus on macOS so the confirmation dialog appears above other apps
+    app.focus({ steal: true })
+  } else {
+    app.focus()
+  }
+
+  const result = await dialog.showMessageBox({
     type: 'question',
     buttons: ['确定', '取消'],
     defaultId: 0,
@@ -274,7 +281,7 @@ function confirmAndQuit (): void {
     message: '确定退出？',
     icon: appIconPath,
     cancelId: 1
-  }).then((result) => {
-    if (result.response === 0) app.quit()
   })
+
+  if (result.response === 0) app.quit()
 }
