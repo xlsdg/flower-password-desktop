@@ -78,6 +78,9 @@ function createWindow (): void {
   mainWindow.on('blur', () => {
     if (mainWindow && !mainWindow.webContents.isDevToolsOpened()) hideWindow()
   })
+
+  // In case the window gets closed (e.g. via DevTools), release the reference
+  mainWindow.on('closed', () => { mainWindow = null })
 }
 
 function registerIpcHandlers (): void {
@@ -107,7 +110,8 @@ function createApplicationMenu (): void {
 
 function registerGlobalShortcuts (): void {
   if (!globalShortcut.isRegistered('CmdOrCtrl+Alt+S')) {
-    globalShortcut.register('CmdOrCtrl+Alt+S', () => showWindow())
+    const ok = globalShortcut.register('CmdOrCtrl+Alt+S', () => showWindow())
+    if (!ok) console.warn('Failed to register global shortcut: CmdOrCtrl+Alt+S')
   }
 }
 

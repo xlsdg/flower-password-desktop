@@ -36,7 +36,8 @@ ipc.on('key-from-clipboard', (_, message: string) => {
 })
 
 function hide (): void {
-  ipc.send('hide', 'hide')
+  // Only the channel is used by the main process; no payload needed
+  ipc.send('hide')
 }
 
 function updateCode (): string | null {
@@ -44,7 +45,8 @@ function updateCode (): string | null {
   let key = keyInput.value
   const prefix = prefixInput.value
   const suffix = suffixInput.value
-  const length = parseInt(lengthSelect.value, 10)
+  // Coerce length safely; fall back to 16 if somehow not a number
+  const length = parseInt(lengthSelect.value, 10) || 16
 
   if (password.length < 1 || key.length < 1) {
     codeButton.textContent = DEFAULT_BUTTON_TEXT
