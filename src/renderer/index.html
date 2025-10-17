@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <meta name="format-detection" content="telephone=no,email=no"/>
+    <meta name="description" content="花密"/>
+    <title>花密</title>
+    <link rel="stylesheet" href="styles/reset.css" />
+    <link rel="stylesheet" href="styles/index.css" />
+</head>
+<body>
+    <div class="flower-password">
+        <i id="close" class="close" title="关闭"></i>
+        <h1 class="title">花密 Flower Password</h1>
+        <div class="input-wrap">
+            <input id="password" class="password" name="password" type="password" placeholder="记忆密码" tabindex="1" autofocus="autofocus" />
+        </div>
+        <div class="input-wrap">
+            <input id="key" class="key" name="key" type="text" placeholder="区分代号" tabindex="2" />
+        </div>
+        <div class="ctrl-wrap">
+            <button id="code" class="btn-code" tabindex="3">生成密码(点击复制)</button>
+            <select id="length" class="sel-length" tabindex="4">
+              <option value="6">06位</option>
+              <option value="7">07位</option>
+              <option value="8">08位</option>
+              <option value="9">09位</option>
+              <option value="10">10位</option>
+              <option value="11">11位</option>
+              <option value="12">12位</option>
+              <option value="13">13位</option>
+              <option value="14">14位</option>
+              <option value="15">15位</option>
+              <option value="16" selected="selected">16位</option>
+              <option value="17">17位</option>
+              <option value="18">18位</option>
+              <option value="19">19位</option>
+              <option value="20">20位</option>
+              <option value="21">21位</option>
+              <option value="22">22位</option>
+              <option value="23">23位</option>
+              <option value="24">24位</option>
+              <option value="25">25位</option>
+              <option value="26">26位</option>
+              <option value="27">27位</option>
+              <option value="28">28位</option>
+              <option value="29">29位</option>
+              <option value="30">30位</option>
+              <option value="31">31位</option>
+              <option value="32">32位</option>
+            </select>
+        </div>
+        <div class="input-wrap">
+            <input id="prefix" class="prefix" name="prefix" type="text" placeholder="区分代号前缀" tabindex="5" />
+            <input id="suffix" class="suffix" name="suffix" type="text" placeholder="区分代号后缀" tabindex="6" />
+        </div>
+        <p class="hint">· 记忆密码：可选择一个简单易记的密码，用于生成其他高强度密码。</p>
+        <p class="hint">· 区分代号：用于区别不同用途密码的简短代号，如淘宝账号可用“taobao”或“tb”等。</p>
+        <p class="hint">· 输入框按 Enter 键关闭本窗口。</p>
+        <p class="hint">· 花密官网地址：<a href="https://flowerpassword.com/" target="_blank">https://flowerpassword.com/</a></p>
+    </div>
+    <!-- Load renderer logic via Node's require so CommonJS (exports/require) works in renderer -->
+    <script>require('./index.js')</script>
+</body>
+</html>

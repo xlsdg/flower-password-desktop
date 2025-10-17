@@ -3,15 +3,20 @@
   "productName": "FlowerPassword",
   "version": "3.6.4",
   "description": "flower password electron app",
-  "main": "app.js",
+  "main": "dist-app/main/app.js",
   "scripts": {
-    "test": "standard",
-    "start": "electron ./",
-    "build": "electron-packager . FlowerPassword --platform=darwin --arch=x64 --icon=images/FlowerPassword.icns --out=dist --overwrite --app-bundle-id=org.xlsdg.flowerpassword --app-version=$npm_package_version",
-    "publish": "publish-release --assets FlowerPassword.zip --notes Update --token $TOKEN",
-    "release:major": "npm version major && make publish",
-    "release:minor": "npm version minor && make publish",
-    "release:patch": "npm version patch && make publish"
+    "build:ts": "tsc -p tsconfig.json",
+    "copy:renderer": "copyfiles -u 1 src/renderer/index.html src/renderer/styles/** dist-app",
+    "copy:images": "copyfiles -u 0 images/** dist-app",
+    "build:assets": "npm run copy:renderer && npm run copy:images",
+    "build:prepare": "rimraf dist-app && npm run build:ts && npm run build:assets",
+    "start": "npm run build:prepare && electron ./",
+    "build:mac": "npm run build:prepare && electron-builder --mac --x64 --arm64",
+    "build:win": "npm run build:prepare && electron-builder --win --x64 --arm64",
+    "build:linux": "npm run build:prepare && electron-builder --linux --x64 --arm64",
+    "release:major": "npm version major",
+    "release:minor": "npm version minor",
+    "release:patch": "npm version patch"
   },
   "repository": {
     "type": "git",
@@ -20,23 +25,59 @@
   "author": "xLsDg",
   "license": "MIT",
   "dependencies": {
-    "fix-path": "^3.0.0",
-    "flowerpassword.js": "^3.0.2",
-    "menubar": "^9.0.1",
-    "psl": "^1.8.0",
-    "urlite": "^2.0.2",
-    "user-env": "^2.0.0"
+    "flowerpassword.js": "^3.0.12",
+    "psl": "^1.15.0",
+    "urlite": "^3.1.0"
   },
   "devDependencies": {
-    "electron": "^9.0.2",
-    "electron-packager": "^14.2.1",
-    "electron-prebuilt": "^1.4.13",
-    "publish-release": "^1.6.1",
-    "standard": "^14.3.4"
+    "electron": "^38.3.0",
+    "electron-builder": "^24.13.3",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.7.7"
   },
-  "standard": {
-    "ignore": [
-      "FlowerPassword.app/**"
-    ]
+  "build": {
+    "appId": "org.xlsdg.flowerpassword",
+    "productName": "FlowerPassword",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "images"
+    },
+    "files": [
+      "dist-app/**",
+      "node_modules/**",
+      "!src/**",
+      "!**/*.ts",
+      "!**/*.map"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "images/FlowerPassword.icns",
+      "artifactName": "FlowerPassword-${os}-${arch}-${version}.${ext}",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "win": {
+      "icon": "images/Icon.png",
+      "target": [
+        { "target": "nsis", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "artifactName": "FlowerPassword-${os}-${arch}-${version}.${ext}"
+    },
+    "linux": {
+      "icon": "images/Icon.png",
+      "category": "Utility",
+      "target": [
+        { "target": "AppImage", "arch": ["x64", "arm64"] },
+        { "target": "deb", "arch": ["x64", "arm64"] },
+        { "target": "tar.gz", "arch": ["x64", "arm64"] }
+      ],
+      "artifactName": "FlowerPassword-${os}-${arch}-${version}.${ext}"
+    }
   }
 }

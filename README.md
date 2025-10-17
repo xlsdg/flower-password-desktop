@@ -1,21 +1,57 @@
 # flower-password-desktop
-Flower Password Mac Desktop App, based on Electron.
+
+Flower Password desktop app based on Electron. 现已迁移为 TypeScript + electron-builder 构建与发布。
 
 ![Screen Shot](screenshot.png)
 
-## 0.全局快捷键
+## 0. 开发与构建
+
+- 安装依赖：
+
+```
+npm install
+```
+
+- 本地运行（先编译 TS 并复制资源到 dist-app/）：
+
+```
+npm start
+```
+
+- 本地打包（macOS x64/arm64，产物在 dist/）：
+
+```
+make package
+```
+
+- GitHub Release（macOS/Windows/Linux 多平台矩阵）：
+  1) 使用 `npm run release:patch|min|major` 升级版本并打 tag
+  2) `git push --follow-tags` 触发 GitHub Actions 构建并创建 Release
+
+项目入口与结构：
+
+- 主进程：`src/main/app.ts`（编译至 `dist-app/main/app.js`，`package.json:main` 指向此文件）
+- 渲染进程：`src/renderer/index.ts`（编译至 `dist-app/renderer/index.js`）
+- 渲染 HTML/CSS：`src/renderer/index.html`、`src/renderer/styles/{reset.css,index.css}`（复制到 `dist-app/renderer/`）
+- 资源：`images/**`（复制到 `dist-app/images/`）
+
+说明：渲染页面通过 `require('./index.js')` 加载编译后的 CommonJS 包，以便在渲染进程中使用 `require/exports`。
+
+说明：已移除旧版 `app.js` / `index.js`；请在 `src/**` 下进行开发。
+
+## 1. 全局快捷键
 
 Command + Alt + S
 
-## 1.“花密”是用来干什么的
+## 2. “花密”是用来干什么的
 
 “花密”提供一种简单的密码管理方法，你只需要记住一个“记忆密码”，为不同的账号设置不同的“区分代号”，然后通过“花密”计算就可以得到对应的不同的复杂密码。
 
-## 2.“花密“”的计算过程
+## 3. “花密” 的计算过程
 
 假设记忆密码为“123456”，区分代号为“taobao”，通过“花密”计算加密，得到最终密码为“KfdDf77F7D64e5c0”。虽然原来的记忆密码比较简单，但是经过花密处理，密码就变得强壮了。
 
-## 3.如何使用“花密”
+## 4. 如何使用“花密”
 
 ### A.设计一个和个人信息无关的“记忆密码”
 
@@ -27,6 +63,6 @@ Command + Alt + S
 
 ### C.将原账号的密码修改成由“花密”计算出的最终密码
 
-## 4.官网地址
+## 5. 官网地址
 
-https://flowerpassword.com/
+<https://flowerpassword.com/>

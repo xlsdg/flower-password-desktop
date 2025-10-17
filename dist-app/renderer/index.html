@@ -6,12 +6,12 @@
     <meta name="format-detection" content="telephone=no,email=no"/>
     <meta name="description" content="花密"/>
     <title>花密</title>
-    <link rel="stylesheet" href="reset.css" />
-    <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="styles/reset.css" />
+    <link rel="stylesheet" href="styles/index.css" />
 </head>
 <body>
     <div class="flower-password">
-        <i id="close" class="close" title="退出"></i>
+        <i id="close" class="close" title="关闭"></i>
         <h1 class="title">花密 Flower Password</h1>
         <div class="input-wrap">
             <input id="password" class="password" name="password" type="password" placeholder="记忆密码" tabindex="1" autofocus="autofocus" />
@@ -60,6 +60,7 @@
         <p class="hint">· 输入框按 Enter 键关闭本窗口。</p>
         <p class="hint">· 花密官网地址：<a href="https://flowerpassword.com/" target="_blank">https://flowerpassword.com/</a></p>
     </div>
-    <script src="index.js"></script>
+    <!-- Load renderer logic via Node's require so CommonJS (exports/require) works in renderer -->
+    <script>require('./index.js')</script>
 </body>
 </html>

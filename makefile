@@ -1,9 +1,5 @@
-publish:
-	-rm -rf dist/ FlowerPassword.zip
-	npm run build
-	@# ditto creates a much better compressed zip file compared to the zip command
-	@# these flags come from ditto's man page on how to create an archive in the
-	@# same manner as Finder's compress option
-	ditto -c -k --sequesterRsrc --keepParent dist/FlowerPassword-darwin-x64/FlowerPassword.app FlowerPassword.zip
-	npm run publish
-.PHONY: publish
+package:
+    -rm -rf dist/
+    npm run build:mac
+    @echo "Artifacts are in dist/ (macOS DMG/ZIP for x64 and arm64). Windows/Linux artifacts are produced by GitHub Actions. Tag a commit to trigger release."
+.PHONY: package
