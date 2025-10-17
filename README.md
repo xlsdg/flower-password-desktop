@@ -18,14 +18,13 @@ npm install
 npm start
 ```
 
-- 本地打包（macOS x64/arm64，产物在 dist/）：
-
-```
-make package
-```
+- 本地打包：
+  - macOS（x64/arm64，产物在 `dist/`）：`make package` 或 `npm run build:mac`
+  - Windows：`npm run build:win`
+  - Linux：`npm run build:linux`
 
 - GitHub Release（macOS/Windows/Linux 多平台矩阵）：
-  1) 使用 `npm run release:patch|min|major` 升级版本并打 tag
+  1) 使用 `npm run release:{patch|minor|major}` 升级版本并打 tag
   2) `git push --follow-tags` 触发 GitHub Actions 构建并创建 Release
 
 项目入口与结构：
@@ -41,7 +40,7 @@ make package
 
 ## 1. 全局快捷键
 
-Command + Alt + S
+macOS: Command + Alt + S；Windows/Linux: Ctrl + Alt + S
 
 ## 2. “花密”是用来干什么的
 
