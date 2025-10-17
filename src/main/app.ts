@@ -9,6 +9,7 @@ import {
   Tray,
   BrowserWindow,
   screen,
+  nativeImage,
   type BrowserWindowConstructorOptions,
   type MenuItemConstructorOptions
 } from 'electron'
@@ -49,7 +50,11 @@ function registerProcessHandlers (): void {
 }
 
 function createTray (): void {
-  appTray = new Tray(trayIconPath)
+  // Use a template image on macOS so the system auto-tints for light/dark modes
+  // and active/inactive states. Retina (@2x) variant is picked up automatically.
+  const img = nativeImage.createFromPath(trayIconPath)
+  if (process.platform === 'darwin') img.setTemplateImage(true)
+  appTray = new Tray(img)
   appTray.setToolTip('花密')
 
   appTray.on('click', () => toggleWindow())
