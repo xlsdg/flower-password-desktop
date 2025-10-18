@@ -4,7 +4,7 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: 'src/renderer/assets/FlowerPassword', // Will auto-select .icns for macOS, .ico for Windows
+    icon: 'assets/FlowerPassword', // Will auto-select .icns for macOS, .ico for Windows
     appBundleId: 'org.xlsdg.flowerpassword',
     // Ensure all necessary files are included
     extraResource: [],
@@ -28,7 +28,7 @@ module.exports = {
       name: '@electron-forge/maker-dmg',
       config: {
         name: 'FlowerPassword',
-        icon: 'src/renderer/assets/FlowerPassword.icns',
+        icon: 'assets/FlowerPassword.icns',
         format: 'ULFO', // Use ULFO format for better compatibility
       },
       platforms: ['darwin'],
@@ -41,7 +41,7 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         name: 'FlowerPassword',
-        setupIcon: 'src/renderer/assets/FlowerPassword.ico',
+        setupIcon: 'assets/FlowerPassword.ico',
       },
       platforms: ['win32'],
     },
@@ -51,7 +51,7 @@ module.exports = {
         options: {
           maintainer: 'xLsDg',
           homepage: 'https://github.com/xlsdg/flower-password-desktop',
-          icon: 'src/renderer/assets/FlowerPassword.png',
+          icon: 'assets/FlowerPassword.png',
         },
       },
       platforms: ['linux'],
@@ -61,7 +61,7 @@ module.exports = {
       config: {
         options: {
           homepage: 'https://github.com/xlsdg/flower-password-desktop',
-          icon: 'src/renderer/assets/FlowerPassword.png',
+          icon: 'assets/FlowerPassword.png',
         },
       },
       platforms: ['linux'],

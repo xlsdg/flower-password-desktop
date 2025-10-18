@@ -126,9 +126,9 @@ npm run make:linux:arm64  # ARM64 (Raspberry Pi, etc.)
 
 **Icons:**
 
-- macOS: Uses `src/renderer/assets/FlowerPassword.icns`
-- Windows: Uses `src/renderer/assets/FlowerPassword.ico`
-- Linux: Uses `src/renderer/assets/FlowerPassword.png`
+- macOS: Uses `assets/FlowerPassword.icns`
+- Windows: Uses `assets/FlowerPassword.ico`
+- Linux: Uses `assets/FlowerPassword.png`
 
 **Note**: Universal binary builds for macOS are currently not supported due to code signing conflicts in Electron 38. The project builds separate ARM64 and x64 binaries instead.
 
@@ -188,16 +188,18 @@ src/
 │   ├── styles/        # LESS stylesheets
 │   │   ├── reset.less # Cross-platform normalization
 │   │   └── index.less # Main styles with light/dark theme support
-│   └── assets/        # Static assets
-│       ├── FlowerPassword.icns      # macOS app icon
-│       ├── FlowerPassword.ico       # Windows app icon
-│       ├── FlowerPassword.png       # Linux app icon
+│   └── assets/        # Runtime assets (tray icons, dialog icons)
 │       ├── Icon.png                 # Dialog icon
 │       ├── IconTemplate.png         # Tray icon (1x)
 │       └── IconTemplate@2x.png      # Tray icon (2x)
 └── shared/            # Shared types and constants
     ├── types.ts       # Common type definitions
     └── constants.ts   # Shared constants (shortcuts, paths, UI text)
+
+assets/                # Build-time assets (app icons)
+├── FlowerPassword.icns      # macOS app icon
+├── FlowerPassword.ico       # Windows app icon
+└── FlowerPassword.png       # Linux app icon
 
 dist/                  # Compiled JavaScript output
 ├── main/
