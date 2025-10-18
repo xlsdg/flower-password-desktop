@@ -2,12 +2,72 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="format-detection" content="telephone=no,email=no" />
-    <meta name="description" content="花密" />
+    <!-- Viewport for consistent scaling across different DPI settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Content Security Policy for enhanced security -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
+    />
+    <!-- Disable auto-detection of phone numbers and email addresses -->
+    <meta name="format-detection" content="telephone=no,email=no,address=no" />
+    <!-- Application description -->
+    <meta name="description" content="花密 - 基于记忆密码与区分代号生成密码的应用" />
+    <!-- Prevent text size adjustment on different platforms -->
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>花密</title>
+    <style>
+      /* Critical CSS for preventing FOUC (Flash of Unstyled Content) */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        /* Prevent text size adjustment on mobile and different platforms */
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        /* Ensure consistent font rendering across platforms */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Prevent font boosting on Android */
+        -webkit-text-size-adjust: none;
+      }
+
+      #root {
+        width: 100%;
+        height: 100%;
+        /* Prevent scrolling */
+        overflow: hidden;
+      }
+
+      /* Prevent selection and dragging for better app-like experience */
+      body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-app-region: no-drag;
+      }
+
+      /* Allow text selection in input fields */
+      input,
+      textarea,
+      select {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Main application script -->
     <script src="../../../dist/renderer/index.js"></script>
   </body>
 </html>
