@@ -26,30 +26,17 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        /* Prevent text size adjustment on mobile and different platforms */
-        -webkit-text-size-adjust: 100%;
-        -moz-text-size-adjust: 100%;
-        -ms-text-size-adjust: 100%;
-        text-size-adjust: 100%;
-        /* Ensure consistent font rendering across platforms */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        /* Prevent font boosting on Android */
-        -webkit-text-size-adjust: none;
       }
 
       #root {
         width: 100%;
         height: 100%;
-        /* Prevent scrolling */
         overflow: hidden;
       }
 
-      /* Prevent selection and dragging for better app-like experience */
+      /* Electron-specific: Prevent selection and dragging for app-like experience */
       body {
         -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
         user-select: none;
         -webkit-app-region: no-drag;
       }
@@ -59,8 +46,6 @@
       textarea,
       select {
         -webkit-user-select: text;
-        -moz-user-select: text;
-        -ms-user-select: text;
         user-select: text;
       }
     </style>

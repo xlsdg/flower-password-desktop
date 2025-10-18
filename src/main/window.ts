@@ -51,7 +51,7 @@ export function createWindow(): BrowserWindow {
   });
 
   // Uncomment to open DevTools in development
-  // mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools();
 
   return mainWindow;
 }

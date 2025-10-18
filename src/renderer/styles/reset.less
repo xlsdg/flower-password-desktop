@@ -1,6 +1,6 @@
 /**
  * Reset styles and cross-platform normalization
- * Optimized for modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+ * Optimized for Electron desktop apps (macOS, Windows, Linux)
  */
 
 // Universal box-sizing and tap behavior
@@ -29,6 +29,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  // Prevent text size adjustment on Windows/Linux high DPI displays
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 // Input and form element normalization for cross-platform consistency
@@ -42,7 +45,7 @@ button {
   margin: 0;
 }
 
-// Remove default input styling on iOS
+// Remove default input styling on all platforms
 input[type='text'],
 input[type='password'],
 input[type='email'],
@@ -51,7 +54,6 @@ textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border-radius: 0;
 }
 
 // Consistent button styling across platforms
