@@ -135,7 +135,8 @@ src/
 │       ├── IconTemplate.png         # Tray icon (1x)
 │       └── IconTemplate@2x.png      # Tray icon (2x)
 └── shared/            # Shared types and constants
-    └── types.ts       # Common type definitions
+    ├── types.ts       # Common type definitions
+    └── constants.ts   # Shared constants (shortcuts, paths, UI text)
 
 dist/                  # Compiled JavaScript output
 ├── main/
@@ -252,14 +253,24 @@ This prevents direct access to `ipcRenderer` and other Electron internals from t
 - **External links**: Opens HTTPS links in default browser via `window.electronAPI.openExternal`
 - **Type-safe DOM manipulation**: All DOM elements are properly typed
 
-### Shared Types (src/shared/types.ts)
+### Shared Types and Constants (src/shared/)
 
-Centralized type definitions for:
+**types.ts** - Centralized type definitions:
 
 - ElectronAPI interface
 - IPC channel constants
 - Window and tray configuration
 - URL parsing results
+
+**constants.ts** - Shared constants across processes:
+
+- `GLOBAL_SHORTCUTS`: Global keyboard shortcuts (e.g., `Cmd+Alt+S`)
+- `ASSETS_PATH`: Asset file paths for tray icon and dialog icon
+- `DIALOG_TEXTS`: Text constants for dialogs and tray menu (in Chinese)
+- `UI_TEXTS`: UI text constants for renderer process
+- `DOM_IDS`: DOM element IDs for type-safe element selection
+- `KEYBOARD_KEYS`: Keyboard key constants
+- `ALLOWED_URL_PROTOCOLS`: Allowed URL protocols for external links
 
 ### Global Type Declarations (src/renderer/global.d.ts)
 
@@ -287,12 +298,12 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 
 **Development:**
 
-- **TypeScript**: v5.7.3 for type-safe development
+- **TypeScript**: v5.9.3 for type-safe development
 - **Rspack**: Fast Rust-based bundler (v1.5.8+)
 - **@rspack/core**: Rspack core library
 - **@rspack/cli**: Rspack CLI tool
 - **@types/node**: Node.js type definitions
-- **@typescript-eslint/**: TypeScript ESLint plugin and parser (v8.20.0+)
+- **@typescript-eslint/**: TypeScript ESLint plugin and parser (v8.46.1+)
 - **Prettier**: Code formatter (v3.6.2+)
 - **eslint-config-prettier**: Disables conflicting ESLint rules
 - **eslint-plugin-prettier**: Runs Prettier as an ESLint rule
@@ -302,7 +313,7 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - **@electron-forge/plugin-fuses**: Electron Fuses for security configuration
 - **@electron/fuses**: Fuses configuration library
 - **electron**: v38.3.0+
-- **eslint**: TypeScript-aware linting (v8.57.0+)
+- **eslint**: v9.37.0+ (using flat config format)
 
 ## Code Style
 
@@ -319,9 +330,17 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - Comprehensive JSDoc comments for all public functions
 - **All code comments MUST be written in English only** - Chinese comments are not allowed
 
-### ESLint Rules
+### ESLint Configuration
 
-Key ESLint rules configured in [.eslintrc.json](.eslintrc.json):
+The project uses ESLint v9+ with the new **flat config format** in [eslint.config.js](eslint.config.js):
+
+**Key features:**
+
+- Separate configurations for JavaScript and TypeScript files
+- Global ignores for `dist/`, `out/`, `FlowerPassword.app/**`, `node_modules/**`, and `**/*.d.ts`
+- TypeScript-specific rules with type-aware linting
+
+**Key ESLint rules:**
 
 - `@typescript-eslint/no-unused-vars`: Error (with `_` prefix exception for unused parameters)
 - `@typescript-eslint/explicit-function-return-type`: Error (all functions must have explicit return types)
@@ -329,7 +348,9 @@ Key ESLint rules configured in [.eslintrc.json](.eslintrc.json):
 - `@typescript-eslint/no-floating-promises`: Error (all Promises must be handled)
 - `@typescript-eslint/await-thenable`: Error (only await on Promises)
 - `@typescript-eslint/no-misused-promises`: Error (prevent Promise misuse)
+- `@typescript-eslint/strict-boolean-expressions`: Off (allows flexible boolean expressions)
 - `no-console`: Warning (only `console.warn` and `console.error` allowed)
+- `prettier/prettier`: Error (Prettier formatting enforced through ESLint)
 
 ### Prettier Configuration
 
