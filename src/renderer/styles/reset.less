@@ -1,86 +1,72 @@
 /**
- * Reset styles and utility classes
+ * Reset styles and cross-platform normalization
+ * Optimized for modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
  */
 
-.fn-clear {
-  *zoom: 1;
-}
-
-.fn-clear::before,
-.fn-clear::after {
-  content: '';
-  display: table;
-}
-
-.fn-clear::after {
-  clear: both;
-}
-
-.fn-left {
-  float: left;
-}
-
-.fn-right {
-  float: right;
-}
-
-.fn-hide {
-  display: none;
-}
-
-.fn-show {
-  display: block;
-}
-
-.text-left {
-  text-align: left;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
+// Universal box-sizing and tap behavior
 *,
-::after,
-::before {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  -o-box-sizing: border-box;
+::before,
+::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  tap-highlight-color: transparent;
 }
 
-.disabled-select {
-  -ms-user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.no-appear {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
-}
-
+// Base HTML/Body reset
+html,
 body {
-  font-family:
-    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-}
-
-body,
-html {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  -webkit-text-size-adjust: none;
+}
+
+// Cross-platform font stack
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  // Smooth font rendering across platforms
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// Input and form element normalization for cross-platform consistency
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.15;
+  margin: 0;
+}
+
+// Remove default input styling on iOS
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='number'],
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+// Consistent button styling across platforms
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+// Select element normalization
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
