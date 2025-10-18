@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'node:path';
 import type { WindowConfig } from '../shared/types';
+import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -119,4 +120,17 @@ export function sendToRenderer(channel: string, data: string): void {
   if (mainWindow) {
     mainWindow.webContents.send(channel, data);
   }
+}
+
+/**
+ * 根据鼠标位置显示窗口
+ * 窗口的左上角会显示在鼠标的右下方
+ */
+export function showWindowAtCursor(): void {
+  if (!mainWindow) {
+    return;
+  }
+
+  positionWindowAtCursor(mainWindow);
+  showWindow();
 }

@@ -117,6 +117,7 @@ src/
 │   ├── window.ts      # Window management
 │   ├── tray.ts        # Tray icon and menu management
 │   ├── menu.ts        # Application menu and shortcuts
+│   ├── position.ts    # Window positioning logic
 │   └── ipc.ts         # IPC message handlers
 ├── preload/           # Preload scripts (TypeScript)
 │   └── index.ts       # Context bridge API exposure
@@ -186,21 +187,32 @@ Modular architecture with separated concerns:
 
 - Creates and manages the main BrowserWindow
 - Handles window show/hide/toggle
-- Window positioning
+- Provides window position and bounds getters
+- Exposes `showWindowAtCursor()` for displaying window at mouse position
 - Communication with renderer process
+
+**position.ts** - Window positioning logic:
+
+- `calculatePositionBelowTray(tray, windowBounds)`: Pure function to calculate window position below tray icon
+- `calculatePositionAtCursor(windowBounds)`: Pure function to calculate window position at cursor with screen boundary detection
+- `positionWindowBelowTray(window, tray)`: Positions window below tray icon
+- `positionWindowAtCursor(window)`: Positions window at cursor location
+- All positioning logic centralized for testability and reusability
 
 **tray.ts** - Tray icon and menu:
 
 - Creates system tray icon
-- Handles tray click events
-- Clipboard URL parsing and domain extraction
-- Window positioning below tray icon
+- Handles tray click events (toggle window visibility)
+- Right-click context menu (显示, 退出)
+- `parseClipboardUrl()`: Extracts domain from clipboard URL
+- `handleShowWindowBelowTray()`: Shows window below tray icon with clipboard parsing
+- `handleShowWindowAtCursor()`: Shows window at cursor position with clipboard parsing
 - Quit confirmation dialog
 
 **menu.ts** - Application menu:
 
 - Creates Edit menu (Undo, Redo, Cut, Copy, Paste, Select All)
-- Registers global shortcut (`Cmd+Alt+S`)
+- Registers global shortcut (`Cmd+Alt+S`) that triggers `handleShowWindowAtCursor()`
 - Shortcut cleanup on quit
 
 **ipc.ts** - IPC handlers:
@@ -255,13 +267,15 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 
 ### UI Flow
 
-1. User opens app via menubar icon (click), global shortcut (`Cmd+Alt+S`), or right-click menu
-2. Window appears below tray icon
-3. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
-4. User enters memory password and distinction code
-5. Password is generated in real-time as user types
-6. User presses Enter or clicks generated password to copy and close window
-7. Window auto-hides when it loses focus
+1. User opens app via:
+   - **Menubar icon click**: Window appears below tray icon
+   - **Global shortcut (`Cmd+Alt+S`)**: Window appears at mouse cursor position
+   - **Right-click menu "显示"**: Window appears below tray icon
+2. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
+3. User enters memory password and distinction code
+4. Password is generated in real-time as user types
+5. User presses Enter or clicks generated password to copy and close window
+6. Window auto-hides when it loses focus
 
 ### Dependencies
 

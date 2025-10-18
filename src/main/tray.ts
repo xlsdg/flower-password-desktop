@@ -2,7 +2,8 @@ import { Tray, Menu, nativeImage, clipboard, dialog, app } from 'electron';
 import * as path from 'node:path';
 import * as psl from 'psl';
 import { parse as parseUrl } from 'urlite';
-import { toggleWindow, showWindow, hideWindow, setWindowPosition, getWindowBounds, sendToRenderer } from './window';
+import { showWindow, hideWindow, sendToRenderer, showWindowAtCursor, getWindow } from './window';
+import { positionWindowBelowTray } from './position';
 import { IPC_CHANNELS } from '../shared/types';
 import type { ParsedURL, ParsedDomain } from '../shared/types';
 
@@ -15,7 +16,6 @@ let tray: Tray | null = null;
 export function createTray(): Tray {
   // 使用 app.getAppPath() 获取应用根目录,确保开发和生产环境路径都正确
   const iconPath = path.join(app.getAppPath(), 'src/renderer/assets/IconTemplate.png');
-
   const icon = nativeImage.createFromPath(iconPath);
   icon.setTemplateImage(true); // 设置为模板图标,适配 macOS 深色/浅色模式
 
@@ -32,7 +32,7 @@ export function createTray(): Tray {
     {
       label: '显示',
       click: (): void => {
-        handleShowWindow();
+        handleShowWindowBelowTray();
       },
     },
     {
@@ -64,18 +64,10 @@ export function getTray(): Tray | null {
 }
 
 /**
- * 处理托盘图标点击
+ * 从剪贴板读取URL并提取域名
+ * 如果提取成功，将域名发送到渲染进程
  */
-function handleTrayClick(): void {
-  toggleWindow();
-}
-
-/**
- * 处理显示窗口
- * 读取剪贴板并提取域名
- */
-export function handleShowWindow(): void {
-  // 从剪贴板读取URL并提取域名
+function parseClipboardUrl(): void {
   const text = clipboard.readText('clipboard');
 
   if (text && text.length > 0) {
@@ -94,28 +86,48 @@ export function handleShowWindow(): void {
       console.error('Failed to parse clipboard URL:', error);
     }
   }
+}
+
+/**
+ * 处理托盘图标点击
+ * 如果窗口已显示则隐藏，否则显示在托盘图标下方
+ */
+function handleTrayClick(): void {
+  // 检查窗口是否已显示
+  const win = getWindow();
+  if (win && win.isVisible()) {
+    hideWindow();
+  } else {
+    handleShowWindowBelowTray();
+  }
+}
+
+/**
+ * 处理显示窗口在托盘图标下方
+ * 读取剪贴板并提取域名，窗口显示在托盘图标下方
+ */
+export function handleShowWindowBelowTray(): void {
+  // 从剪贴板读取URL并提取域名
+  parseClipboardUrl();
 
   // 计算托盘图标位置并显示窗口
-  positionWindowBelowTray();
+  const win = getWindow();
+  if (win && tray) {
+    positionWindowBelowTray(win, tray);
+  }
   showWindow();
 }
 
 /**
- * 将窗口定位到托盘图标下方
+ * 处理显示窗口在鼠标位置
+ * 读取剪贴板并提取域名，窗口显示在鼠标位置的右下方
  */
-function positionWindowBelowTray(): void {
-  if (!tray) {
-    return;
-  }
+export function handleShowWindowAtCursor(): void {
+  // 从剪贴板读取URL并提取域名
+  parseClipboardUrl();
 
-  const trayBounds = tray.getBounds();
-  const windowBounds = getWindowBounds();
-
-  // macOS: 托盘在顶部,窗口显示在托盘图标下方居中
-  const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
-  const y = Math.round(trayBounds.y + trayBounds.height);
-
-  setWindowPosition(x, y);
+  // 在鼠标位置显示窗口
+  showWindowAtCursor();
 }
 
 /**

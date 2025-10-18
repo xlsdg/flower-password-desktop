@@ -1,5 +1,5 @@
 import { Menu, globalShortcut } from 'electron';
-import { handleShowWindow } from './tray';
+import { handleShowWindowAtCursor } from './tray';
 
 /**
  * 创建应用菜单
@@ -54,9 +54,9 @@ export function createMenu(): void {
  * 注册全局快捷键
  */
 export function registerShortcuts(): void {
-  // 注册 Cmd/Ctrl+Alt+S 显示窗口
+  // 注册 Cmd/Ctrl+Alt+S 显示窗口（在鼠标位置）
   const success = globalShortcut.register('CmdOrCtrl+Alt+S', () => {
-    handleShowWindow();
+    handleShowWindowAtCursor();
   });
 
   if (!success) {
