@@ -107,7 +107,7 @@ module.exports = [
   {
     name: 'renderer',
     mode: 'production',
-    entry: path.join(__dirname, 'src/renderer/index.ts'),
+    entry: path.join(__dirname, 'src/renderer/index.tsx'),
     output: {
       path: path.join(__dirname, 'dist/renderer'),
       filename: 'index.js',
@@ -115,12 +115,13 @@ module.exports = [
       iife: true,
     },
     resolve: {
-      extensions: ['.ts', '.js'],
+      extensions: ['.tsx', '.ts', '.jsx', '.js'],
     },
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.(ts|tsx)$/,
+          exclude: /node_modules/,
           use: [
             {
               loader: 'builtin:swc-loader',
@@ -128,6 +129,13 @@ module.exports = [
                 jsc: {
                   parser: {
                     syntax: 'typescript',
+                    tsx: true,
+                  },
+                  transform: {
+                    react: {
+                      runtime: 'automatic',
+                      development: false,
+                    },
                   },
                   target: 'es2022',
                 },
@@ -135,6 +143,14 @@ module.exports = [
             },
           ],
           type: 'javascript/auto',
+        },
+        {
+          test: /\.less$/,
+          use: ['style-loader', 'css-loader', 'less-loader'],
+        },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
         },
       ],
     },

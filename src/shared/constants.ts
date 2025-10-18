@@ -36,19 +36,6 @@ export const UI_TEXTS = {
 } as const;
 
 /**
- * DOM element IDs
- */
-export const DOM_IDS = {
-  CLOSE_BUTTON: 'close',
-  PASSWORD_INPUT: 'password',
-  KEY_INPUT: 'key',
-  PREFIX_INPUT: 'prefix',
-  SUFFIX_INPUT: 'suffix',
-  CODE_BUTTON: 'code',
-  LENGTH_SELECT: 'length',
-} as const;
-
-/**
  * Keyboard keys
  */
 export const KEYBOARD_KEYS = {

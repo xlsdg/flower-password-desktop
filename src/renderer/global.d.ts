@@ -1,6 +1,6 @@
 /**
- * 渲染进程全局类型声明
- * 这个文件会被 TypeScript 自动包含，不需要手动 import
+ * Global type declarations for the renderer process
+ * This file is automatically included by TypeScript, no manual import needed
  */
 
 import type { ElectronAPI } from '../shared/types';

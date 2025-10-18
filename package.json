@@ -8,8 +8,8 @@
     "build": "rspack build -c rspack.config.js",
     "watch": "rspack build -c rspack.config.js --watch",
     "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,js,json,md,css,html}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md,css,html}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,less,html}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,less,html}\"",
     "start": "npm run build && electron-forge start",
     "package": "npm run build && electron-forge package",
     "make": "npm run build && electron-forge make --arch=arm64",
@@ -25,6 +25,8 @@
   "dependencies": {
     "flowerpassword.js": "^5.0.2",
     "psl": "^1.15.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "urlite": "^3.1.0"
   },
   "devDependencies": {
@@ -36,13 +38,19 @@
     "@rspack/cli": "^1.5.8",
     "@rspack/core": "^1.5.8",
     "@types/node": "^22.18.11",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "css-loader": "^7.1.2",
     "electron": "^38.3.0",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "less": "^4.4.2",
+    "less-loader": "^12.3.0",
     "prettier": "^3.6.2",
+    "style-loader": "^4.0.0",
     "typescript": "^5.9.3"
   }
 }
