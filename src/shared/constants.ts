@@ -27,3 +27,35 @@ export const DIALOG_TEXTS = {
   TRAY_QUIT: '退出',
   TRAY_TOOLTIP: '花密',
 } as const;
+
+/**
+ * UI text constants for renderer process
+ */
+export const UI_TEXTS = {
+  GENERATE_PASSWORD_BUTTON: '生成密码(点击复制)',
+} as const;
+
+/**
+ * DOM element IDs
+ */
+export const DOM_IDS = {
+  CLOSE_BUTTON: 'close',
+  PASSWORD_INPUT: 'password',
+  KEY_INPUT: 'key',
+  PREFIX_INPUT: 'prefix',
+  SUFFIX_INPUT: 'suffix',
+  CODE_BUTTON: 'code',
+  LENGTH_SELECT: 'length',
+} as const;
+
+/**
+ * Keyboard keys
+ */
+export const KEYBOARD_KEYS = {
+  ENTER: 'Enter',
+} as const;
+
+/**
+ * Allowed URL protocols for external links
+ */
+export const ALLOWED_URL_PROTOCOLS = ['https:', 'http:'] as const;
