@@ -11,6 +11,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,less,html}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,less,html}\"",
     "start": "npm run build && electron-forge start",
+    "dev": "concurrently \"npm run watch\" \"nodemon\"",
     "package": "npm run build && electron-forge package",
     "make": "npm run build && electron-forge make --arch=arm64",
     "make:x64": "npm run build && electron-forge make --arch=x64",
@@ -42,6 +43,7 @@
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "concurrently": "^9.2.1",
     "css-loader": "^7.1.2",
     "electron": "^38.3.0",
     "eslint": "^9.38.0",
@@ -49,6 +51,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "less": "^4.4.2",
     "less-loader": "^12.3.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "style-loader": "^4.0.0",
     "typescript": "^5.9.3"

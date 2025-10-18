@@ -47,11 +47,22 @@ Uses Prettier to format TypeScript, JavaScript, JSON, Markdown, CSS, and HTML fi
 ### Development Mode
 
 ```bash
-# Build with watch mode (auto-rebuild on changes)
+# Development with hot reload (recommended)
+npm run dev
+```
+
+Runs Rspack in watch mode and automatically restarts Electron when files change. This is the recommended way to develop as it provides:
+
+- Automatic rebuild on source file changes (via Rspack watch)
+- Automatic Electron restart on compiled file changes (via nodemon)
+- No need to manually restart the app
+
+```bash
+# Build with watch mode only (no auto-restart)
 npm run watch
 ```
 
-Watches for file changes and automatically rebuilds with Rspack.
+Watches for file changes and automatically rebuilds with Rspack, but does NOT restart Electron.
 
 ### Running the App
 
@@ -59,7 +70,7 @@ Watches for file changes and automatically rebuilds with Rspack.
 npm start
 ```
 
-Automatically builds TypeScript and launches the Electron app in development mode.
+Builds TypeScript once and launches the Electron app. For development with hot reload, use `npm run dev` instead.
 
 ### Building for Production
 
@@ -307,6 +318,8 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - **Rspack**: Fast Rust-based bundler (v1.5.8+)
 - **@rspack/core**: Rspack core library
 - **@rspack/cli**: Rspack CLI tool
+- **nodemon**: v3.1.10+ for auto-restarting Electron during development
+- **concurrently**: v9.2.1+ for running multiple npm scripts in parallel
 - **@types/node**: Node.js type definitions
 - **@typescript-eslint/**: TypeScript ESLint plugin and parser (v8.46.1+)
 - **Prettier**: Code formatter (v3.6.2+)
