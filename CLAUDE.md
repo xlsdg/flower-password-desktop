@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FlowerPassword is a macOS menubar application built with Electron and TypeScript that implements a deterministic password generation system. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
+FlowerPassword is a macOS menubar application built with Electron, React 19, and TypeScript that implements a deterministic password generation system. The UI is built with modern React hooks and functional components, styled with LESS and CSS variables for automatic light/dark theme support. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
 
 ## Development Commands
 
@@ -22,7 +22,7 @@ Build all processes (main, preload, renderer) with Rspack:
 npm run build
 ```
 
-**Note**: All three processes (main, preload, renderer) are now built using **Rspack** with a unified configuration ([rspack.config.js](rspack.config.js)). This simplifies the build pipeline and uses Rspack's built-in SWC loader for fast TypeScript compilation. The renderer process bundles dependencies into a browser-compatible IIFE format, while main and preload processes output CommonJS for Node.js.
+**Note**: All three processes (main, preload, renderer) are now built using **Rspack** with a unified configuration ([rspack.config.js](rspack.config.js)). This simplifies the build pipeline and uses Rspack's built-in SWC loader for fast TypeScript and TSX compilation with React automatic runtime. The renderer process bundles React, dependencies, and LESS styles into a single browser-compatible IIFE, while main and preload processes output CommonJS for Node.js.
 
 ### Linting
 
@@ -42,7 +42,7 @@ npm run format
 npm run format:check
 ```
 
-Uses Prettier to format TypeScript, JavaScript, JSON, Markdown, CSS, and HTML files.
+Uses Prettier to format TypeScript, JavaScript, JSON, Markdown, CSS, LESS, and HTML files.
 
 ### Development Mode
 
@@ -132,14 +132,15 @@ src/
 │   └── ipc.ts         # IPC message handlers
 ├── preload/           # Preload scripts (TypeScript)
 │   └── index.ts       # Context bridge API exposure
-├── renderer/          # Renderer process
-│   ├── index.ts       # UI logic and password generation (TypeScript)
+├── renderer/          # Renderer process (React + TypeScript)
+│   ├── index.tsx      # React app entry point
+│   ├── App.tsx        # Main React component with UI logic
 │   ├── global.d.ts    # Global type declarations for renderer
 │   ├── html/          # HTML files
-│   │   └── index.html # Main UI template
-│   ├── css/           # Stylesheets
-│   │   ├── reset.css  # CSS reset
-│   │   └── index.css  # Main styles
+│   │   └── index.html # Main UI template with React root
+│   ├── styles/        # LESS stylesheets
+│   │   ├── reset.less # Cross-platform normalization
+│   │   └── index.less # Main styles with light/dark theme support
 │   └── assets/        # Static assets
 │       ├── FlowerPassword.icns      # App icon for packaging
 │       ├── Icon.png                 # Dialog icon
@@ -182,7 +183,7 @@ This project uses Electron's modern security best practices:
 
 - **dist/main/main.js**: Main Electron process (compiled from [src/main/main.ts](src/main/main.ts))
 - **dist/preload/index.js**: Preload script (compiled from [src/preload/index.ts](src/preload/index.ts))
-- **src/renderer/html/index.html + dist/renderer/index.js**: Renderer process UI
+- **src/renderer/html/index.html + dist/renderer/index.js**: Renderer process UI (React app compiled from [src/renderer/index.tsx](src/renderer/index.tsx) and [src/renderer/App.tsx](src/renderer/App.tsx))
 
 ### Main Process (src/main/)
 
@@ -253,19 +254,48 @@ window.electronAPI = {
 
 This prevents direct access to `ipcRenderer` and other Electron internals from the renderer process.
 
-### Renderer Process (src/renderer/index.ts)
+### Renderer Process (src/renderer/)
 
-- **Modern ES module imports**: Uses standard `import { fpCode } from 'flowerpassword.js'` syntax
-- **Bundled with Rspack**: All dependencies bundled into a single IIFE for browser compatibility
+The renderer process is built with **React 19** and modern functional components:
+
+**index.tsx** - React app entry point:
+
+- Mounts the React application to the DOM using `createRoot`
+- Wraps app in `StrictMode` for development checks
+- Handles DOM ready state checking
+
+**App.tsx** - Main React component:
+
+- **Modern React hooks**: Uses `useState`, `useEffect`, `useCallback`, `useMemo`, and `useRef`
 - **Password generation**: Uses `flowerpassword.js` library to generate passwords from:
   - Memory password (base password to remember)
   - Key/distinction code (prefix + key + suffix)
-  - Length (6-32 characters)
-- **Auto-fill from clipboard**: Receives domain via `window.electronAPI.onKeyFromClipboard`
+  - Length (6-32 characters, dynamically generated options)
+- **Real-time generation**: Password updates automatically as user types
+- **Auto-fill from clipboard**: Receives domain via `window.electronAPI.onKeyFromClipboard` on mount
+- **Autofocus**: Password input is focused automatically when window opens
 - **Enter key shortcut**: Pressing Enter in key field generates and copies password, then hides window
 - **Click to copy**: Clicking the generated password button copies it to clipboard and hides window
-- **External links**: Opens HTTPS links in default browser via `window.electronAPI.openExternal`
-- **Type-safe DOM manipulation**: All DOM elements are properly typed
+- **External links**: Opens HTTPS links in default browser via `window.electronAPI.openExternal` with URL validation
+- **Type-safe React**: All props, events, and refs are properly typed with TypeScript
+
+**Styling (styles/)**:
+
+- **index.less**: Main application styles using LESS and CSS variables
+  - Supports automatic light/dark theme switching via `prefers-color-scheme` media query
+  - BEM-style class naming (`.app__header`, `.app__input`, etc.)
+  - Responsive design with CSS variables for colors, spacing, and dimensions
+- **reset.less**: Cross-platform CSS normalization
+  - Universal box-sizing and tap behavior
+  - Font stack optimized for macOS and cross-platform consistency
+  - Input and button appearance normalization
+
+**Modern features**:
+
+- **React 19 automatic runtime**: No need to import React in component files
+- **Bundled with Rspack**: React, dependencies, and LESS styles bundled into a single IIFE
+- **Performance optimized**: Uses `useCallback` and `useMemo` to prevent unnecessary re-renders
+- **Accessible**: Proper ARIA labels and semantic HTML
 
 ### Shared Types and Constants (src/shared/)
 
@@ -308,6 +338,8 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 
 **Production:**
 
+- **react**: v19.2.0+ - Modern React library for building user interfaces
+- **react-dom**: v19.2.0+ - React DOM rendering
 - **flowerpassword.js**: Core password generation algorithm
 - **psl**: Public Suffix List parser for extracting domains
 - **urlite**: Lightweight URL parser
@@ -315,9 +347,15 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 **Development:**
 
 - **TypeScript**: v5.9.3 for type-safe development
+- **@types/react**: v19.2.2+ - React type definitions
+- **@types/react-dom**: v19.2.2+ - React DOM type definitions
 - **Rspack**: Fast Rust-based bundler (v1.5.8+)
 - **@rspack/core**: Rspack core library
 - **@rspack/cli**: Rspack CLI tool
+- **less**: v4.4.2+ - LESS CSS preprocessor
+- **less-loader**: v12.3.0+ - Rspack loader for LESS files
+- **css-loader**: v7.1.2+ - Rspack loader for CSS files
+- **style-loader**: v4.0.0+ - Injects CSS into DOM
 - **nodemon**: v3.1.10+ for auto-restarting Electron during development
 - **concurrently**: v9.2.1+ for running multiple npm scripts in parallel
 - **@types/node**: Node.js type definitions
@@ -331,13 +369,15 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - **@electron-forge/plugin-fuses**: Electron Fuses for security configuration
 - **@electron/fuses**: Fuses configuration library
 - **electron**: v38.3.0+
-- **eslint**: v9.37.0+ (using flat config format)
+- **eslint**: v9.38.0+ (using flat config format)
 
 ## Code Style
 
 - TypeScript with strict mode enabled
 - **No `any` types allowed** - all code is fully typed
-- Explicit function return types required
+- Explicit function return types required for all functions
+- React functional components with TypeScript generics (`React.JSX.Element`)
+- Modern React hooks (`useState`, `useEffect`, `useCallback`, `useMemo`, `useRef`)
 - ESLint with TypeScript plugin for code linting
 - Prettier for code formatting
 - **Semicolons required**, single quotes (Prettier enforced)
@@ -347,6 +387,8 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - LF line endings
 - Comprehensive JSDoc comments for all public functions
 - **All code comments MUST be written in English only** - Chinese comments are not allowed
+- **LESS styles**: Use BEM naming convention (`.block__element--modifier`)
+- **CSS variables**: Use CSS custom properties for themeable values (e.g., `--bg-color`, `--text-primary`)
 
 ### ESLint Configuration
 
@@ -424,6 +466,8 @@ The project uses [forge.config.js](forge.config.js) for Electron Forge configura
 - This is a macOS-only application (darwin platform)
 - The app runs in the menubar with no dock icon
 - All text and UI labels are in Chinese
+- **React 19 with TypeScript** - Modern functional components with full type safety
+- **Automatic theming**: Light/dark theme switching based on macOS system preferences
 - **TypeScript with strict typing** - no `any` types allowed
 - Uses modern Electron security practices with `contextIsolation` and `contextBridge`
 - Supports both Intel (x64) and Apple Silicon (arm64) architectures with separate builds
