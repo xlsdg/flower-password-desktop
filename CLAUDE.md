@@ -120,7 +120,7 @@ npm run make:linux:arm64  # ARM64 (Raspberry Pi, etc.)
 
 **Output Locations:**
 
-- macOS: `out/make/zip/darwin/[arch]/` - ZIP archives
+- macOS: `out/make/dmg/darwin/[arch]/` - DMG installers, `out/make/zip/darwin/[arch]/` - ZIP archives
 - Windows: `out/make/squirrel.windows/[arch]/` - Setup.exe installers, `out/make/zip/win32/[arch]/` - ZIP archives
 - Linux: `out/make/deb/[arch]/` - .deb packages, `out/make/rpm/[arch]/` - .rpm packages, `out/make/zip/linux/[arch]/` - ZIP archives
 
@@ -150,8 +150,8 @@ git push && git push --tags
 
 3. GitHub Actions will automatically build and release for all platforms:
    - **macOS builds** (on macOS runner):
-     - ARM64 binary (Apple Silicon M1/M2/M3/M4)
-     - x64 binary (Intel)
+     - ARM64 DMG installer and ZIP archive (Apple Silicon M1/M2/M3/M4)
+     - x64 DMG installer and ZIP archive (Intel)
    - **Windows builds** (on Windows runner):
      - x64 installer and portable ZIP
      - ia32 installer and portable ZIP
@@ -549,6 +549,7 @@ The project uses [forge.config.js](forge.config.js) for Electron Forge configura
   - Excludes TypeScript source files and build artifacts
 
 - **makers**: Platform-specific makers
+  - `@electron-forge/maker-dmg`: macOS DMG installer (disk image with drag-to-install UI)
   - `@electron-forge/maker-zip`: Creates ZIP archives for all platforms
   - `@electron-forge/maker-squirrel`: Windows installer (Setup.exe)
   - `@electron-forge/maker-deb`: Debian/Ubuntu packages (.deb)

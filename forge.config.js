@@ -25,6 +25,15 @@ module.exports = {
   rebuildConfig: {},
   makers: [
     {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        name: 'FlowerPassword',
+        icon: 'src/renderer/assets/FlowerPassword.icns',
+        format: 'ULFO', // Use ULFO format for better compatibility
+      },
+      platforms: ['darwin'],
+    },
+    {
       name: '@electron-forge/maker-zip',
       platforms: ['darwin', 'linux', 'win32'],
     },
