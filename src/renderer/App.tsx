@@ -192,16 +192,16 @@ export function App(): React.JSX.Element {
   }, []);
 
   return (
-    <div className="flower-password">
-      <button className="close" title="关闭" aria-label="关闭" onClick={handleClose}>
+    <div className="app">
+      <button className="app__close-btn" title="关闭" aria-label="关闭" onClick={handleClose}>
         ×
       </button>
-      <h1 className="title">花密 Flower Password</h1>
+      <h1 className="app__title">花密 Flower Password</h1>
 
-      <div className="input-wrap">
+      <div className="app__form-group">
         <input
           ref={passwordInputRef}
-          className="password"
+          className="app__input app__input--password"
           name="password"
           type="password"
           placeholder="记忆密码"
@@ -211,9 +211,9 @@ export function App(): React.JSX.Element {
         />
       </div>
 
-      <div className="input-wrap">
+      <div className="app__form-group">
         <input
-          className="key"
+          className="app__input app__input--key"
           name="key"
           type="text"
           placeholder="区分代号"
@@ -224,11 +224,11 @@ export function App(): React.JSX.Element {
         />
       </div>
 
-      <div className="ctrl-wrap">
-        <button className="btn-code" tabIndex={3} onClick={handleCopyPassword}>
+      <div className="app__controls">
+        <button className="app__generate-btn" tabIndex={3} onClick={handleCopyPassword}>
           {generatedPassword}
         </button>
-        <select className="sel-length" tabIndex={4} value={passwordLength} onChange={handlePasswordLengthChange}>
+        <select className="app__length-select" tabIndex={4} value={passwordLength} onChange={handlePasswordLengthChange}>
           {lengthOptions.map(len => (
             <option key={len} value={len}>
               {len.toString().padStart(2, '0')}位
@@ -237,9 +237,9 @@ export function App(): React.JSX.Element {
         </select>
       </div>
 
-      <div className="input-wrap">
+      <div className="app__form-group app__form-group--split">
         <input
-          className="prefix"
+          className="app__input app__input--prefix"
           name="prefix"
           type="text"
           placeholder="区分代号前缀"
@@ -248,7 +248,7 @@ export function App(): React.JSX.Element {
           onChange={handlePrefixChange}
         />
         <input
-          className="suffix"
+          className="app__input app__input--suffix"
           name="suffix"
           type="text"
           placeholder="区分代号后缀"
@@ -258,12 +258,13 @@ export function App(): React.JSX.Element {
         />
       </div>
 
-      <p className="hint">· 记忆密码:可选择一个简单易记的密码,用于生成其他高强度密码。</p>
-      <p className="hint">· 区分代号:用于区别不同用途密码的简短代号,如淘宝账号可用"taobao"或"tb"等。</p>
-      <p className="hint">· 输入框按 Enter 键关闭本窗口。</p>
-      <p className="hint">
+      <p className="app__hint">· 记忆密码:可选择一个简单易记的密码,用于生成其他高强度密码。</p>
+      <p className="app__hint">· 区分代号:用于区别不同用途密码的简短代号,如淘宝账号可用"taobao"或"tb"等。</p>
+      <p className="app__hint">· 输入框按 Enter 键关闭本窗口。</p>
+      <p className="app__hint">
         · 花密官网地址:
         <a
+          className="app__link"
           href="https://flowerpassword.com/"
           target="_blank"
           rel="noopener noreferrer"

@@ -24,7 +24,7 @@
 @font-size-base: 14px;
 @font-size-small: 12px;
 
-.flower-password {
+.app {
   position: relative;
   width: 100%;
   padding: @padding-base;
@@ -32,7 +32,7 @@
   min-height: 100%;
   min-width: 100%;
 
-  .close {
+  &__close-btn {
     position: absolute;
     top: -2px;
     right: -2px;
@@ -57,7 +57,7 @@
     }
   }
 
-  .title {
+  &__title {
     font-size: @font-size-title;
     font-weight: 700;
     margin: 0 0 @padding-small 0;
@@ -65,16 +65,32 @@
     cursor: default;
   }
 
-  .input-wrap,
-  .ctrl-wrap {
+  &__form-group {
     font-size: 0;
     margin: @margin-base 0;
+
+    &--split {
+      .app__input--prefix,
+      .app__input--suffix {
+        display: inline-block;
+        vertical-align: top;
+        width: 50%;
+      }
+
+      .app__input--prefix {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+      }
+
+      .app__input--suffix {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
   }
 
-  .password,
-  .key,
-  .prefix,
-  .suffix {
+  &__input {
     font-size: @font-size-base;
     width: 100%;
     line-height: 1;
@@ -83,84 +99,68 @@
     border-radius: @border-radius-base;
   }
 
-  .prefix,
-  .suffix {
-    display: inline-block;
-    vertical-align: top;
-    width: 50%;
+  &__controls {
+    position: relative;
+    font-size: 0;
+    margin: @margin-base 0;
   }
 
-  .prefix {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right: none;
+  &__generate-btn {
+    font-size: @font-size-small;
+    width: 100%;
+    line-height: 22px;
+    color: @white-color;
+    border: 1px solid @primary-color;
+    border-radius: @border-radius-base;
+    background-color: @primary-color;
+    outline: none;
+    cursor: pointer;
+    padding-right: 70px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &:hover {
+      background-color: @primary-hover-color;
+    }
   }
 
-  .suffix {
+  &__length-select {
+    cursor: pointer;
+    outline: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    font-size: @font-size-small;
+    color: @white-color;
+    width: 64px;
+    height: 29px;
+    padding-left: 18px;
+    background-color: transparent;
+    border: none;
+    border-radius: @border-radius-base;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+    border-left: 1px solid @white-color;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
   }
 
-  .ctrl-wrap {
-    position: relative;
-
-    .btn-code {
-      font-size: @font-size-small;
-      width: 100%;
-      line-height: 22px;
-      color: @white-color;
-      border: 1px solid @primary-color;
-      border-radius: @border-radius-base;
-      background-color: @primary-color;
-      outline: none;
-      cursor: pointer;
-      padding-right: 70px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-
-      &:hover {
-        background-color: @primary-hover-color;
-      }
-    }
-
-    .sel-length {
-      cursor: pointer;
-      outline: none;
-      position: absolute;
-      top: 0;
-      right: 0;
-      display: block;
-      font-size: @font-size-small;
-      color: @white-color;
-      width: 64px;
-      height: 29px;
-      padding-left: 18px;
-      background-color: transparent;
-      border: none;
-      border-radius: @border-radius-base;
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      border-left: 1px solid @white-color;
-      appearance: none;
-      -moz-appearance: none;
-      -webkit-appearance: none;
-    }
-  }
-
-  .hint {
+  &__hint {
     font-size: @font-size-small;
     line-height: 1.5;
     color: @text-color;
     margin: 0;
     cursor: default;
 
-    & + .hint {
+    & + & {
       margin-top: 2px;
     }
   }
 
-  a {
+  &__link {
     cursor: pointer;
     text-decoration: none;
     color: @primary-color;
