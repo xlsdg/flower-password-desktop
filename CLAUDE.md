@@ -191,6 +191,9 @@ Modular architecture with separated concerns:
 - Provides window position and bounds getters
 - Exposes `showWindowAtCursor()` for displaying window at mouse position
 - Communication with renderer process
+- **Fullscreen app support**: Window is configured to appear on all workspaces/Spaces (including fullscreen apps)
+  - `setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })`: Prevents desktop switching when shown via global shortcut
+  - `setAlwaysOnTop(true, 'floating')`: Ensures window appears above fullscreen apps at floating level
 
 **position.ts** - Window positioning logic:
 
@@ -280,13 +283,15 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 
 1. User opens app via:
    - **Menubar icon click**: Window appears below tray icon
-   - **Global shortcut (`Cmd+Alt+S`)**: Window appears at mouse cursor position
+   - **Global shortcut (`Cmd+Alt+S`)**: Window appears at mouse cursor position (works in fullscreen apps)
    - **Right-click menu "显示"**: Window appears below tray icon
 2. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
 3. User enters memory password and distinction code
 4. Password is generated in real-time as user types
 5. User presses Enter or clicks generated password to copy and close window
 6. Window auto-hides when it loses focus
+
+**Note**: The window is configured to appear on all workspaces/Spaces, including fullscreen apps. When using the global shortcut (`Cmd+Alt+S`) in a fullscreen application, the window will appear in the current Space without forcing a desktop switch.
 
 ### Dependencies
 
@@ -412,3 +417,7 @@ The project uses [forge.config.js](forge.config.js) for Electron Forge configura
 - Uses Electron Forge for modern build tooling and packaging
 - Modular architecture with separated concerns
 - Type-safe IPC communication between processes
+- **Fullscreen app support**: Window appears on all workspaces/Spaces without forcing desktop switches
+  - Global shortcut works seamlessly in fullscreen applications
+  - Window appears at floating level above fullscreen content
+  - Auto-hides on blur to avoid interfering with workflow

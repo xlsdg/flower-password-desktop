@@ -32,6 +32,13 @@ export function createWindow(): BrowserWindow {
     },
   });
 
+  // Make window appear on all workspaces/Spaces (including fullscreen apps)
+  // This prevents the window from forcing a desktop switch when shown via global shortcut
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
+  // Set window level to floating so it appears above fullscreen apps
+  mainWindow.setAlwaysOnTop(true, 'floating');
+
   // Load HTML file (from dist's adjacent src/renderer/html directory)
   // __dirname is dist/main, so need ../../src/renderer/html/index.html
   void mainWindow.loadFile(path.join(__dirname, '../../src/renderer/html/index.html'));
