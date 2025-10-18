@@ -57,9 +57,25 @@ export interface WindowConfig {
 }
 
 /**
- * Tray position information
+ * Position coordinates
  */
-export interface TrayBounds {
+export interface Position {
+  x: number;
+  y: number;
+}
+
+/**
+ * Size dimensions
+ */
+export interface Size {
+  width: number;
+  height: number;
+}
+
+/**
+ * Bounds information (position + size)
+ */
+export interface Bounds {
   x: number;
   y: number;
   width: number;
@@ -67,14 +83,14 @@ export interface TrayBounds {
 }
 
 /**
- * Window position information
+ * Tray bounds (type alias for semantic naming)
  */
-export interface WindowBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export type TrayBounds = Bounds;
+
+/**
+ * Window bounds (type alias for semantic naming)
+ */
+export type WindowBounds = Bounds;
 
 /**
  * URL parsing result

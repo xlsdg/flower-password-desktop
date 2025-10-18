@@ -5,6 +5,7 @@ import { parse as parseUrl } from 'urlite';
 import { showWindow, hideWindow, sendToRenderer, showWindowAtCursor, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { IPC_CHANNELS } from '../shared/types';
+import { ASSETS_PATH, DIALOG_TEXTS } from '../shared/constants';
 import type { ParsedURL, ParsedDomain } from '../shared/types';
 
 let tray: Tray | null = null;
@@ -15,12 +16,12 @@ let tray: Tray | null = null;
  */
 export function createTray(): Tray {
   // Use app.getAppPath() to get app root directory, ensures correct paths in both dev and production
-  const iconPath = path.join(app.getAppPath(), 'src/renderer/assets/IconTemplate.png');
+  const iconPath = path.join(app.getAppPath(), ASSETS_PATH.TRAY_ICON);
   const icon = nativeImage.createFromPath(iconPath);
   icon.setTemplateImage(true); // Set as template image, adapts to macOS dark/light mode
 
   tray = new Tray(icon);
-  tray.setToolTip('花密');
+  tray.setToolTip(DIALOG_TEXTS.TRAY_TOOLTIP);
 
   // Click tray icon to show/hide window
   tray.on('click', () => {
@@ -30,7 +31,7 @@ export function createTray(): Tray {
   // Right-click menu
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: '显示',
+      label: DIALOG_TEXTS.TRAY_SHOW,
       click: (): void => {
         handleShowWindowBelowTray();
       },
@@ -39,7 +40,7 @@ export function createTray(): Tray {
       type: 'separator',
     },
     {
-      label: '退出',
+      label: DIALOG_TEXTS.TRAY_QUIT,
       click: (): void => {
         void confirmQuit();
       },
@@ -64,10 +65,10 @@ export function getTray(): Tray | null {
 }
 
 /**
- * Read URL from clipboard and extract domain
+ * Extract domain from clipboard URL and send to renderer
  * If extraction succeeds, send domain to renderer process
  */
-function parseClipboardUrl(): void {
+function extractDomainFromClipboard(): void {
   const text = clipboard.readText('clipboard');
 
   if (text && text.length > 0) {
@@ -104,11 +105,11 @@ function handleTrayClick(): void {
 
 /**
  * Handle showing window below tray icon
- * Read URL from clipboard and extract domain, display window below tray icon
+ * Extract domain from clipboard and display window below tray icon
  */
 export function handleShowWindowBelowTray(): void {
-  // Read URL from clipboard and extract domain
-  parseClipboardUrl();
+  // Extract domain from clipboard
+  extractDomainFromClipboard();
 
   // Calculate tray icon position and show window
   const win = getWindow();
@@ -120,11 +121,11 @@ export function handleShowWindowBelowTray(): void {
 
 /**
  * Handle showing window at cursor position
- * Read URL from clipboard and extract domain, display window at cursor bottom-right
+ * Extract domain from clipboard and display window at cursor bottom-right
  */
 export function handleShowWindowAtCursor(): void {
-  // Read URL from clipboard and extract domain
-  parseClipboardUrl();
+  // Extract domain from clipboard
+  extractDomainFromClipboard();
 
   // Show window at cursor position
   showWindowAtCursor();
@@ -136,14 +137,14 @@ export function handleShowWindowAtCursor(): void {
 export async function confirmQuit(): Promise<void> {
   hideWindow();
 
-  const iconPath = path.join(app.getAppPath(), 'src/renderer/assets/Icon.png');
+  const iconPath = path.join(app.getAppPath(), ASSETS_PATH.DIALOG_ICON);
 
   const result = await dialog.showMessageBox({
     type: 'question',
-    buttons: ['确定', '取消'],
+    buttons: [DIALOG_TEXTS.QUIT_CONFIRM, DIALOG_TEXTS.QUIT_CANCEL],
     defaultId: 0,
-    title: '花密',
-    message: '确定退出？',
+    title: DIALOG_TEXTS.APP_NAME,
+    message: DIALOG_TEXTS.QUIT_MESSAGE,
     icon: iconPath,
     cancelId: 1,
   });

@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'node:path';
-import type { WindowConfig } from '../shared/types';
+import type { WindowConfig, Bounds } from '../shared/types';
 import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
@@ -104,7 +104,7 @@ export function setWindowPosition(x: number, y: number): void {
  * Get window bounds
  * @returns Window bounds object
  */
-export function getWindowBounds(): { x: number; y: number; width: number; height: number } {
+export function getWindowBounds(): Bounds {
   if (mainWindow) {
     return mainWindow.getBounds();
   }

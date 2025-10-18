@@ -1,4 +1,5 @@
 import { screen, type BrowserWindow, type Tray } from 'electron';
+import type { Position, Size } from '../shared/types';
 
 /**
  * Calculate window position below tray icon
@@ -6,10 +7,7 @@ import { screen, type BrowserWindow, type Tray } from 'electron';
  * @param windowBounds - Window bounds information
  * @returns Coordinates where window should be displayed {x, y}
  */
-export function calculatePositionBelowTray(
-  tray: Tray,
-  windowBounds: { width: number; height: number }
-): { x: number; y: number } {
+export function calculatePositionBelowTray(tray: Tray, windowBounds: Size): Position {
   const trayBounds = tray.getBounds();
 
   // macOS: Tray is at top, window displays below tray icon centered
@@ -24,7 +22,7 @@ export function calculatePositionBelowTray(
  * @param windowBounds - Window bounds information
  * @returns Coordinates where window should be displayed {x, y}
  */
-export function calculatePositionAtCursor(windowBounds: { width: number; height: number }): { x: number; y: number } {
+export function calculatePositionAtCursor(windowBounds: Size): Position {
   // Get current cursor position
   const cursorPoint = screen.getCursorScreenPoint();
 
