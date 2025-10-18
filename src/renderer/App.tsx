@@ -3,11 +3,40 @@
  * Handles user interface and password generation logic
  */
 
-import { useState, useEffect, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { fpCode } from 'flowerpassword.js';
 import { UI_TEXTS, KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
 import './styles/reset.less';
 import './styles/index.less';
+
+/**
+ * Password length range configuration
+ */
+const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MAX_LENGTH = 32;
+
+/**
+ * Generate array of password length options from min to max
+ * @returns Array of length values from 6 to 32
+ */
+function generateLengthOptions(): number[] {
+  const count = PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1;
+  return Array.from({ length: count }, (_, i) => i + PASSWORD_MIN_LENGTH);
+}
+
+/**
+ * Validate if URL is safe to open externally
+ * @param url - URL string to validate
+ * @returns True if URL is safe (http/https protocol only)
+ */
+function validateExternalUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (ALLOWED_URL_PROTOCOLS as readonly string[]).includes(parsedUrl.protocol);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * FlowerPassword main application component
@@ -18,49 +47,48 @@ export function App(): React.JSX.Element {
   const [key, setKey] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
   const [suffix, setSuffix] = useState<string>('');
-  const [length, setLength] = useState<number>(16);
-  const [generatedCode, setGeneratedCode] = useState<string>(UI_TEXTS.GENERATE_PASSWORD_BUTTON);
+  const [passwordLength, setPasswordLength] = useState<number>(16);
+  const [generatedPassword, setGeneratedPassword] = useState<string>(UI_TEXTS.GENERATE_PASSWORD_BUTTON);
 
   // Refs for autofocus
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * Validate if URL is safe to open externally
-   * @param url - URL string to validate
-   * @returns True if URL is safe (http/https protocol only)
-   */
-  const isValidExternalUrl = useCallback((url: string): boolean => {
-    try {
-      const parsedUrl = new URL(url);
-      return (ALLOWED_URL_PROTOCOLS as readonly string[]).includes(parsedUrl.protocol);
-    } catch {
-      return false;
-    }
-  }, []);
-
-  /**
-   * Generate password based on inputs
+   * Generate password based on current form inputs
+   * @returns Generated password string or false if inputs are invalid
    */
   const generatePassword = useCallback((): string | false => {
     if (password.length < 1 || key.length < 1) {
       return false;
     }
 
-    const fullKey = prefix + key + suffix;
-    const code = fpCode(password, fullKey, length);
+    const distinguishCode = prefix + key + suffix;
+    const code = fpCode(password, distinguishCode, passwordLength);
     return code;
-  }, [password, key, prefix, suffix, length]);
+  }, [password, key, prefix, suffix, passwordLength]);
+
+  /**
+   * Copy password to clipboard and hide window
+   * Extracted to avoid duplication in handleCopyPassword and handleKeyPress
+   * @param code - Generated password code
+   */
+  const copyPasswordAndHide = useCallback((code: string): void => {
+    window.electronAPI
+      .writeText(code)
+      .then(() => {
+        window.electronAPI.hide();
+      })
+      .catch((error: Error) => {
+        console.error('Failed to write to clipboard:', error);
+      });
+  }, []);
 
   /**
    * Update generated code when inputs change
    */
   useEffect(() => {
     const code = generatePassword();
-    if (code !== false) {
-      setGeneratedCode(code);
-    } else {
-      setGeneratedCode(UI_TEXTS.GENERATE_PASSWORD_BUTTON);
-    }
+    setGeneratedPassword(code !== false ? code : UI_TEXTS.GENERATE_PASSWORD_BUTTON);
   }, [generatePassword]);
 
   /**
@@ -76,16 +104,9 @@ export function App(): React.JSX.Element {
   const handleCopyPassword = useCallback((): void => {
     const code = generatePassword();
     if (code !== false) {
-      window.electronAPI
-        .writeText(code)
-        .then(() => {
-          window.electronAPI.hide();
-        })
-        .catch((error: Error) => {
-          console.error('Failed to write to clipboard:', error);
-        });
+      copyPasswordAndHide(code);
     }
-  }, [generatePassword]);
+  }, [generatePassword, copyPasswordAndHide]);
 
   /**
    * Handle Enter key press in key input
@@ -94,21 +115,15 @@ export function App(): React.JSX.Element {
   const handleKeyPress = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
       if (event.key === KEYBOARD_KEYS.ENTER) {
+        event.preventDefault();
+
         const code = generatePassword();
         if (code !== false) {
-          window.electronAPI
-            .writeText(code)
-            .then(() => {
-              event.preventDefault();
-              window.electronAPI.hide();
-            })
-            .catch((error: Error) => {
-              console.error('Failed to write to clipboard:', error);
-            });
+          copyPasswordAndHide(code);
         }
       }
     },
-    [generatePassword]
+    [generatePassword, copyPasswordAndHide]
   );
 
   /**
@@ -116,40 +131,71 @@ export function App(): React.JSX.Element {
    * @param event - Mouse event
    * @param url - URL to open
    */
-  const handleExternalLink = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>, url: string): void => {
-      if (isValidExternalUrl(url)) {
-        event.preventDefault();
-        window.electronAPI.openExternal(url).catch((error: Error) => {
-          console.error('Failed to open external URL:', error);
-        });
-      }
-    },
-    [isValidExternalUrl]
-  );
+  const handleExternalLink = useCallback((event: React.MouseEvent<HTMLAnchorElement>, url: string): void => {
+    event.preventDefault();
+    if (validateExternalUrl(url)) {
+      window.electronAPI.openExternal(url).catch((error: Error) => {
+        console.error('Failed to open external URL:', error);
+      });
+    }
+  }, []);
 
   /**
    * Listen to clipboard domain extraction
    */
   useEffect(() => {
-    window.electronAPI.onKeyFromClipboard((message: string) => {
+    const handleClipboardKey = (message: string): void => {
       setKey(message);
-    });
+    };
+
+    // Set up IPC listener
+    window.electronAPI.onKeyFromClipboard(handleClipboardKey);
 
     // Focus password input on mount
     if (passwordInputRef.current) {
       passwordInputRef.current.focus();
     }
+
+    // Note: Electron IPC listeners don't need cleanup in this context
+    // as they are managed by the main process and bound to window lifecycle
   }, []);
 
   /**
-   * Generate length options
+   * Generate length options (6-32 characters)
+   * Memoized to avoid recreating array on every render
    */
-  const lengthOptions: number[] = Array.from({ length: 27 }, (_, i) => i + 6);
+  const lengthOptions = useMemo((): number[] => {
+    return generateLengthOptions();
+  }, []);
+
+  /**
+   * Handle input change events
+   */
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    setPassword(e.target.value);
+  }, []);
+
+  const handleKeyChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    setKey(e.target.value);
+  }, []);
+
+  const handlePrefixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    setPrefix(e.target.value);
+  }, []);
+
+  const handleSuffixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    setSuffix(e.target.value);
+  }, []);
+
+  const handlePasswordLengthChange = useCallback((e: ChangeEvent<HTMLSelectElement>): void => {
+    setPasswordLength(parseInt(e.target.value, 10));
+  }, []);
 
   return (
     <div className="flower-password">
-      <i className="close" title="关闭" onClick={handleClose}></i>
+      <button className="close" title="关闭" aria-label="关闭" onClick={handleClose}>
+        ×
+      </button>
       <h1 className="title">花密 Flower Password</h1>
 
       <div className="input-wrap">
@@ -161,7 +207,7 @@ export function App(): React.JSX.Element {
           placeholder="记忆密码"
           tabIndex={1}
           value={password}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
         />
       </div>
 
@@ -173,21 +219,16 @@ export function App(): React.JSX.Element {
           placeholder="区分代号"
           tabIndex={2}
           value={key}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setKey(e.target.value)}
+          onChange={handleKeyChange}
           onKeyDown={handleKeyPress}
         />
       </div>
 
       <div className="ctrl-wrap">
         <button className="btn-code" tabIndex={3} onClick={handleCopyPassword}>
-          {generatedCode}
+          {generatedPassword}
         </button>
-        <select
-          className="sel-length"
-          tabIndex={4}
-          value={length}
-          onChange={(e: ChangeEvent<HTMLSelectElement>) => setLength(parseInt(e.target.value, 10))}
-        >
+        <select className="sel-length" tabIndex={4} value={passwordLength} onChange={handlePasswordLengthChange}>
           {lengthOptions.map(len => (
             <option key={len} value={len}>
               {len.toString().padStart(2, '0')}位
@@ -204,7 +245,7 @@ export function App(): React.JSX.Element {
           placeholder="区分代号前缀"
           tabIndex={5}
           value={prefix}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPrefix(e.target.value)}
+          onChange={handlePrefixChange}
         />
         <input
           className="suffix"
@@ -213,7 +254,7 @@ export function App(): React.JSX.Element {
           placeholder="区分代号后缀"
           tabIndex={6}
           value={suffix}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSuffix(e.target.value)}
+          onChange={handleSuffixChange}
         />
       </div>
 
