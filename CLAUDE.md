@@ -252,25 +252,29 @@ Modular architecture with separated concerns:
 - Provides window position and bounds getters
 - Exposes `showWindowAtCursor()` for displaying window at mouse position
 - Communication with renderer process
-- **Fullscreen app support**: Window is configured to appear on all workspaces/Spaces (including fullscreen apps)
-  - `setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })`: Prevents desktop switching when shown via global shortcut
-  - `setAlwaysOnTop(true, 'floating')`: Ensures window appears above fullscreen apps at floating level
+- **Platform-specific window configuration**:
+  - **macOS**: Fullscreen app support with `setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })` and `setAlwaysOnTop(true, 'floating')` to appear above fullscreen apps
+  - **Windows/Linux**: Standard always-on-top behavior with `setAlwaysOnTop(true)` (visibleOnFullScreen option not supported)
 
 **position.ts** - Window positioning logic:
 
-- `calculatePositionBelowTray(tray, windowBounds)`: Pure function to calculate window position below tray icon
+- `calculatePositionBelowTray(tray, windowBounds)`: Pure function to calculate window position near tray icon (platform-specific)
+  - **macOS**: Window appears below tray icon (top menubar), centered
+  - **Windows/Linux**: Window appears above tray icon (bottom taskbar), right-aligned
 - `calculatePositionAtCursor(windowBounds)`: Pure function to calculate window position at cursor with screen boundary detection
-- `positionWindowBelowTray(window, tray)`: Positions window below tray icon
+- `positionWindowBelowTray(window, tray)`: Positions window near tray icon with platform-specific behavior
 - `positionWindowAtCursor(window)`: Positions window at cursor location
 - All positioning logic centralized for testability and reusability
 
 **tray.ts** - Tray icon and menu:
 
-- Creates system tray icon
+- Creates system tray icon with platform-specific behavior
+  - **macOS**: Uses template image (adapts to dark/light mode automatically)
+  - **Windows/Linux**: Uses standard icon (template image not supported)
 - Handles tray click events (toggle window visibility)
 - Right-click context menu (显示, 退出)
 - `parseClipboardUrl()`: Extracts domain from clipboard URL
-- `handleShowWindowBelowTray()`: Shows window below tray icon with clipboard parsing
+- `handleShowWindowBelowTray()`: Shows window near tray icon with clipboard parsing (position varies by platform)
 - `handleShowWindowAtCursor()`: Shows window at cursor position with clipboard parsing
 - Quit confirmation dialog
 
@@ -361,27 +365,31 @@ The renderer process is built with **React 19** and modern functional components
 - `ASSETS_PATH`: Asset file paths for tray icon and dialog icon
 - `DIALOG_TEXTS`: Text constants for dialogs and tray menu (in Chinese)
 - `UI_TEXTS`: UI text constants for renderer process
-- `DOM_IDS`: DOM element IDs for type-safe element selection
-- `KEYBOARD_KEYS`: Keyboard key constants
-- `ALLOWED_URL_PROTOCOLS`: Allowed URL protocols for external links
+- `KEYBOARD_KEYS`: Keyboard key constants (e.g., `Enter`)
+- `ALLOWED_URL_PROTOCOLS`: Allowed URL protocols for external links (e.g., `https:`, `http:`)
 
 ### Global Type Declarations (src/renderer/global.d.ts)
 
-Extends the global `Window` interface to include the `electronAPI` property, providing type safety for renderer process IPC communication.
+Augments the global `Window` interface to include the `electronAPI` property, providing type safety for renderer process IPC communication.
 
 ### UI Flow
 
 1. User opens app via:
-   - **Menubar icon click**: Window appears below tray icon
-   - **Global shortcut (`Cmd+Alt+S`)**: Window appears at mouse cursor position (works in fullscreen apps)
-   - **Right-click menu "显示"**: Window appears below tray icon
+   - **Tray icon click**: Window appears near tray icon
+     - **macOS**: Below tray icon (top menubar), centered
+     - **Windows/Linux**: Above tray icon (bottom taskbar), right-aligned
+   - **Global shortcut (`Cmd/Ctrl+Alt+S`)**: Window appears at mouse cursor position (works across all platforms)
+   - **Right-click menu "显示"**: Window appears near tray icon (platform-specific positioning)
 2. If clipboard contains a URL, domain is extracted and auto-filled into "Key" field
 3. User enters memory password and distinction code
 4. Password is generated in real-time as user types
 5. User presses Enter or clicks generated password to copy and close window
 6. Window auto-hides when it loses focus
 
-**Note**: The window is configured to appear on all workspaces/Spaces, including fullscreen apps. When using the global shortcut (`Cmd+Alt+S`) in a fullscreen application, the window will appear in the current Space without forcing a desktop switch.
+**Platform-specific behaviors:**
+
+- **macOS**: Window appears on all workspaces/Spaces including fullscreen apps. Global shortcut works seamlessly in fullscreen applications without forcing desktop switch. Window uses floating level to appear above fullscreen content.
+- **Windows/Linux**: Window uses standard always-on-top behavior. Tray positioning adapts to bottom taskbar location.
 
 ### Dependencies
 

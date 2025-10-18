@@ -2,17 +2,32 @@ import { screen, type BrowserWindow, type Tray } from 'electron';
 import type { Position, Size } from '../shared/types';
 
 /**
- * Calculate window position below tray icon
+ * Calculate window position near tray icon
  * @param tray - Tray instance
  * @param windowBounds - Window bounds information
  * @returns Coordinates where window should be displayed {x, y}
  */
 export function calculatePositionBelowTray(tray: Tray, windowBounds: Size): Position {
   const trayBounds = tray.getBounds();
+  const platform = process.platform;
 
-  // macOS: Tray is at top, window displays below tray icon centered
-  const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
-  const y = Math.round(trayBounds.y + trayBounds.height);
+  let x: number;
+  let y: number;
+
+  if (platform === 'darwin') {
+    // macOS: Tray is at top, window displays below tray icon centered
+    x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
+    y = Math.round(trayBounds.y + trayBounds.height);
+  } else if (platform === 'win32') {
+    // Windows: Tray is at bottom-right, window displays above tray icon aligned to right
+    x = Math.round(trayBounds.x + trayBounds.width - windowBounds.width);
+    y = Math.round(trayBounds.y - windowBounds.height);
+  } else {
+    // Linux: Similar to Windows, tray usually at bottom or top depending on DE
+    // Position window above tray icon, aligned to right
+    x = Math.round(trayBounds.x + trayBounds.width - windowBounds.width);
+    y = Math.round(trayBounds.y - windowBounds.height);
+  }
 
   return { x, y };
 }

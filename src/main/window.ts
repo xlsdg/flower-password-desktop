@@ -34,10 +34,16 @@ export function createWindow(): BrowserWindow {
 
   // Make window appear on all workspaces/Spaces (including fullscreen apps)
   // This prevents the window from forcing a desktop switch when shown via global shortcut
-  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-
-  // Set window level to floating so it appears above fullscreen apps
-  mainWindow.setAlwaysOnTop(true, 'floating');
+  if (process.platform === 'darwin') {
+    // macOS: Support fullscreen apps with visibleOnFullScreen option
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    // Set window level to floating so it appears above fullscreen apps
+    mainWindow.setAlwaysOnTop(true, 'floating');
+  } else {
+    // Windows/Linux: Use standard options (visibleOnFullScreen not supported)
+    mainWindow.setVisibleOnAllWorkspaces(true);
+    mainWindow.setAlwaysOnTop(true);
+  }
 
   // Load HTML file (from dist's adjacent src/renderer/html directory)
   // __dirname is dist/main, so need ../../src/renderer/html/index.html

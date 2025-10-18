@@ -18,7 +18,11 @@ export function createTray(): Tray {
   // Use app.getAppPath() to get app root directory, ensures correct paths in both dev and production
   const iconPath = path.join(app.getAppPath(), ASSETS_PATH.TRAY_ICON);
   const icon = nativeImage.createFromPath(iconPath);
-  icon.setTemplateImage(true); // Set as template image, adapts to macOS dark/light mode
+
+  // Set as template image only on macOS, adapts to macOS dark/light mode
+  if (process.platform === 'darwin') {
+    icon.setTemplateImage(true);
+  }
 
   tray = new Tray(icon);
   tray.setToolTip(DIALOG_TEXTS.TRAY_TOOLTIP);
