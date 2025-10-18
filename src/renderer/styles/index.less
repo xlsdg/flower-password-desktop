@@ -1,23 +1,55 @@
 /**
  * Main styles for FlowerPassword application
+ * Supports automatic light/dark theme switching based on system preferences
  */
 
-// Color variables
-@primary-color: #168bc3;
-@primary-hover-color: #057ab2;
-@text-color: #999;
-@white-color: #fff;
-@border-color: #999;
-@highlight-color: #ff881c;
+// Light theme colors
+:root {
+  --bg-color: #fff;
+  --text-primary: #168bc3;
+  --text-secondary: #999;
+  --text-tertiary: #666;
+  --border-color: #ccc;
+  --input-bg: #fff;
+  --input-text: #333;
+  --btn-primary: #168bc3;
+  --btn-primary-hover: #057ab2;
+  --btn-text: #fff;
+  --link-color: #168bc3;
+  --link-hover: #ff881c;
+  --close-btn-bg: #168bc3;
+  --close-btn-border: #168bc3;
+  --select-bg: transparent;
+}
+
+// Dark theme colors (auto-applied based on system preference)
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1e1e1e;
+    --text-primary: #4db8e8;
+    --text-secondary: #aaa;
+    --text-tertiary: #999;
+    --border-color: #444;
+    --input-bg: #2d2d2d;
+    --input-text: #e0e0e0;
+    --btn-primary: #4db8e8;
+    --btn-primary-hover: #3a9fd1;
+    --btn-text: #1e1e1e;
+    --link-color: #4db8e8;
+    --link-hover: #ffa84d;
+    --close-btn-bg: #4db8e8;
+    --close-btn-border: #4db8e8;
+    --select-bg: transparent;
+  }
+}
 
 // Spacing variables
 @padding-base: 10px;
-@padding-small: 5px;
+@padding-small: 6px;
 @margin-base: 10px;
 
 // Border radius
-@border-radius-base: 3px;
-@border-radius-large: 5px;
+@border-radius: 4px;
 
 // Font sizes
 @font-size-title: 22px;
@@ -26,61 +58,57 @@
 
 .app {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
+  height: 100%;
   padding: @padding-base;
-  background: @white-color;
-  min-height: 100%;
-  min-width: 100%;
+  background: var(--bg-color);
+  color: var(--text-tertiary);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
   &__close-btn {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    display: block;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 16px;
     height: 16px;
+    padding: 0;
+    background: var(--close-btn-bg);
+    color: var(--btn-text);
     cursor: pointer;
-    color: @white-color;
-    border: 2px solid @primary-color;
-    background: @primary-color;
-
-    &::before {
-      position: relative;
-      top: -1px;
-      display: block;
-      content: '\D7';
-      text-align: center;
-      font-size: @font-size-small;
-      line-height: 14px;
-      cursor: pointer;
-    }
+    font-size: @font-size-small;
   }
 
   &__title {
+    margin: 0;
     font-size: @font-size-title;
     font-weight: 700;
-    margin: 0 0 @padding-small 0;
-    color: @primary-color;
+    color: var(--text-primary);
     cursor: default;
+    -webkit-app-region: drag;
+    user-select: none;
   }
 
   &__form-group {
-    font-size: 0;
-    margin: @margin-base 0;
-
     &--split {
+      display: flex;
+
       .app__input--prefix,
       .app__input--suffix {
-        display: inline-block;
-        vertical-align: top;
-        width: 50%;
+        flex: 1;
       }
 
       .app__input--prefix {
+        border-right: none;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
-        border-right: none;
       }
 
       .app__input--suffix {
@@ -91,84 +119,91 @@
   }
 
   &__input {
-    font-size: @font-size-base;
     width: 100%;
-    line-height: 1;
     padding: @padding-small;
-    border: 1px solid @border-color;
-    border-radius: @border-radius-base;
+    font-size: @font-size-base;
+    height: 32px;
+    line-height: 32px;
+    color: var(--input-text);
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: @border-radius;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--text-primary);
+    }
   }
 
   &__controls {
-    position: relative;
-    font-size: 0;
-    margin: @margin-base 0;
+    display: flex;
   }
 
   &__generate-btn {
+    flex: 1;
+    height: 32px;
     font-size: @font-size-small;
-    width: 100%;
-    line-height: 22px;
-    color: @white-color;
-    border: 1px solid @primary-color;
-    border-radius: @border-radius-base;
-    background-color: @primary-color;
-    outline: none;
+    color: var(--btn-text);
+    background-color: var(--btn-primary);
+    border: 1px solid var(--btn-primary);
+    border-radius: @border-radius;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     cursor: pointer;
-    padding-right: 70px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    transition: background-color 0.2s;
 
     &:hover {
-      background-color: @primary-hover-color;
+      background-color: var(--btn-primary-hover);
+    }
+
+    &:focus {
+      outline: none;
     }
   }
 
   &__length-select {
-    cursor: pointer;
-    outline: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    font-size: @font-size-small;
-    color: @white-color;
+    flex-shrink: 0;
+    height: 32px;
     width: 64px;
-    height: 29px;
+    padding: @padding-small;
     padding-left: 18px;
-    background-color: transparent;
-    border: none;
-    border-radius: @border-radius-base;
+    font-size: @font-size-small;
+    color: var(--btn-text);
+    background-color: var(--btn-primary);
+    border: 1px solid var(--btn-primary);
+    border-left: 1px solid var(--btn-text);
+    border-radius: @border-radius;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    border-left: 1px solid @white-color;
-    appearance: none;
-    -moz-appearance: none;
-    -webkit-appearance: none;
-  }
+    cursor: pointer;
 
-  &__hint {
-    font-size: @font-size-small;
-    line-height: 1.5;
-    color: @text-color;
-    margin: 0;
-    cursor: default;
-
-    & + & {
-      margin-top: 2px;
+    &:focus {
+      outline: none;
     }
   }
 
+  &__hint {
+    margin: 0;
+    font-size: @font-size-small;
+    color: var(--text-secondary);
+    cursor: default;
+  }
+
   &__link {
-    cursor: pointer;
+    color: var(--link-color);
     text-decoration: none;
-    color: @primary-color;
+    transition: color 0.2s;
 
     &:hover {
-      cursor: pointer;
-      text-decoration: none;
-      color: @highlight-color;
+      color: var(--link-hover);
+    }
+
+    &:focus {
+      outline: none;
     }
   }
 }

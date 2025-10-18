@@ -193,10 +193,12 @@ export function App(): React.JSX.Element {
 
   return (
     <div className="app">
-      <button className="app__close-btn" title="关闭" aria-label="关闭" onClick={handleClose}>
-        ×
-      </button>
-      <h1 className="app__title">花密 Flower Password</h1>
+      <div className="app__header">
+        <h1 className="app__title">花密 Flower Password</h1>
+        <button className="app__close-btn" title="关闭" aria-label="关闭" onClick={handleClose}>
+          ×
+        </button>
+      </div>
 
       <div className="app__form-group">
         <input
@@ -228,7 +230,12 @@ export function App(): React.JSX.Element {
         <button className="app__generate-btn" tabIndex={3} onClick={handleCopyPassword}>
           {generatedPassword}
         </button>
-        <select className="app__length-select" tabIndex={4} value={passwordLength} onChange={handlePasswordLengthChange}>
+        <select
+          className="app__length-select"
+          tabIndex={4}
+          value={passwordLength}
+          onChange={handlePasswordLengthChange}
+        >
           {lengthOptions.map(len => (
             <option key={len} value={len}>
               {len.toString().padStart(2, '0')}位
@@ -260,7 +267,6 @@ export function App(): React.JSX.Element {
 
       <p className="app__hint">· 记忆密码:可选择一个简单易记的密码,用于生成其他高强度密码。</p>
       <p className="app__hint">· 区分代号:用于区别不同用途密码的简短代号,如淘宝账号可用"taobao"或"tb"等。</p>
-      <p className="app__hint">· 输入框按 Enter 键关闭本窗口。</p>
       <p className="app__hint">
         · 花密官网地址:
         <a
