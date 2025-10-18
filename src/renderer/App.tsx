@@ -195,7 +195,7 @@ export function App(): React.JSX.Element {
     <div className="app">
       <div className="app__header">
         <h1 className="app__title">花密 Flower Password</h1>
-        <button className="app__close-btn" title="关闭" aria-label="关闭" onClick={handleClose}>
+        <button className="app__close-btn" title="关闭" aria-label="关闭" tabIndex={0} onClick={handleClose}>
           ×
         </button>
       </div>
@@ -274,6 +274,7 @@ export function App(): React.JSX.Element {
           href="https://flowerpassword.com/"
           target="_blank"
           rel="noopener noreferrer"
+          tabIndex={7}
           onClick={e => handleExternalLink(e, 'https://flowerpassword.com/')}
         >
           https://flowerpassword.com/
