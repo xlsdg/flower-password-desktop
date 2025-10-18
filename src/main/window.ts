@@ -6,7 +6,7 @@ import { positionWindowAtCursor } from './position';
 let mainWindow: BrowserWindow | null = null;
 
 /**
- * 窗口配置
+ * Window configuration
  */
 const WINDOW_CONFIG: WindowConfig = {
   width: 300,
@@ -18,8 +18,8 @@ const WINDOW_CONFIG: WindowConfig = {
 };
 
 /**
- * 创建主窗口
- * @returns 创建的 BrowserWindow 实例
+ * Create main window
+ * @returns Created BrowserWindow instance
  */
 export function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -32,33 +32,33 @@ export function createWindow(): BrowserWindow {
     },
   });
 
-  // 加载 HTML 文件（从 dist 的相邻 src/renderer/html 目录）
-  // __dirname 是 dist/main，所以需要 ../../src/renderer/html/index.html
+  // Load HTML file (from dist's adjacent src/renderer/html directory)
+  // __dirname is dist/main, so need ../../src/renderer/html/index.html
   void mainWindow.loadFile(path.join(__dirname, '../../src/renderer/html/index.html'));
 
-  // 窗口失去焦点时隐藏
+  // Hide window when it loses focus
   mainWindow.on('blur', () => {
     if (mainWindow && !mainWindow.webContents.isDevToolsOpened()) {
       mainWindow.hide();
     }
   });
 
-  // 开发时打开开发者工具（取消注释）
+  // Uncomment to open DevTools in development
   // mainWindow.webContents.openDevTools()
 
   return mainWindow;
 }
 
 /**
- * 获取主窗口实例
- * @returns 主窗口实例或 null
+ * Get main window instance
+ * @returns Main window instance or null
  */
 export function getWindow(): BrowserWindow | null {
   return mainWindow;
 }
 
 /**
- * 显示窗口
+ * Show window
  */
 export function showWindow(): void {
   if (mainWindow) {
@@ -68,7 +68,7 @@ export function showWindow(): void {
 }
 
 /**
- * 隐藏窗口
+ * Hide window
  */
 export function hideWindow(): void {
   if (mainWindow) {
@@ -77,7 +77,7 @@ export function hideWindow(): void {
 }
 
 /**
- * 切换窗口显示/隐藏状态
+ * Toggle window show/hide state
  */
 export function toggleWindow(): void {
   if (mainWindow) {
@@ -90,9 +90,9 @@ export function toggleWindow(): void {
 }
 
 /**
- * 设置窗口位置
- * @param x - X 坐标
- * @param y - Y 坐标
+ * Set window position
+ * @param x - X coordinate
+ * @param y - Y coordinate
  */
 export function setWindowPosition(x: number, y: number): void {
   if (mainWindow) {
@@ -101,8 +101,8 @@ export function setWindowPosition(x: number, y: number): void {
 }
 
 /**
- * 获取窗口边界
- * @returns 窗口边界对象
+ * Get window bounds
+ * @returns Window bounds object
  */
 export function getWindowBounds(): { x: number; y: number; width: number; height: number } {
   if (mainWindow) {
@@ -112,9 +112,9 @@ export function getWindowBounds(): { x: number; y: number; width: number; height
 }
 
 /**
- * 向渲染进程发送消息
- * @param channel - IPC 频道
- * @param data - 要发送的数据
+ * Send message to renderer process
+ * @param channel - IPC channel
+ * @param data - Data to send
  */
 export function sendToRenderer(channel: string, data: string): void {
   if (mainWindow) {
@@ -123,8 +123,8 @@ export function sendToRenderer(channel: string, data: string): void {
 }
 
 /**
- * 根据鼠标位置显示窗口
- * 窗口的左上角会显示在鼠标的右下方
+ * Show window at cursor position
+ * Window top-left corner will be displayed at cursor bottom-right
  */
 export function showWindowAtCursor(): void {
   if (!mainWindow) {

@@ -1,12 +1,12 @@
 /**
- * 渲染进程主文件
- * 处理用户界面交互和密码生成逻辑
+ * Renderer process main file
+ * Handles user interface interactions and password generation logic
  */
 
 import { fpCode } from 'flowerpassword.js';
 
 /**
- * DOM 元素引用
+ * DOM element references
  */
 interface DOMElements {
   btnClose: HTMLElement;
@@ -19,9 +19,9 @@ interface DOMElements {
 }
 
 /**
- * 获取所有需要的 DOM 元素
- * @returns DOM 元素对象
- * @throws 如果必需的元素不存在则抛出错误
+ * Get all required DOM elements
+ * @returns DOM elements object
+ * @throws Throws error if required elements don't exist
  */
 function getDOMElements(): DOMElements {
   const btnClose = document.getElementById('close');
@@ -48,16 +48,16 @@ function getDOMElements(): DOMElements {
 }
 
 /**
- * 隐藏窗口
+ * Hide window
  */
 function hide(): void {
   window.electronAPI.hide();
 }
 
 /**
- * 生成密码
- * @param elements - DOM 元素对象
- * @returns 生成的密码字符串，如果输入无效则返回 false
+ * Generate password
+ * @param elements - DOM elements object
+ * @returns Generated password string, or false if input is invalid
  */
 function showCode(elements: DOMElements): string | false {
   const password = elements.iptPassword.value;
@@ -81,17 +81,17 @@ function showCode(elements: DOMElements): string | false {
 }
 
 /**
- * 处理输入变化事件
- * @param elements - DOM 元素对象
+ * Handle input change event
+ * @param elements - DOM elements object
  */
 function handleInputChange(elements: DOMElements): void {
   showCode(elements);
 }
 
 /**
- * 处理回车键按下事件
- * @param event - 键盘事件
- * @param elements - DOM 元素对象
+ * Handle Enter key press event
+ * @param event - Keyboard event
+ * @param elements - DOM elements object
  */
 function handleKeyPress(event: KeyboardEvent, elements: DOMElements): void {
   if (event.keyCode === 13) {
@@ -111,8 +111,8 @@ function handleKeyPress(event: KeyboardEvent, elements: DOMElements): void {
 }
 
 /**
- * 处理密码按钮点击事件
- * @param elements - DOM 元素对象
+ * Handle password button click event
+ * @param elements - DOM elements object
  */
 function handleCodeButtonClick(elements: DOMElements): void {
   const code = showCode(elements);
@@ -129,7 +129,7 @@ function handleCodeButtonClick(elements: DOMElements): void {
 }
 
 /**
- * 设置外部链接处理
+ * Setup external link handling
  */
 function setupExternalLinks(): void {
   const links = document.querySelectorAll<HTMLAnchorElement>('a[href]');
@@ -148,42 +148,42 @@ function setupExternalLinks(): void {
 }
 
 /**
- * 初始化应用
+ * Initialize application
  */
 function initialize(): void {
   try {
     const elements = getDOMElements();
 
-    // 监听输入变化，实时生成密码
+    // Listen to input changes, generate password in real-time
     elements.iptPassword.addEventListener('input', () => handleInputChange(elements), false);
     elements.iptKey.addEventListener('input', () => handleInputChange(elements), false);
     elements.iptPrefix.addEventListener('input', () => handleInputChange(elements), false);
     elements.iptSuffix.addEventListener('input', () => handleInputChange(elements), false);
     elements.selLength.addEventListener('change', () => handleInputChange(elements), false);
 
-    // 监听回车键
+    // Listen for Enter key
     elements.iptKey.addEventListener('keypress', event => handleKeyPress(event, elements), false);
 
-    // 接收从剪贴板提取的域名
+    // Receive domain extracted from clipboard
     window.electronAPI.onKeyFromClipboard((message: string) => {
       elements.iptKey.value = message;
       showCode(elements);
     });
 
-    // 关闭按钮
+    // Close button
     elements.btnClose.addEventListener('click', () => hide(), false);
 
-    // 点击密码按钮复制
+    // Click password button to copy
     elements.btnCode.addEventListener('click', () => handleCodeButtonClick(elements), false);
 
-    // 处理外部链接
+    // Handle external links
     setupExternalLinks();
   } catch (error) {
     console.error('Failed to initialize app:', error);
   }
 }
 
-// 当 DOM 加载完成后初始化
+// Initialize when DOM is loaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initialize);
 } else {

@@ -1,40 +1,40 @@
-// 共享类型定义
+// Shared type definitions
 
 /**
- * Electron API 接口
+ * Electron API interface
  */
 export interface ElectronAPI {
   /**
-   * 隐藏窗口
+   * Hide window
    */
   hide: () => void;
 
   /**
-   * 退出应用
+   * Quit application
    */
   quit: () => void;
 
   /**
-   * 写入文本到剪贴板
-   * @param text - 要写入的文本
+   * Write text to clipboard
+   * @param text - Text to write
    */
   writeText: (text: string) => Promise<void>;
 
   /**
-   * 在默认浏览器中打开外部链接
-   * @param url - 要打开的URL
+   * Open external link in default browser
+   * @param url - URL to open
    */
   openExternal: (url: string) => Promise<void>;
 
   /**
-   * 监听从剪贴板提取的域名
-   * @param callback - 接收域名的回调函数
+   * Listen for domain extracted from clipboard
+   * @param callback - Callback function to receive domain
    */
   onKeyFromClipboard: (callback: (value: string) => void) => void;
 }
 
 /**
- * IPC 频道名称
+ * IPC channel names
  */
 export const IPC_CHANNELS = {
   HIDE: 'hide',
@@ -45,7 +45,7 @@ export const IPC_CHANNELS = {
 } as const;
 
 /**
- * 窗口配置
+ * Window configuration
  */
 export interface WindowConfig {
   width: number;
@@ -57,7 +57,7 @@ export interface WindowConfig {
 }
 
 /**
- * 托盘位置信息
+ * Tray position information
  */
 export interface TrayBounds {
   x: number;
@@ -67,7 +67,7 @@ export interface TrayBounds {
 }
 
 /**
- * 窗口位置信息
+ * Window position information
  */
 export interface WindowBounds {
   x: number;
@@ -77,7 +77,7 @@ export interface WindowBounds {
 }
 
 /**
- * URL 解析结果
+ * URL parsing result
  */
 export interface ParsedURL {
   protocol: string;
@@ -86,7 +86,7 @@ export interface ParsedURL {
 }
 
 /**
- * PSL 解析结果
+ * PSL parsing result
  * Re-export ParsedDomain from psl package for convenience
  */
 export type { ParsedDomain } from 'psl';

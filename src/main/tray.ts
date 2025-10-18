@@ -10,24 +10,24 @@ import type { ParsedURL, ParsedDomain } from '../shared/types';
 let tray: Tray | null = null;
 
 /**
- * 创建系统托盘
- * @returns 创建的 Tray 实例
+ * Create system tray
+ * @returns Created Tray instance
  */
 export function createTray(): Tray {
-  // 使用 app.getAppPath() 获取应用根目录,确保开发和生产环境路径都正确
+  // Use app.getAppPath() to get app root directory, ensures correct paths in both dev and production
   const iconPath = path.join(app.getAppPath(), 'src/renderer/assets/IconTemplate.png');
   const icon = nativeImage.createFromPath(iconPath);
-  icon.setTemplateImage(true); // 设置为模板图标,适配 macOS 深色/浅色模式
+  icon.setTemplateImage(true); // Set as template image, adapts to macOS dark/light mode
 
   tray = new Tray(icon);
   tray.setToolTip('花密');
 
-  // 点击托盘图标显示/隐藏窗口
+  // Click tray icon to show/hide window
   tray.on('click', () => {
     handleTrayClick();
   });
 
-  // 右键菜单
+  // Right-click menu
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示',
@@ -56,16 +56,16 @@ export function createTray(): Tray {
 }
 
 /**
- * 获取托盘实例
- * @returns 托盘实例或 null
+ * Get tray instance
+ * @returns Tray instance or null
  */
 export function getTray(): Tray | null {
   return tray;
 }
 
 /**
- * 从剪贴板读取URL并提取域名
- * 如果提取成功，将域名发送到渲染进程
+ * Read URL from clipboard and extract domain
+ * If extraction succeeds, send domain to renderer process
  */
 function parseClipboardUrl(): void {
   const text = clipboard.readText('clipboard');
@@ -82,18 +82,18 @@ function parseClipboardUrl(): void {
         }
       }
     } catch (error) {
-      // 忽略解析错误，不影响窗口显示
+      // Ignore parsing errors, don't affect window display
       console.error('Failed to parse clipboard URL:', error);
     }
   }
 }
 
 /**
- * 处理托盘图标点击
- * 如果窗口已显示则隐藏，否则显示在托盘图标下方
+ * Handle tray icon click
+ * If window is already visible, hide it, otherwise show it below tray icon
  */
 function handleTrayClick(): void {
-  // 检查窗口是否已显示
+  // Check if window is already visible
   const win = getWindow();
   if (win && win.isVisible()) {
     hideWindow();
@@ -103,14 +103,14 @@ function handleTrayClick(): void {
 }
 
 /**
- * 处理显示窗口在托盘图标下方
- * 读取剪贴板并提取域名，窗口显示在托盘图标下方
+ * Handle showing window below tray icon
+ * Read URL from clipboard and extract domain, display window below tray icon
  */
 export function handleShowWindowBelowTray(): void {
-  // 从剪贴板读取URL并提取域名
+  // Read URL from clipboard and extract domain
   parseClipboardUrl();
 
-  // 计算托盘图标位置并显示窗口
+  // Calculate tray icon position and show window
   const win = getWindow();
   if (win && tray) {
     positionWindowBelowTray(win, tray);
@@ -119,19 +119,19 @@ export function handleShowWindowBelowTray(): void {
 }
 
 /**
- * 处理显示窗口在鼠标位置
- * 读取剪贴板并提取域名，窗口显示在鼠标位置的右下方
+ * Handle showing window at cursor position
+ * Read URL from clipboard and extract domain, display window at cursor bottom-right
  */
 export function handleShowWindowAtCursor(): void {
-  // 从剪贴板读取URL并提取域名
+  // Read URL from clipboard and extract domain
   parseClipboardUrl();
 
-  // 在鼠标位置显示窗口
+  // Show window at cursor position
   showWindowAtCursor();
 }
 
 /**
- * 确认退出应用
+ * Confirm quit application
  */
 export async function confirmQuit(): Promise<void> {
   hideWindow();

@@ -6,20 +6,20 @@ module.exports = {
     asar: true,
     icon: 'src/renderer/assets/FlowerPassword.icns',
     appBundleId: 'org.xlsdg.flowerpassword',
-    // 确保包含所有必要的文件
+    // Ensure all necessary files are included
     extraResource: [],
     ignore: [
-      /^\/src/, // 排除源代码目录
-      /^\/\.git/, // 排除 git 目录
-      /^\/\.github/, // 排除 GitHub Actions
-      /^\/\.vscode/, // 排除 VSCode 配置
-      /tsconfig\.json$/, // 排除 TypeScript 配置
-      /^\/\.eslintrc/, // 排除 ESLint 配置
-      /^\/\.prettierrc/, // 排除 Prettier 配置
-      /^\/\.prettierignore/, // 排除 Prettier ignore
-      /\.ts$/, // 排除 TypeScript 源文件
-      /\.map$/, // 排除 source map 文件
-      /^\/CLAUDE\.md$/, // 排除 Claude 指令文件
+      /^\/src/, // Exclude source code directory
+      /^\/\.git/, // Exclude git directory
+      /^\/\.github/, // Exclude GitHub Actions
+      /^\/\.vscode/, // Exclude VSCode configuration
+      /tsconfig\.json$/, // Exclude TypeScript configuration
+      /^\/\.eslintrc/, // Exclude ESLint configuration
+      /^\/\.prettierrc/, // Exclude Prettier configuration
+      /^\/\.prettierignore/, // Exclude Prettier ignore
+      /\.ts$/, // Exclude TypeScript source files
+      /\.map$/, // Exclude source map files
+      /^\/CLAUDE\.md$/, // Exclude Claude instruction file
     ],
   },
   rebuildConfig: {},

@@ -317,6 +317,7 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - 2 spaces for indentation
 - LF line endings
 - Comprehensive JSDoc comments for all public functions
+- **All code comments MUST be written in English only** - Chinese comments are not allowed
 
 ### ESLint Rules
 

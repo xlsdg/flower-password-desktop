@@ -3,45 +3,45 @@ import type { ElectronAPI } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 
 /**
- * 安全地暴露 API 到渲染进程
- * 使用 contextBridge 确保渲染进程无法直接访问 Electron 内部 API
+ * Safely expose APIs to renderer process
+ * Use contextBridge to ensure renderer process cannot directly access Electron internal APIs
  */
 const electronAPI: ElectronAPI = {
   /**
-   * 窗口控制 - 隐藏窗口
+   * Window control - Hide window
    */
   hide: (): void => {
     ipcRenderer.send(IPC_CHANNELS.HIDE);
   },
 
   /**
-   * 窗口控制 - 退出应用
+   * Window control - Quit application
    */
   quit: (): void => {
     ipcRenderer.send(IPC_CHANNELS.QUIT);
   },
 
   /**
-   * 剪贴板操作 - 写入文本
-   * @param text - 要写入剪贴板的文本
-   * @returns Promise，操作完成时 resolve
+   * Clipboard operation - Write text
+   * @param text - Text to write to clipboard
+   * @returns Promise that resolves when operation completes
    */
   writeText: (text: string): Promise<void> => {
     return ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text);
   },
 
   /**
-   * 打开外部链接
-   * @param url - 要在默认浏览器中打开的 URL
-   * @returns Promise，操作完成时 resolve
+   * Open external link
+   * @param url - URL to open in default browser
+   * @returns Promise that resolves when operation completes
    */
   openExternal: (url: string): Promise<void> => {
     return ipcRenderer.invoke(IPC_CHANNELS.SHELL_OPEN_EXTERNAL, url);
   },
 
   /**
-   * 接收从主进程发送的数据
-   * @param callback - 接收域名的回调函数
+   * Receive data sent from main process
+   * @param callback - Callback function to receive domain
    */
   onKeyFromClipboard: (callback: (value: string) => void): void => {
     ipcRenderer.on(IPC_CHANNELS.KEY_FROM_CLIPBOARD, (_event, value: string) => {
@@ -50,5 +50,5 @@ const electronAPI: ElectronAPI = {
   },
 };
 
-// 将 API 暴露到渲染进程的 window 对象
+// Expose API to renderer process window object
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

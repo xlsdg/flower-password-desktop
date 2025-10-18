@@ -5,8 +5,8 @@ import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
 import { setupIPC } from './ipc';
 
 /**
- * 错误处理
- * 捕获未处理的异常并显示错误对话框
+ * Error handling
+ * Catch unhandled exceptions and show error dialog
  */
 process.on('uncaughtException', (err: Error) => {
   dialog.showErrorBox('Uncaught Exception: ' + err.message, err.stack || '');
@@ -14,8 +14,8 @@ process.on('uncaughtException', (err: Error) => {
 });
 
 /**
- * 应用准备就绪
- * 初始化窗口、托盘、菜单等
+ * Application ready
+ * Initialize window, tray, menu, etc.
  */
 app
   .whenReady()
@@ -32,8 +32,8 @@ app
   });
 
 /**
- * 所有窗口关闭时退出（除了 macOS）
- * macOS 应用通常保持活动状态，直到用户明确退出
+ * Quit when all windows are closed (except on macOS)
+ * macOS apps typically stay active until the user explicitly quits
  */
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -42,16 +42,16 @@ app.on('window-all-closed', () => {
 });
 
 /**
- * 应用即将退出时清理
- * 注销所有全局快捷键
+ * Cleanup before application quits
+ * Unregister all global shortcuts
  */
 app.on('will-quit', () => {
   unregisterShortcuts();
 });
 
 /**
- * macOS 平台特定设置
- * 隐藏 Dock 图标，应用只在菜单栏显示
+ * macOS platform-specific settings
+ * Hide Dock icon, app only shows in menu bar
  */
 if (process.platform === 'darwin' && app.dock) {
   app.dock.hide();

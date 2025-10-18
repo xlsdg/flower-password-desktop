@@ -1,10 +1,10 @@
 import { screen, type BrowserWindow, type Tray } from 'electron';
 
 /**
- * 计算窗口在托盘图标下方的位置
- * @param tray - 托盘实例
- * @param windowBounds - 窗口边界信息
- * @returns 窗口应该显示的坐标 {x, y}
+ * Calculate window position below tray icon
+ * @param tray - Tray instance
+ * @param windowBounds - Window bounds information
+ * @returns Coordinates where window should be displayed {x, y}
  */
 export function calculatePositionBelowTray(
   tray: Tray,
@@ -12,7 +12,7 @@ export function calculatePositionBelowTray(
 ): { x: number; y: number } {
   const trayBounds = tray.getBounds();
 
-  // macOS: 托盘在顶部，窗口显示在托盘图标下方居中
+  // macOS: Tray is at top, window displays below tray icon centered
   const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
   const y = Math.round(trayBounds.y + trayBounds.height);
 
@@ -20,38 +20,38 @@ export function calculatePositionBelowTray(
 }
 
 /**
- * 计算窗口在鼠标右下方的位置
- * @param windowBounds - 窗口边界信息
- * @returns 窗口应该显示的坐标 {x, y}
+ * Calculate window position at cursor bottom-right
+ * @param windowBounds - Window bounds information
+ * @returns Coordinates where window should be displayed {x, y}
  */
 export function calculatePositionAtCursor(windowBounds: { width: number; height: number }): { x: number; y: number } {
-  // 获取鼠标当前位置
+  // Get current cursor position
   const cursorPoint = screen.getCursorScreenPoint();
 
-  // 获取鼠标所在的显示器
+  // Get the display where cursor is located
   const display = screen.getDisplayNearestPoint(cursorPoint);
   const { x: screenX, y: screenY, width: screenWidth, height: screenHeight } = display.workArea;
 
-  // 计算窗口位置：窗口左上角在鼠标右下方
+  // Calculate window position: window top-left at cursor bottom-right
   let x = cursorPoint.x;
   let y = cursorPoint.y;
 
-  // 确保窗口不会超出屏幕右边界
+  // Ensure window doesn't exceed right screen boundary
   if (x + windowBounds.width > screenX + screenWidth) {
     x = screenX + screenWidth - windowBounds.width;
   }
 
-  // 确保窗口不会超出屏幕下边界
+  // Ensure window doesn't exceed bottom screen boundary
   if (y + windowBounds.height > screenY + screenHeight) {
     y = screenY + screenHeight - windowBounds.height;
   }
 
-  // 确保窗口不会超出屏幕左边界
+  // Ensure window doesn't exceed left screen boundary
   if (x < screenX) {
     x = screenX;
   }
 
-  // 确保窗口不会超出屏幕上边界
+  // Ensure window doesn't exceed top screen boundary
   if (y < screenY) {
     y = screenY;
   }
@@ -60,9 +60,9 @@ export function calculatePositionAtCursor(windowBounds: { width: number; height:
 }
 
 /**
- * 将窗口定位到托盘图标下方并显示
- * @param window - 窗口实例
- * @param tray - 托盘实例
+ * Position window below tray icon and show it
+ * @param window - Window instance
+ * @param tray - Tray instance
  */
 export function positionWindowBelowTray(window: BrowserWindow, tray: Tray): void {
   const windowBounds = window.getBounds();
@@ -71,8 +71,8 @@ export function positionWindowBelowTray(window: BrowserWindow, tray: Tray): void
 }
 
 /**
- * 将窗口定位到鼠标右下方并显示
- * @param window - 窗口实例
+ * Position window at cursor bottom-right and show it
+ * @param window - Window instance
  */
 export function positionWindowAtCursor(window: BrowserWindow): void {
   const windowBounds = window.getBounds();

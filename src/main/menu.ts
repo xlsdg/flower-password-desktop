@@ -2,7 +2,7 @@ import { Menu, globalShortcut } from 'electron';
 import { handleShowWindowAtCursor } from './tray';
 
 /**
- * 创建应用菜单
+ * Create application menu
  */
 export function createMenu(): void {
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -51,10 +51,10 @@ export function createMenu(): void {
 }
 
 /**
- * 注册全局快捷键
+ * Register global shortcuts
  */
 export function registerShortcuts(): void {
-  // 注册 Cmd/Ctrl+Alt+S 显示窗口（在鼠标位置）
+  // Register Cmd/Ctrl+Alt+S to show window at cursor position
   const success = globalShortcut.register('CmdOrCtrl+Alt+S', () => {
     handleShowWindowAtCursor();
   });
@@ -65,7 +65,7 @@ export function registerShortcuts(): void {
 }
 
 /**
- * 注销所有全局快捷键
+ * Unregister all global shortcuts
  */
 export function unregisterShortcuts(): void {
   globalShortcut.unregisterAll();
