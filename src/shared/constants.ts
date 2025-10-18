@@ -9,10 +9,11 @@ export const GLOBAL_SHORTCUTS = {
 
 /**
  * Asset file paths (relative to app root)
+ * All assets are compiled to dist/assets by Rspack
  */
 export const ASSETS_PATH = {
-  TRAY_ICON: 'src/renderer/assets/IconTemplate.png',
-  DIALOG_ICON: 'src/renderer/assets/Icon.png',
+  TRAY_ICON: 'dist/assets/IconTemplate.png',
+  DIALOG_ICON: 'dist/assets/Icon.png',
 } as const;
 
 /**

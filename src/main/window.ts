@@ -45,9 +45,9 @@ export function createWindow(): BrowserWindow {
     mainWindow.setAlwaysOnTop(true);
   }
 
-  // Load HTML file (from dist's adjacent src/renderer/html directory)
-  // __dirname is dist/main, so need ../../src/renderer/html/index.html
-  void mainWindow.loadFile(path.join(__dirname, '../../src/renderer/html/index.html'));
+  // Load HTML file from dist/renderer (compiled by Rspack)
+  // __dirname is dist/main, so need ../renderer/index.html
+  void mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
   // Hide window when it loses focus
   mainWindow.on('blur', () => {

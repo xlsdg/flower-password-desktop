@@ -62,6 +62,7 @@
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "html-rspack-plugin": "^6.1.3",
     "less": "^4.4.2",
     "less-loader": "^12.3.0",
     "nodemon": "^3.1.10",

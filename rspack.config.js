@@ -1,9 +1,12 @@
 /**
  * Rspack configuration for all processes
  * Bundles main, preload, and renderer processes
+ * All source files from src/ are compiled to dist/ with no references to src/
  */
 
 const path = require('path');
+const rspack = require('@rspack/core');
+const HtmlRspackPlugin = require('html-rspack-plugin');
 
 /**
  * @type {import('@rspack/core').Configuration[]}
@@ -154,6 +157,23 @@ module.exports = [
         },
       ],
     },
+    plugins: [
+      new HtmlRspackPlugin({
+        template: path.join(__dirname, 'src/renderer/html/index.html'),
+        filename: 'index.html',
+        inject: 'body',
+        scriptLoading: 'blocking',
+      }),
+      new rspack.CopyRspackPlugin({
+        patterns: [
+          {
+            from: path.join(__dirname, 'src/renderer/assets'),
+            to: path.join(__dirname, 'dist/assets'),
+            noErrorOnMissing: false,
+          },
+        ],
+      }),
+    ],
     target: 'web',
     devtool: 'source-map',
     optimization: {
