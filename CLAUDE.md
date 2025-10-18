@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FlowerPassword is a macOS menubar application built with Electron, React 19, and TypeScript that implements a deterministic password generation system. The UI is built with modern React hooks and functional components, styled with LESS and CSS variables for automatic light/dark theme support. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
+FlowerPassword is a cross-platform desktop application (macOS, Windows, Linux) built with Electron, React 19, and TypeScript that implements a deterministic password generation system. The UI is built with modern React hooks and functional components, styled with LESS and CSS variables for automatic light/dark theme support. Users remember one "memory password" and use different "distinction codes" for each account to generate unique, strong passwords using the flowerpassword.js library.
+
+**Platform Support:**
+
+- **macOS**: Menubar application with tray icon support (ARM64 and x64)
+- **Windows**: Desktop application with system tray support (x64 and ia32)
+- **Linux**: Desktop application with system tray support (x64 and ARM64)
 
 ## Development Commands
 
@@ -74,7 +80,9 @@ Builds TypeScript once and launches the Electron app. For development with hot r
 
 ### Building for Production
 
-The project uses **Electron Forge** for building and packaging:
+The project uses **Electron Forge** for building and packaging across all platforms:
+
+**macOS Builds:**
 
 ```bash
 # Build for Apple Silicon (ARM64) - default
@@ -83,13 +91,46 @@ npm run make
 # Build for Intel (x64)
 npm run make:x64
 
-# Build for both architectures
+# Build for both macOS architectures
 npm run make:all
+
+# Platform-specific commands
+npm run make:mac        # Current architecture
+npm run make:mac:arm64  # ARM64 only
+npm run make:mac:x64    # x64 only
 ```
 
-Output goes to `out/make/zip/darwin/[arch]/` directory. Uses `src/renderer/assets/FlowerPassword.icns` as the app icon.
+**Windows Builds:**
 
-**Note**: Universal binary builds are currently not supported due to code signing conflicts in Electron 38. The project builds separate ARM64 and x64 binaries instead.
+```bash
+# Build for Windows (must run on Windows or with Wine)
+npm run make:win        # Current architecture
+npm run make:win:x64    # 64-bit (recommended)
+npm run make:win:ia32   # 32-bit
+```
+
+**Linux Builds:**
+
+```bash
+# Build for Linux (must run on Linux)
+npm run make:linux        # Current architecture
+npm run make:linux:x64    # x64 (most common)
+npm run make:linux:arm64  # ARM64 (Raspberry Pi, etc.)
+```
+
+**Output Locations:**
+
+- macOS: `out/make/zip/darwin/[arch]/` - ZIP archives
+- Windows: `out/make/squirrel.windows/[arch]/` - Setup.exe installers, `out/make/zip/win32/[arch]/` - ZIP archives
+- Linux: `out/make/deb/[arch]/` - .deb packages, `out/make/rpm/[arch]/` - .rpm packages, `out/make/zip/linux/[arch]/` - ZIP archives
+
+**Icons:**
+
+- macOS: Uses `src/renderer/assets/FlowerPassword.icns`
+- Windows: Uses `src/renderer/assets/FlowerPassword.ico`
+- Linux: Uses `src/renderer/assets/FlowerPassword.png`
+
+**Note**: Universal binary builds for macOS are currently not supported due to code signing conflicts in Electron 38. The project builds separate ARM64 and x64 binaries instead.
 
 ### Publishing a Release
 
@@ -107,13 +148,19 @@ npm version [major|minor|patch]
 git push && git push --tags
 ```
 
-3. GitHub Actions will automatically:
-   - Build ARM64 binary (Apple Silicon)
-   - Build x64 binary (Intel)
-   - Create FlowerPassword-arm64.zip and FlowerPassword-x64.zip
-   - Create a GitHub release with both zip files attached
+3. GitHub Actions will automatically build and release for all platforms:
+   - **macOS builds** (on macOS runner):
+     - ARM64 binary (Apple Silicon M1/M2/M3/M4)
+     - x64 binary (Intel)
+   - **Windows builds** (on Windows runner):
+     - x64 installer and portable ZIP
+     - ia32 installer and portable ZIP
+   - **Linux builds** (on Ubuntu runner):
+     - x64 .deb, .rpm, and ZIP
+     - ARM64 .deb, .rpm, and ZIP
+   - Create a GitHub release with all binaries attached
 
-You can also manually build locally with `npm run make:all`.
+You can also manually build locally for your current platform using the platform-specific commands above.
 
 ## Architecture
 
@@ -142,7 +189,9 @@ src/
 │   │   ├── reset.less # Cross-platform normalization
 │   │   └── index.less # Main styles with light/dark theme support
 │   └── assets/        # Static assets
-│       ├── FlowerPassword.icns      # App icon for packaging
+│       ├── FlowerPassword.icns      # macOS app icon
+│       ├── FlowerPassword.ico       # Windows app icon
+│       ├── FlowerPassword.png       # Linux app icon
 │       ├── Icon.png                 # Dialog icon
 │       ├── IconTemplate.png         # Tray icon (1x)
 │       └── IconTemplate@2x.png      # Tray icon (2x)
@@ -364,7 +413,10 @@ Extends the global `Window` interface to include the `electronAPI` property, pro
 - **eslint-config-prettier**: Disables conflicting ESLint rules
 - **eslint-plugin-prettier**: Runs Prettier as an ESLint rule
 - **@electron-forge/cli**: Electron Forge CLI for building and packaging (v7.10.2+)
-- **@electron-forge/maker-zip**: ZIP maker for macOS distributables
+- **@electron-forge/maker-zip**: ZIP maker for all platforms
+- **@electron-forge/maker-squirrel**: Windows installer maker (Squirrel.Windows)
+- **@electron-forge/maker-deb**: Debian/Ubuntu package maker
+- **@electron-forge/maker-rpm**: RedHat/Fedora package maker
 - **@electron-forge/plugin-auto-unpack-natives**: Auto-unpacks native dependencies
 - **@electron-forge/plugin-fuses**: Electron Fuses for security configuration
 - **@electron/fuses**: Fuses configuration library
@@ -434,18 +486,46 @@ Configured in [.prettierrc.json](.prettierrc.json):
 
 ### GitHub Actions Workflow
 
-The project uses GitHub Actions for automated building and releasing:
+The project uses GitHub Actions for automated multi-platform building and releasing:
 
 - **Trigger**: Automatically runs when a version tag (e.g., `v3.6.4`) is pushed
-- **Runner**: macOS-latest (required for building macOS apps)
-- **Build process**:
-  1. Checkout code
-  2. Setup Node.js 20
-  3. Install dependencies with `npm ci`
-  4. Build ARM64 binary with `npm run make`
-  5. Build x64 binary with `npm run make:x64`
-  6. Rename and organize zip files
-  7. Create GitHub release with both zip files attached
+- **Jobs**: Three parallel build jobs for each platform
+  - `build-macos`: Runs on macOS-latest
+  - `build-windows`: Runs on windows-latest
+  - `build-linux`: Runs on ubuntu-latest
+  - `release`: Runs after all builds complete to create the GitHub release
+
+**Build Process:**
+
+1. **macOS Job**:
+   - Checkout code
+   - Setup Node.js 20
+   - Install dependencies with `npm ci`
+   - Build ARM64 binary with `npm run make:mac:arm64`
+   - Build x64 binary with `npm run make:mac:x64`
+   - Upload artifacts
+
+2. **Windows Job**:
+   - Checkout code
+   - Setup Node.js 20
+   - Install dependencies with `npm ci`
+   - Build x64 installer and ZIP with `npm run make:win:x64`
+   - Build ia32 installer and ZIP with `npm run make:win:ia32`
+   - Upload artifacts
+
+3. **Linux Job**:
+   - Checkout code
+   - Setup Node.js 20
+   - Install dependencies with `npm ci`
+   - Build x64 packages (.deb, .rpm, .zip) with `npm run make:linux:x64`
+   - Build ARM64 packages (.deb, .rpm, .zip) with `npm run make:linux:arm64`
+   - Upload artifacts
+
+4. **Release Job**:
+   - Download all artifacts from the three build jobs
+   - Organize and rename files with consistent naming
+   - Create GitHub release with all binaries attached
+   - Include platform-specific installation instructions in release notes
 
 - **Permissions**: Requires `contents: write` permission to create releases
 - **Workflow file**: [.github/workflows/release.yml](.github/workflows/release.yml)
@@ -454,27 +534,42 @@ The project uses GitHub Actions for automated building and releasing:
 
 The project uses [forge.config.js](forge.config.js) for Electron Forge configuration:
 
-- **packagerConfig**: Basic packaging options (asar, icon, app bundle ID)
+- **packagerConfig**: Cross-platform packaging options
+  - `icon`: Auto-selects platform-specific icon (.icns for macOS, .ico for Windows, .png for Linux)
+  - `asar`: Enabled for application bundling
+  - `appBundleId`: org.xlsdg.flowerpassword
   - Excludes TypeScript source files and build artifacts
-- **makers**: Only ZIP maker for macOS (removed Windows/Linux makers)
+
+- **makers**: Platform-specific makers
+  - `@electron-forge/maker-zip`: Creates ZIP archives for all platforms
+  - `@electron-forge/maker-squirrel`: Windows installer (Setup.exe)
+  - `@electron-forge/maker-deb`: Debian/Ubuntu packages (.deb)
+  - `@electron-forge/maker-rpm`: RedHat/Fedora packages (.rpm)
+
 - **plugins**:
   - `auto-unpack-natives`: Automatically unpacks native dependencies
   - `fuses`: Security fuses for Electron (RunAsNode disabled, Cookie encryption enabled, etc.)
 
 ## Important Notes
 
-- This is a macOS-only application (darwin platform)
-- The app runs in the menubar with no dock icon
+- **Cross-platform application**: Supports macOS, Windows, and Linux
+  - **macOS**: Menubar application with tray icon (no dock icon)
+  - **Windows**: Desktop application with system tray support
+  - **Linux**: Desktop application with system tray support
 - All text and UI labels are in Chinese
 - **React 19 with TypeScript** - Modern functional components with full type safety
-- **Automatic theming**: Light/dark theme switching based on macOS system preferences
+- **Automatic theming**: Light/dark theme switching based on system preferences
 - **TypeScript with strict typing** - no `any` types allowed
 - Uses modern Electron security practices with `contextIsolation` and `contextBridge`
-- Supports both Intel (x64) and Apple Silicon (arm64) architectures with separate builds
+- **Architecture support**:
+  - macOS: ARM64 (Apple Silicon) and x64 (Intel)
+  - Windows: x64 and ia32
+  - Linux: x64 and ARM64
 - Uses Electron Forge for modern build tooling and packaging
 - Modular architecture with separated concerns
 - Type-safe IPC communication between processes
-- **Fullscreen app support**: Window appears on all workspaces/Spaces without forcing desktop switches
-  - Global shortcut works seamlessly in fullscreen applications
+- **macOS-specific features**:
+  - Fullscreen app support: Window appears on all workspaces/Spaces without forcing desktop switches
+  - Global shortcut (`Cmd+Alt+S`) works seamlessly in fullscreen applications
   - Window appears at floating level above fullscreen content
   - Auto-hides on blur to avoid interfering with workflow

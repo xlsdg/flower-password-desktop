@@ -6,7 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  build-and-release:
+  build-macos:
+    name: Build macOS
     runs-on: macos-latest
 
     permissions:
@@ -26,15 +27,164 @@ jobs:
         run: npm ci
 
       - name: Build app (ARM64)
-        run: npm run make
+        run: npm run make:mac:arm64
 
       - name: Build app (x64)
-        run: npm run make:x64
+        run: npm run make:mac:x64
 
-      - name: Rename zip files
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-builds
+          path: |
+            out/make/zip/darwin/arm64/*.zip
+            out/make/zip/darwin/x64/*.zip
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app (x64)
+        run: npm run make:win:x64
+
+      - name: Build app (ia32)
+        run: npm run make:win:ia32
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: |
+            out/make/**/*.exe
+            out/make/zip/win32/**/*.zip
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app (x64)
+        run: npm run make:linux:x64
+
+      - name: Build app (ARM64)
+        run: npm run make:linux:arm64
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-builds
+          path: |
+            out/make/**/*.deb
+            out/make/**/*.rpm
+            out/make/zip/linux/**/*.zip
+
+  release:
+    name: Create Release
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Prepare release files
         run: |
-          mv out/make/zip/darwin/arm64/FlowerPassword-darwin-arm64-*.zip FlowerPassword-arm64.zip
-          mv out/make/zip/darwin/x64/FlowerPassword-darwin-x64-*.zip FlowerPassword-x64.zip
+          mkdir -p release
+
+          # macOS files
+          find artifacts/macos-builds -name "*.zip" -type f | while read file; do
+            if [[ "$file" == *"arm64"* ]]; then
+              cp "$file" release/FlowerPassword-macOS-arm64.zip
+            elif [[ "$file" == *"x64"* ]]; then
+              cp "$file" release/FlowerPassword-macOS-x64.zip
+            fi
+          done
+
+          # Windows files
+          find artifacts/windows-builds -name "*.exe" -type f | while read file; do
+            if [[ "$file" == *"x64"* ]] || [[ "$file" == *"Setup.exe"* ]]; then
+              cp "$file" release/FlowerPassword-Windows-x64-Setup.exe
+            elif [[ "$file" == *"ia32"* ]]; then
+              cp "$file" release/FlowerPassword-Windows-ia32-Setup.exe
+            fi
+          done
+
+          find artifacts/windows-builds/zip -name "*.zip" -type f 2>/dev/null | while read file; do
+            if [[ "$file" == *"x64"* ]]; then
+              cp "$file" release/FlowerPassword-Windows-x64.zip
+            elif [[ "$file" == *"ia32"* ]]; then
+              cp "$file" release/FlowerPassword-Windows-ia32.zip
+            fi
+          done || true
+
+          # Linux files
+          find artifacts/linux-builds -name "*.deb" -type f | while read file; do
+            if [[ "$file" == *"amd64"* ]] || [[ "$file" == *"x64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-x64.deb
+            elif [[ "$file" == *"arm64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-arm64.deb
+            fi
+          done
+
+          find artifacts/linux-builds -name "*.rpm" -type f | while read file; do
+            if [[ "$file" == *"x86_64"* ]] || [[ "$file" == *"x64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-x64.rpm
+            elif [[ "$file" == *"aarch64"* ]] || [[ "$file" == *"arm64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-arm64.rpm
+            fi
+          done
+
+          find artifacts/linux-builds/zip -name "*.zip" -type f 2>/dev/null | while read file; do
+            if [[ "$file" == *"x64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-x64.zip
+            elif [[ "$file" == *"arm64"* ]]; then
+              cp "$file" release/FlowerPassword-Linux-arm64.zip
+            fi
+          done || true
+
+          ls -lh release/
 
       - name: Extract version from tag
         id: get_version
@@ -43,23 +193,46 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            FlowerPassword-arm64.zip
-            FlowerPassword-x64.zip
+          files: release/*
           body: |
             ## FlowerPassword v${{ steps.get_version.outputs.VERSION }}
 
-            ### 下载
-            - [FlowerPassword-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-arm64.zip) - macOS Apple Silicon (M1/M2/M3)
-            - [FlowerPassword-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-x64.zip) - macOS Intel
+            ### macOS
+            - [FlowerPassword-macOS-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-macOS-arm64.zip) - Apple Silicon (M1/M2/M3/M4)
+            - [FlowerPassword-macOS-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-macOS-x64.zip) - Intel
 
-            ### 安装
-            1. 下载适合你 Mac 的版本(Apple Silicon 或 Intel)
-            2. 解压缩
-            3. 将 FlowerPassword.app 拖到应用程序文件夹
+            ### Windows
+            - [FlowerPassword-Windows-x64-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-x64-Setup.exe) - 64-bit Installer
+            - [FlowerPassword-Windows-ia32-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-ia32-Setup.exe) - 32-bit Installer
+            - [FlowerPassword-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-x64.zip) - 64-bit Portable
+            - [FlowerPassword-Windows-ia32.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-ia32.zip) - 32-bit Portable
 
-            ### 更新日志
-            查看完整更新日志: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)
+            ### Linux
+            - [FlowerPassword-Linux-x64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.deb) - Debian/Ubuntu x64
+            - [FlowerPassword-Linux-arm64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.deb) - Debian/Ubuntu ARM64
+            - [FlowerPassword-Linux-x64.rpm](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.rpm) - RedHat/Fedora x64
+            - [FlowerPassword-Linux-arm64.rpm](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.rpm) - RedHat/Fedora ARM64
+            - [FlowerPassword-Linux-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.zip) - x64 Portable
+            - [FlowerPassword-Linux-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.zip) - ARM64 Portable
+
+            ### Installation
+
+            **macOS:**
+            1. Download the appropriate version for your Mac (Apple Silicon or Intel)
+            2. Extract the zip file
+            3. Drag FlowerPassword.app to Applications folder
+
+            **Windows:**
+            - Use the installer (.exe) for automatic installation
+            - Or download the portable version (.zip) and extract
+
+            **Linux:**
+            - Debian/Ubuntu: `sudo dpkg -i FlowerPassword-Linux-*.deb`
+            - RedHat/Fedora: `sudo rpm -i FlowerPassword-Linux-*.rpm`
+            - Or extract the .zip for portable usage
+
+            ### Changelog
+            See full changelog: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)
           draft: false
           prerelease: false
         env:

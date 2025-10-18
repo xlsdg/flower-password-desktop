@@ -4,7 +4,7 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: 'src/renderer/assets/FlowerPassword.icns',
+    icon: 'src/renderer/assets/FlowerPassword', // Will auto-select .icns for macOS, .ico for Windows
     appBundleId: 'org.xlsdg.flowerpassword',
     // Ensure all necessary files are included
     extraResource: [],
@@ -26,7 +26,36 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      platforms: ['darwin', 'linux', 'win32'],
+    },
+    {
+      name: '@electron-forge/maker-squirrel',
+      config: {
+        name: 'FlowerPassword',
+        setupIcon: 'src/renderer/assets/FlowerPassword.ico',
+      },
+      platforms: ['win32'],
+    },
+    {
+      name: '@electron-forge/maker-deb',
+      config: {
+        options: {
+          maintainer: 'xLsDg',
+          homepage: 'https://github.com/xlsdg/flower-password-desktop',
+          icon: 'src/renderer/assets/FlowerPassword.png',
+        },
+      },
+      platforms: ['linux'],
+    },
+    {
+      name: '@electron-forge/maker-rpm',
+      config: {
+        options: {
+          homepage: 'https://github.com/xlsdg/flower-password-desktop',
+          icon: 'src/renderer/assets/FlowerPassword.png',
+        },
+      },
+      platforms: ['linux'],
     },
   ],
   plugins: [
