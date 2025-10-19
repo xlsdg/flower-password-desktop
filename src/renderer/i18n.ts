@@ -64,4 +64,25 @@ export function initI18n(systemLocale: string): void {
     });
 }
 
+/**
+ * Update document metadata (title, description, lang) based on current language
+ * This function should be called after i18n is initialized
+ */
+export function updateDocumentMetadata(): void {
+  // Update HTML lang attribute
+  const htmlLang = i18n.t('metadata.htmlLang');
+  document.documentElement.lang = htmlLang;
+
+  // Update document title
+  const title = i18n.t('metadata.title');
+  document.title = title;
+
+  // Update meta description
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    const description = i18n.t('metadata.description');
+    metaDescription.setAttribute('content', description);
+  }
+}
+
 export default i18n;

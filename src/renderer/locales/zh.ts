@@ -6,6 +6,11 @@ export const zh = {
     title: 'Flower Password',
     close: '关闭',
   },
+  metadata: {
+    title: '花密',
+    description: '花密 - 基于记忆密码与区分代号生成密码的应用',
+    htmlLang: 'zh-CN',
+  },
   form: {
     passwordPlaceholder: '记忆密码',
     keyPlaceholder: '区分代号',

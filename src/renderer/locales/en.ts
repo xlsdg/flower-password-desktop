@@ -6,6 +6,11 @@ export const en = {
     title: 'Flower Password',
     close: 'Close',
   },
+  metadata: {
+    title: 'FlowerPassword',
+    description: 'FlowerPassword - Generate passwords based on memory password and distinction code',
+    htmlLang: 'en',
+  },
   form: {
     passwordPlaceholder: 'Memory Password',
     keyPlaceholder: 'Distinction Code',
