@@ -1,8 +1,7 @@
 import { BrowserWindow, clipboard } from 'electron';
 import * as path from 'node:path';
 import * as psl from 'psl';
-import { parse as parseUrl } from 'urlite';
-import type { WindowConfig, Bounds, ParsedURL, ParsedDomain } from '../shared/types';
+import type { WindowConfig, Bounds, ParsedDomain } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 import { positionWindowAtCursor } from './position';
 
@@ -96,9 +95,10 @@ function extractDomainFromClipboard(): void {
 
   if (text && text.length > 0) {
     try {
-      const url = parseUrl(text) as ParsedURL | null;
+      // Use native URL API to parse the clipboard text
+      const url = new URL(text);
 
-      if (url && url.hostname && psl.isValid(url.hostname)) {
+      if (url.hostname && psl.isValid(url.hostname)) {
         const parsed = psl.parse(url.hostname) as ParsedDomain;
 
         if (parsed && parsed.sld) {
@@ -107,6 +107,7 @@ function extractDomainFromClipboard(): void {
       }
     } catch (error) {
       // Silently ignore parsing errors in production
+      // URL constructor throws TypeError for invalid URLs
       if (process.env.NODE_ENV !== 'production') {
         console.error('Failed to parse clipboard URL:', error);
       }

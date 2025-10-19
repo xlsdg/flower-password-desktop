@@ -464,7 +464,8 @@ export const en = {
 | `i18next`            | ^25.6.0  | Internationalization framework                  |
 | `react-i18next`      | ^16.1.0  | React bindings for i18next                      |
 | `psl`                | ^1.15.0  | Public Suffix List for domain parsing           |
-| `urlite`             | ^3.1.0   | Lightweight URL parser                          |
+
+**Note**: URL parsing is handled by Node.js native `URL` API (WHATWG standard), no external dependencies needed.
 
 ### Build Tools
 

@@ -97,15 +97,6 @@ export interface Bounds {
 }
 
 /**
- * URL parsing result
- */
-export interface ParsedURL {
-  protocol: string;
-  hostname: string;
-  pathname: string;
-}
-
-/**
  * PSL parsing result
  * Re-export ParsedDomain from psl package for convenience
  */
