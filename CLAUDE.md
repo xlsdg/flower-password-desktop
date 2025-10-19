@@ -464,7 +464,7 @@ function Button({ label, onClick, disabled = false }: ButtonProps): JSX.Element 
 
 - ❌ Class components (use functional components)
 - ❌ `React.FC` type (deprecated pattern)
-- ❌ Default exports (use named exports for better tree-shaking)
+- ❌ Default exports (use named exports for better tree-shaking and refactoring)
 
 ### CSS/LESS Standards
 
@@ -587,6 +587,34 @@ import type { AppConfig } from '@/shared/types';
 import { createWindow } from './window';
 import styles from './App.module.less';
 ```
+
+**Export/Import Conventions:**
+
+```typescript
+// ✅ Good - Named exports
+export function createWindow(): BrowserWindow { /* ... */ }
+export const CONFIG = { /* ... */ };
+export type WindowConfig = { /* ... */ };
+
+// ✅ Good - Named imports
+import { createWindow, CONFIG } from './window';
+import { en, zh } from './locales';
+
+// ❌ Bad - Default exports
+export default function createWindow() { /* ... */ }
+export default CONFIG;
+
+// ❌ Bad - Default imports
+import createWindow from './window';
+import locales from './locales';
+```
+
+**Why Named Exports?**
+
+- Better tree-shaking (dead code elimination)
+- Easier refactoring (rename symbol refactoring works)
+- No naming inconsistencies between export and import
+- Clearer API surface (explicit exports)
 
 ### Git Commit Style
 

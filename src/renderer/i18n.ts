@@ -84,5 +84,3 @@ export function updateDocumentMetadata(): void {
     metaDescription.setAttribute('content', description);
   }
 }
-
-export default i18n;
