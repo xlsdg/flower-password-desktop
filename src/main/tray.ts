@@ -1,13 +1,9 @@
-import { Tray, Menu, nativeImage, clipboard, dialog, app } from 'electron';
+import { Tray, Menu, nativeImage, dialog, app } from 'electron';
 import * as path from 'node:path';
-import * as psl from 'psl';
-import { parse as parseUrl } from 'urlite';
-import { showWindow, hideWindow, sendToRenderer, showWindowAtCursor, getWindow } from './window';
+import { showWindow, hideWindow, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { t } from './i18n';
-import { IPC_CHANNELS } from '../shared/types';
 import { ASSETS_PATH } from '../shared/constants';
-import type { ParsedURL, ParsedDomain } from '../shared/types';
 
 let tray: Tray | null = null;
 
@@ -70,33 +66,6 @@ export function getTray(): Tray | null {
 }
 
 /**
- * Extract domain from clipboard URL and send to renderer
- * If extraction succeeds, send domain to renderer process
- */
-function extractDomainFromClipboard(): void {
-  const text = clipboard.readText('clipboard');
-
-  if (text && text.length > 0) {
-    try {
-      const url = parseUrl(text) as ParsedURL | null;
-
-      if (url && url.hostname && psl.isValid(url.hostname)) {
-        const parsed = psl.parse(url.hostname) as ParsedDomain;
-
-        if (parsed && parsed.sld) {
-          sendToRenderer(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
-        }
-      }
-    } catch (error) {
-      // Silently ignore parsing errors in production
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('Failed to parse clipboard URL:', error);
-      }
-    }
-  }
-}
-
-/**
  * Handle tray icon click
  * If window is already visible, hide it, otherwise show it below tray icon
  */
@@ -112,30 +81,16 @@ function handleTrayClick(): void {
 
 /**
  * Handle showing window below tray icon
- * Extract domain from clipboard and display window below tray icon
+ * Position window below tray icon and show it
  */
 export function handleShowWindowBelowTray(): void {
-  // Extract domain from clipboard
-  extractDomainFromClipboard();
-
-  // Calculate tray icon position and show window
+  // Calculate tray icon position
   const win = getWindow();
   if (win && tray) {
     positionWindowBelowTray(win, tray);
   }
+  // Show window (automatically extracts clipboard domain)
   showWindow();
-}
-
-/**
- * Handle showing window at cursor position
- * Extract domain from clipboard and display window at cursor bottom-right
- */
-export function handleShowWindowAtCursor(): void {
-  // Extract domain from clipboard
-  extractDomainFromClipboard();
-
-  // Show window at cursor position
-  showWindowAtCursor();
 }
 
 /**

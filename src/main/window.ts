@@ -1,6 +1,8 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, clipboard } from 'electron';
 import * as path from 'node:path';
-import type { WindowConfig, Bounds } from '../shared/types';
+import * as psl from 'psl';
+import { parse as parseUrl } from 'urlite';
+import type { WindowConfig, Bounds, ParsedURL, ParsedDomain } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 import { positionWindowAtCursor } from './position';
 
@@ -72,13 +74,44 @@ export function getWindow(): BrowserWindow | null {
 }
 
 /**
- * Show window
+ * Show window and extract domain from clipboard
+ * Automatically extracts domain from clipboard URL when window is shown
  */
 export function showWindow(): void {
+  // Extract domain from clipboard before showing window
+  extractDomainFromClipboard();
+
   mainWindow?.show();
   mainWindow?.focus();
   // Notify renderer that window is shown
-  sendToRenderer(IPC_CHANNELS.WINDOW_SHOWN);
+  mainWindow?.webContents.send(IPC_CHANNELS.WINDOW_SHOWN);
+}
+
+/**
+ * Extract domain from clipboard URL and send to renderer
+ * If extraction succeeds, send domain to renderer process
+ */
+function extractDomainFromClipboard(): void {
+  const text = clipboard.readText('clipboard');
+
+  if (text && text.length > 0) {
+    try {
+      const url = parseUrl(text) as ParsedURL | null;
+
+      if (url && url.hostname && psl.isValid(url.hostname)) {
+        const parsed = psl.parse(url.hostname) as ParsedDomain;
+
+        if (parsed && parsed.sld) {
+          mainWindow?.webContents.send(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
+        }
+      }
+    } catch (error) {
+      // Silently ignore parsing errors in production
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Failed to parse clipboard URL:', error);
+      }
+    }
+  }
 }
 
 /**
@@ -119,19 +152,6 @@ export function getWindowBounds(): Bounds {
     return mainWindow.getBounds();
   }
   return { x: 0, y: 0, width: WINDOW_CONFIG.width, height: WINDOW_CONFIG.height };
-}
-
-/**
- * Send message to renderer process
- * @param channel - IPC channel
- * @param data - Optional data to send
- */
-export function sendToRenderer(channel: string, data?: unknown): void {
-  if (data !== undefined) {
-    mainWindow?.webContents.send(channel, data);
-  } else {
-    mainWindow?.webContents.send(channel);
-  }
 }
 
 /**

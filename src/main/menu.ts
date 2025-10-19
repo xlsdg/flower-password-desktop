@@ -1,5 +1,5 @@
 import { Menu, globalShortcut } from 'electron';
-import { handleShowWindowAtCursor } from './tray';
+import { showWindowAtCursor } from './window';
 import { GLOBAL_SHORTCUTS } from '../shared/constants';
 
 /**
@@ -57,7 +57,7 @@ export function createMenu(): void {
 export function registerShortcuts(): void {
   // Register Cmd/Ctrl+Alt+S to show window at cursor position
   const success = globalShortcut.register(GLOBAL_SHORTCUTS.SHOW_WINDOW_AT_CURSOR, () => {
-    handleShowWindowAtCursor();
+    showWindowAtCursor();
   });
 
   if (!success) {
