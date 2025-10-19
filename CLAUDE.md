@@ -108,7 +108,8 @@ flower-password-desktop/
 │   │   ├── menu.ts     # Application menu & shortcuts
 │   │   ├── ipc.ts      # IPC handlers (main ↔ renderer communication)
 │   │   ├── position.ts # Smart window positioning logic
-│   │   └── i18n.ts     # Main process translations
+│   │   ├── i18n.ts     # Main process translations
+│   │   └── locales/    # Main process translation files (en.ts, zh.ts)
 │   │
 │   ├── preload/        # Preload script (security bridge)
 │   │   └── index.ts    # contextBridge API exposure
@@ -133,7 +134,7 @@ flower-password-desktop/
 ├── assets/             # Build-time assets
 │   ├── FlowerPassword.icns  # macOS icon
 │   ├── FlowerPassword.ico   # Windows icon
-│   └── Icon.png            # Linux icon (PNG source)
+│   └── FlowerPassword.png   # Linux icon (PNG source)
 │
 ├── dist/               # Compiled JavaScript (Rspack output)
 │   ├── main/           # Compiled main process
@@ -164,6 +165,7 @@ flower-password-desktop/
 | [menu.ts](src/main/menu.ts)         | Application menu            | Edit menu, global shortcut registration (`Cmd+Alt+S` for show/hide)                          |
 | [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard access, shell integration, locale detection            |
 | [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system for dialogs/tray (no dependencies)                            |
+| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - simple key-value objects                                  |
 
 #### Preload Script (Security Bridge)
 
@@ -173,12 +175,12 @@ flower-password-desktop/
 
 #### Renderer Process (React UI)
 
-| Module                              | Purpose           | Key Features                                                                         |
-| ----------------------------------- | ----------------- | ------------------------------------------------------------------------------------ |
-| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation         |
-| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates              |
-| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace organization, fallback handling                   |
-| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by namespaces (`app`, `form`, `hints`) |
+| Module                              | Purpose           | Key Features                                                                                           |
+| ----------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
+| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation                           |
+| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                                |
+| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                              |
+| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`) export |
 
 #### Shared Code
 
@@ -233,17 +235,18 @@ FlowerPassword uses a **dual i18n system** to handle translations in both Electr
 
 #### Main Process i18n
 
-**Implementation**: [src/main/i18n.ts](src/main/i18n.ts)
+**Implementation**: [src/main/i18n.ts](src/main/i18n.ts) + [locales/](src/main/locales/)
 
 - **Lightweight** - No external dependencies (simple object lookup)
 - **Use Cases** - Error dialogs, system tray menu, tooltips, notifications
 - **Detection** - `app.getLocale()` (e.g., `zh-CN` → `zh`)
 - **API** - `t(key)` function returns translated string
+- **Structure** - Separate translation files in `src/main/locales/` (en.ts, zh.ts)
 
 ```typescript
 // Example usage in main process
 import { t } from './i18n';
-tray.setToolTip(t('tray.tooltip'));
+tray.setToolTip(t('trayTooltip')); // Reads from src/main/locales/en.ts or zh.ts
 ```
 
 #### Renderer Process i18n
@@ -251,8 +254,8 @@ tray.setToolTip(t('tray.tooltip'));
 **Implementation**: [src/renderer/i18n.ts](src/renderer/i18n.ts) + [locales/](src/renderer/locales/)
 
 - **Full-featured** - Uses `i18next` + `react-i18next`
-- **Namespaces** - `app`, `form`, `hints` (organized by feature)
-- **React Integration** - `useTranslation()` hook
+- **Structure** - Namespace-free flat structure with sections: `app`, `metadata`, `form`, `hints`
+- **React Integration** - `useTranslation()` hook (no namespace parameter needed)
 - **Type Safety** - TypeScript types for translation keys
 
 ```typescript
@@ -260,8 +263,8 @@ tray.setToolTip(t('tray.tooltip'));
 import { useTranslation } from 'react-i18next';
 
 function App() {
-  const { t } = useTranslation('form');
-  return <label>{t('memoryPassword')}</label>;
+  const { t } = useTranslation();
+  return <label>{t('form.passwordPlaceholder')}</label>;
 }
 ```
 
@@ -295,43 +298,68 @@ To add support for another language (e.g., Japanese):
 **Step 1**: Add main process translations
 
 ```typescript
-// src/main/i18n.ts
-const TRANSLATIONS = {
-  en: {
-    /* existing */
-  },
-  zh: {
-    /* existing */
-  },
-  ja: {
-    // Add new language
-    'app.quit': 'アプリケーションを終了',
-    'tray.tooltip': 'フラワーパスワード',
-    // ...
-  },
-};
+// src/main/locales/en.ts
+export const en = {
+  appName: 'FlowerPassword',
+  trayTooltip: 'FlowerPassword',
+  // Add new keys...
+} as const;
+
+// src/main/locales/zh.ts
+export const zh = {
+  appName: '花密',
+  trayTooltip: '花密',
+  // Add new keys...
+} as const;
+
+// src/main/locales/ja.ts (new file)
+export const ja = {
+  appName: 'フラワーパスワード',
+  trayTooltip: 'フラワーパスワード',
+  // Add new keys...
+} as const;
 ```
 
 **Step 2**: Create renderer translation file
 
 ```typescript
 // src/renderer/locales/ja.ts
-export default {
+export const ja = {
   app: {
+    title: 'Flower Password',
+    close: '閉じる',
+  },
+  metadata: {
     title: 'フラワーパスワード',
-    // ...
+    description: 'フラワーパスワード - 記憶パスワードと区別コードでパスワードを生成',
+    htmlLang: 'ja',
   },
   form: {
-    memoryPassword: '記憶パスワード',
+    passwordPlaceholder: '記憶パスワード',
+    keyPlaceholder: '区別コード',
     // ...
   },
-};
+  hints: {
+    password: '記憶パスワード: 簡単に覚えられるパスワード...',
+    // ...
+  },
+} as const;
 ```
 
-**Step 3**: Update detection logic
+**Step 3**: Import and register in main process
 
 ```typescript
-// src/main/i18n.ts & src/renderer/i18n.ts
+// src/main/i18n.ts
+import { en } from './locales/en';
+import { zh } from './locales/zh';
+import { ja } from './locales/ja'; // Add import
+
+const TRANSLATIONS: Record<string, Record<string, string>> = {
+  en,
+  zh,
+  ja, // Register new language
+};
+
 const detectLanguage = (locale: string): string => {
   const lang = locale.split('-')[0];
   if (lang === 'zh') return 'zh';
@@ -340,13 +368,13 @@ const detectLanguage = (locale: string): string => {
 };
 ```
 
-**Step 4**: Import new locale in renderer
+**Step 4**: Import and register in renderer process
 
 ```typescript
 // src/renderer/i18n.ts
-import en from './locales/en';
-import zh from './locales/zh';
-import ja from './locales/ja'; // Add import
+import { en } from './locales/en';
+import { zh } from './locales/zh';
+import { ja } from './locales/ja'; // Add import
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -354,39 +382,116 @@ i18n.use(initReactI18next).init({
     zh: { translation: zh },
     ja: { translation: ja }, // Add resource
   },
+  lng: currentLanguage, // Detected language
+  fallbackLng: 'en',
   // ...
 });
 ```
 
 ### Translation File Structure
 
-Renderer translations use namespaces for organization:
+#### Main Process Translation Structure
+
+Main process translations use simple key-value objects:
+
+```typescript
+// src/main/locales/en.ts
+export const en = {
+  appName: 'FlowerPassword',
+  quitMessage: 'Are you sure you want to quit?',
+  quitConfirm: 'Quit',
+  quitCancel: 'Cancel',
+  trayShow: 'Show',
+  trayQuit: 'Quit',
+  trayTooltip: 'FlowerPassword',
+  htmlTitle: 'FlowerPassword',
+  htmlDescription: 'FlowerPassword - Generate passwords based on memory password and distinction code',
+} as const;
+```
+
+#### Renderer Translation Structure
+
+Renderer translations use sections for organization:
 
 ```typescript
 // src/renderer/locales/en.ts
-export default {
+export const en = {
   app: {
+    title: 'Flower Password',
+    close: 'Close',
+  },
+  metadata: {
     title: 'FlowerPassword',
-    subtitle: 'Memorable, Secure Passwords',
+    description: 'FlowerPassword - Generate passwords based on memory password and distinction code',
+    htmlLang: 'en',
   },
   form: {
-    memoryPassword: 'Memory Password',
-    distinguishingCode: 'Distinguishing Code',
-    passwordLength: 'Password Length',
+    passwordPlaceholder: 'Memory Password',
+    keyPlaceholder: 'Distinguishing Code',
+    prefixPlaceholder: 'Prefix',
+    suffixPlaceholder: 'Suffix',
+    generateButton: 'Generate Password (Click to Copy)',
+    lengthUnit: ' chars',
   },
   hints: {
-    emptyMemoryPassword: 'Please enter memory password',
-    invalidUrl: 'Invalid URL format',
+    password: 'Memory Password: A simple password to generate strong passwords.',
+    key: 'Distinction Code: A short code for different accounts, e.g., "taobao" or "tb".',
+    website: 'Official Website: ',
   },
-};
+} as const;
 ```
 
 **Best Practices:**
 
-- Use dot notation for nested keys: `t('form.memoryPassword')`
+- **Main process**: Use flat keys like `t('trayTooltip')` or `t('appName')`
+- **Renderer process**: Use dot notation for nested keys like `t('form.passwordPlaceholder')` or `t('app.title')`
 - Keep keys in English (language-neutral)
 - No interpolation in main process (simple string lookups)
-- Use i18next features in renderer (plurals, context, interpolation)
+- Use i18next features in renderer (plurals, context, interpolation if needed)
+- Always use `as const` for type safety and immutability
+- Use named exports (`export const en = {...}`) instead of default exports
+
+## Dependencies
+
+### Core Dependencies
+
+| Package              | Version  | Purpose                                         |
+| -------------------- | -------- | ----------------------------------------------- |
+| `electron`           | ^38.3.0  | Cross-platform desktop application framework    |
+| `react`              | ^19.2.0  | UI library for building user interfaces         |
+| `react-dom`          | ^19.2.0  | React renderer for web                          |
+| `flowerpassword.js`  | ^5.0.2   | Core password generation algorithm              |
+| `i18next`            | ^25.6.0  | Internationalization framework                  |
+| `react-i18next`      | ^16.1.0  | React bindings for i18next                      |
+| `psl`                | ^1.15.0  | Public Suffix List for domain parsing           |
+| `urlite`             | ^3.1.0   | Lightweight URL parser                          |
+
+### Build Tools
+
+| Package                  | Version  | Purpose                                    |
+| ------------------------ | -------- | ------------------------------------------ |
+| `@rspack/cli`            | ^1.5.8   | Rspack bundler CLI                         |
+| `@rspack/core`           | ^1.5.8   | Fast Rust-based bundler                    |
+| `typescript`             | ^5.9.3   | TypeScript compiler for type checking      |
+| `eslint`                 | ^9.38.0  | JavaScript/TypeScript linter               |
+| `prettier`               | ^3.6.2   | Code formatter                             |
+| `less`                   | ^4.4.2   | CSS preprocessor                           |
+| `concurrently`           | ^9.2.1   | Run multiple commands concurrently         |
+| `nodemon`                | ^3.1.10  | Auto-restart on file changes (dev mode)    |
+
+### Electron Forge
+
+| Package                                    | Version  | Purpose                              |
+| ------------------------------------------ | -------- | ------------------------------------ |
+| `@electron-forge/cli`                      | ^7.10.2  | Electron Forge CLI                   |
+| `@electron-forge/maker-dmg`                | ^7.10.2  | macOS DMG installer maker            |
+| `@electron-forge/maker-zip`                | ^7.10.2  | ZIP archive maker (all platforms)    |
+| `@electron-forge/maker-squirrel`           | ^7.10.2  | Windows Squirrel installer maker     |
+| `@electron-forge/maker-deb`                | ^7.10.2  | Debian/Ubuntu package maker          |
+| `@electron-forge/maker-rpm`                | ^7.10.2  | Fedora/RHEL package maker            |
+| `@electron-forge/plugin-auto-unpack-natives` | ^7.10.2  | Auto-unpack native modules           |
+| `@electron-forge/plugin-fuses`             | ^7.10.2  | Electron fuses configuration         |
+| `@electron/fuses`                          | ^1.8.0   | Electron security fuses              |
 
 ## Code Style & Standards
 
