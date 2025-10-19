@@ -74,19 +74,15 @@ export function getWindow(): BrowserWindow | null {
  * Show window
  */
 export function showWindow(): void {
-  if (mainWindow) {
-    mainWindow.show();
-    mainWindow.focus();
-  }
+  mainWindow?.show();
+  mainWindow?.focus();
 }
 
 /**
  * Hide window
  */
 export function hideWindow(): void {
-  if (mainWindow) {
-    mainWindow.hide();
-  }
+  mainWindow?.hide();
 }
 
 /**
@@ -108,9 +104,7 @@ export function toggleWindow(): void {
  * @param y - Y coordinate
  */
 export function setWindowPosition(x: number, y: number): void {
-  if (mainWindow) {
-    mainWindow.setPosition(x, y, false);
-  }
+  mainWindow?.setPosition(x, y, false);
 }
 
 /**
@@ -130,9 +124,7 @@ export function getWindowBounds(): Bounds {
  * @param data - Data to send
  */
 export function sendToRenderer(channel: string, data: string): void {
-  if (mainWindow) {
-    mainWindow.webContents.send(channel, data);
-  }
+  mainWindow?.webContents.send(channel, data);
 }
 
 /**

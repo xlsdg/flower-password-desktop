@@ -10,7 +10,7 @@ import { setupIPC } from './ipc';
  * Catch unhandled exceptions and show error dialog
  */
 process.on('uncaughtException', (err: Error) => {
-  dialog.showErrorBox('Uncaught Exception: ' + err.message, err.stack || '');
+  dialog.showErrorBox(`Uncaught Exception: ${err.message}`, err.stack || '');
   app.quit();
 });
 

@@ -18,7 +18,7 @@ export interface ElectronAPI {
    * Write text to clipboard
    * @param text - Text to write
    */
-  writeText: (text: string) => Promise<void>;
+  writeText: (text: string) => void;
 
   /**
    * Open external link in default browser
@@ -88,16 +88,6 @@ export interface Bounds {
   width: number;
   height: number;
 }
-
-/**
- * Tray bounds (type alias for semantic naming)
- */
-export type TrayBounds = Bounds;
-
-/**
- * Window bounds (type alias for semantic naming)
- */
-export type WindowBounds = Bounds;
 
 /**
  * URL parsing result

@@ -24,10 +24,9 @@ const electronAPI: ElectronAPI = {
   /**
    * Clipboard operation - Write text
    * @param text - Text to write to clipboard
-   * @returns Promise that resolves when operation completes
    */
-  writeText: (text: string): Promise<void> => {
-    return ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text);
+  writeText: (text: string): void => {
+    ipcRenderer.send(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text);
   },
 
   /**

@@ -88,8 +88,10 @@ function extractDomainFromClipboard(): void {
         }
       }
     } catch (error) {
-      // Ignore parsing errors, don't affect window display
-      console.error('Failed to parse clipboard URL:', error);
+      // Silently ignore parsing errors in production
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Failed to parse clipboard URL:', error);
+      }
     }
   }
 }

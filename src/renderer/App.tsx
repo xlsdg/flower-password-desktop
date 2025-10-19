@@ -17,13 +17,13 @@ const PASSWORD_MIN_LENGTH = 6;
 const PASSWORD_MAX_LENGTH = 32;
 
 /**
- * Generate array of password length options from min to max
- * @returns Array of length values from 6 to 32
+ * Pre-computed password length options (6-32 characters)
+ * Using a constant array to avoid recalculation on every render
  */
-function generateLengthOptions(): number[] {
-  const count = PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1;
-  return Array.from({ length: count }, (_, i) => i + PASSWORD_MIN_LENGTH);
-}
+const PASSWORD_LENGTH_OPTIONS = Array.from(
+  { length: PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1 },
+  (_, i) => i + PASSWORD_MIN_LENGTH
+);
 
 /**
  * Validate if URL is safe to open externally
@@ -60,7 +60,7 @@ export function App(): React.JSX.Element {
    * @returns Generated password string or false if inputs are invalid
    */
   const generatePassword = useCallback((): string | false => {
-    if (password.length < 1 || key.length < 1) {
+    if (!password || !key) {
       return false;
     }
 
@@ -75,14 +75,8 @@ export function App(): React.JSX.Element {
    * @param code - Generated password code
    */
   const copyPasswordAndHide = useCallback((code: string): void => {
-    window.electronAPI
-      .writeText(code)
-      .then(() => {
-        window.electronAPI.hide();
-      })
-      .catch((error: Error) => {
-        console.error('Failed to write to clipboard:', error);
-      });
+    window.electronAPI.writeText(code);
+    window.electronAPI.hide();
   }, []);
 
   /**
@@ -158,16 +152,8 @@ export function App(): React.JSX.Element {
       passwordInputRef.current.focus();
     }
 
-    // Note: Electron IPC listeners don't need cleanup in this context
-    // as they are managed by the main process and bound to window lifecycle
-  }, []);
-
-  /**
-   * Generate length options (6-32 characters)
-   * Memoized to avoid recreating array on every render
-   */
-  const lengthOptions = useMemo((): number[] => {
-    return generateLengthOptions();
+    // No cleanup needed: listener lifetime matches app lifetime
+    // (App component never unmounts in this single-window application)
   }, []);
 
   /**
@@ -244,7 +230,7 @@ export function App(): React.JSX.Element {
           value={passwordLength}
           onChange={handlePasswordLengthChange}
         >
-          {lengthOptions.map(len => (
+          {PASSWORD_LENGTH_OPTIONS.map(len => (
             <option key={len} value={len}>
               {len.toString().padStart(2, '0')}
               {t('form.lengthUnit')}

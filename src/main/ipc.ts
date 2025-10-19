@@ -18,7 +18,7 @@ export function setupIPC(): void {
   });
 
   // Write to clipboard
-  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, (_event, text: string): void => {
+  ipcMain.on(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, (_event, text: string): void => {
     clipboard.writeText(text);
   });
 
