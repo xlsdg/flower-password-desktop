@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'node:path';
 import type { WindowConfig, Bounds } from '../shared/types';
+import { IPC_CHANNELS } from '../shared/types';
 import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
@@ -76,6 +77,8 @@ export function getWindow(): BrowserWindow | null {
 export function showWindow(): void {
   mainWindow?.show();
   mainWindow?.focus();
+  // Notify renderer that window is shown
+  sendToRenderer(IPC_CHANNELS.WINDOW_SHOWN);
 }
 
 /**
@@ -121,10 +124,14 @@ export function getWindowBounds(): Bounds {
 /**
  * Send message to renderer process
  * @param channel - IPC channel
- * @param data - Data to send
+ * @param data - Optional data to send
  */
-export function sendToRenderer(channel: string, data: string): void {
-  mainWindow?.webContents.send(channel, data);
+export function sendToRenderer(channel: string, data?: unknown): void {
+  if (data !== undefined) {
+    mainWindow?.webContents.send(channel, data);
+  } else {
+    mainWindow?.webContents.send(channel);
+  }
 }
 
 /**

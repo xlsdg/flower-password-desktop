@@ -37,6 +37,12 @@ export interface ElectronAPI {
    * @returns System locale string (e.g., 'en-US', 'zh-CN')
    */
   getSystemLocale: () => Promise<string>;
+
+  /**
+   * Listen for window shown event
+   * @param callback - Callback function invoked when window is shown
+   */
+  onWindowShown: (callback: () => void) => void;
 }
 
 /**
@@ -49,6 +55,7 @@ export const IPC_CHANNELS = {
   SHELL_OPEN_EXTERNAL: 'shell:openExternal',
   KEY_FROM_CLIPBOARD: 'key-from-clipboard',
   GET_SYSTEM_LOCALE: 'get-system-locale',
+  WINDOW_SHOWN: 'window-shown',
 } as const;
 
 /**

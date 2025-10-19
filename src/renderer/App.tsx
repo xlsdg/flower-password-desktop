@@ -53,7 +53,7 @@ export function App(): React.JSX.Element {
   const [generatedPassword, setGeneratedPassword] = useState<string>(t('form.generateButton'));
 
   // Refs for autofocus
-  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const keyInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Generate password based on current form inputs
@@ -137,20 +137,21 @@ export function App(): React.JSX.Element {
   }, []);
 
   /**
-   * Listen to clipboard domain extraction
+   * Listen to clipboard domain extraction and window shown event
    */
   useEffect(() => {
     const handleClipboardKey = (message: string): void => {
       setKey(message);
     };
 
-    // Set up IPC listener
-    window.electronAPI.onKeyFromClipboard(handleClipboardKey);
+    const handleWindowShown = (): void => {
+      // Focus key input when window is shown
+      keyInputRef.current?.focus();
+    };
 
-    // Focus password input on mount
-    if (passwordInputRef.current) {
-      passwordInputRef.current.focus();
-    }
+    // Set up IPC listeners
+    window.electronAPI.onKeyFromClipboard(handleClipboardKey);
+    window.electronAPI.onWindowShown(handleWindowShown);
 
     // No cleanup needed: listener lifetime matches app lifetime
     // (App component never unmounts in this single-window application)
@@ -196,7 +197,6 @@ export function App(): React.JSX.Element {
 
       <div className="app__form-group">
         <input
-          ref={passwordInputRef}
           className="app__input app__input--password"
           name="password"
           type="password"
@@ -209,6 +209,7 @@ export function App(): React.JSX.Element {
 
       <div className="app__form-group">
         <input
+          ref={keyInputRef}
           className="app__input app__input--key"
           name="key"
           type="text"

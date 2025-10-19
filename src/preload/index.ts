@@ -49,6 +49,16 @@ const electronAPI: ElectronAPI = {
   },
 
   /**
+   * Listen for window shown event
+   * @param callback - Callback function invoked when window is shown
+   */
+  onWindowShown: (callback: () => void): void => {
+    ipcRenderer.on(IPC_CHANNELS.WINDOW_SHOWN, () => {
+      callback();
+    });
+  },
+
+  /**
    * Get system locale from main process
    * @returns Promise that resolves with system locale string
    */
