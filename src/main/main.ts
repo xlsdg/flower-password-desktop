@@ -1,4 +1,5 @@
 import { app, dialog } from 'electron';
+import { initMainI18n } from './i18n';
 import { createWindow } from './window';
 import { createTray } from './tray';
 import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
@@ -20,6 +21,7 @@ process.on('uncaughtException', (err: Error) => {
 app
   .whenReady()
   .then(() => {
+    initMainI18n();
     createWindow();
     createTray();
     createMenu();

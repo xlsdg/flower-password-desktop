@@ -1,4 +1,4 @@
-import { ipcMain, clipboard, shell } from 'electron';
+import { ipcMain, clipboard, shell, app } from 'electron';
 import { hideWindow } from './window';
 import { confirmQuit } from './tray';
 import { IPC_CHANNELS } from '../shared/types';
@@ -25,5 +25,10 @@ export function setupIPC(): void {
   // Open external link
   ipcMain.handle(IPC_CHANNELS.SHELL_OPEN_EXTERNAL, async (_event, url: string): Promise<void> => {
     await shell.openExternal(url);
+  });
+
+  // Get system locale
+  ipcMain.handle(IPC_CHANNELS.GET_SYSTEM_LOCALE, (): string => {
+    return app.getLocale();
   });
 }

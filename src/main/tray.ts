@@ -4,8 +4,9 @@ import * as psl from 'psl';
 import { parse as parseUrl } from 'urlite';
 import { showWindow, hideWindow, sendToRenderer, showWindowAtCursor, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
+import { t } from './i18n';
 import { IPC_CHANNELS } from '../shared/types';
-import { ASSETS_PATH, DIALOG_TEXTS } from '../shared/constants';
+import { ASSETS_PATH } from '../shared/constants';
 import type { ParsedURL, ParsedDomain } from '../shared/types';
 
 let tray: Tray | null = null;
@@ -25,7 +26,7 @@ export function createTray(): Tray {
   }
 
   tray = new Tray(icon);
-  tray.setToolTip(DIALOG_TEXTS.TRAY_TOOLTIP);
+  tray.setToolTip(t('trayTooltip'));
 
   // Click tray icon to show/hide window
   tray.on('click', () => {
@@ -35,7 +36,7 @@ export function createTray(): Tray {
   // Right-click menu
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: DIALOG_TEXTS.TRAY_SHOW,
+      label: t('trayShow'),
       click: (): void => {
         handleShowWindowBelowTray();
       },
@@ -44,7 +45,7 @@ export function createTray(): Tray {
       type: 'separator',
     },
     {
-      label: DIALOG_TEXTS.TRAY_QUIT,
+      label: t('trayQuit'),
       click: (): void => {
         void confirmQuit();
       },
@@ -145,10 +146,10 @@ export async function confirmQuit(): Promise<void> {
 
   const result = await dialog.showMessageBox({
     type: 'question',
-    buttons: [DIALOG_TEXTS.QUIT_CONFIRM, DIALOG_TEXTS.QUIT_CANCEL],
+    buttons: [t('quitConfirm'), t('quitCancel')],
     defaultId: 0,
-    title: DIALOG_TEXTS.APP_NAME,
-    message: DIALOG_TEXTS.QUIT_MESSAGE,
+    title: t('appName'),
+    message: t('quitMessage'),
     icon: iconPath,
     cancelId: 1,
   });

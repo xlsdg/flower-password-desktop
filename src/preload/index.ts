@@ -48,6 +48,14 @@ const electronAPI: ElectronAPI = {
       callback(value);
     });
   },
+
+  /**
+   * Get system locale from main process
+   * @returns Promise that resolves with system locale string
+   */
+  getSystemLocale: (): Promise<string> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_SYSTEM_LOCALE);
+  },
 };
 
 // Expose API to renderer process window object

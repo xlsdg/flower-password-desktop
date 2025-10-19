@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fpCode } from 'flowerpassword.js';
-import { UI_TEXTS, KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
+import { KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
 import './styles/reset.less';
 import './styles/index.less';
 
@@ -43,12 +44,13 @@ function validateExternalUrl(url: string): boolean {
  * @returns React component
  */
 export function App(): React.JSX.Element {
+  const { t } = useTranslation();
   const [password, setPassword] = useState<string>('');
   const [key, setKey] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
   const [suffix, setSuffix] = useState<string>('');
   const [passwordLength, setPasswordLength] = useState<number>(16);
-  const [generatedPassword, setGeneratedPassword] = useState<string>(UI_TEXTS.GENERATE_PASSWORD_BUTTON);
+  const [generatedPassword, setGeneratedPassword] = useState<string>(t('form.generateButton'));
 
   // Refs for autofocus
   const passwordInputRef = useRef<HTMLInputElement>(null);
@@ -88,8 +90,8 @@ export function App(): React.JSX.Element {
    */
   useEffect(() => {
     const code = generatePassword();
-    setGeneratedPassword(code !== false ? code : UI_TEXTS.GENERATE_PASSWORD_BUTTON);
-  }, [generatePassword]);
+    setGeneratedPassword(code !== false ? code : t('form.generateButton'));
+  }, [generatePassword, t]);
 
   /**
    * Handle close button click
@@ -194,8 +196,14 @@ export function App(): React.JSX.Element {
   return (
     <div className="app">
       <div className="app__header">
-        <h1 className="app__title">花密 Flower Password</h1>
-        <button className="app__close-btn" title="关闭" aria-label="关闭" tabIndex={0} onClick={handleClose}>
+        <h1 className="app__title">{t('app.title')}</h1>
+        <button
+          className="app__close-btn"
+          title={t('app.close')}
+          aria-label={t('app.close')}
+          tabIndex={0}
+          onClick={handleClose}
+        >
           ×
         </button>
       </div>
@@ -206,7 +214,7 @@ export function App(): React.JSX.Element {
           className="app__input app__input--password"
           name="password"
           type="password"
-          placeholder="记忆密码"
+          placeholder={t('form.passwordPlaceholder')}
           tabIndex={1}
           value={password}
           onChange={handlePasswordChange}
@@ -218,7 +226,7 @@ export function App(): React.JSX.Element {
           className="app__input app__input--key"
           name="key"
           type="text"
-          placeholder="区分代号"
+          placeholder={t('form.keyPlaceholder')}
           tabIndex={2}
           value={key}
           onChange={handleKeyChange}
@@ -238,7 +246,8 @@ export function App(): React.JSX.Element {
         >
           {lengthOptions.map(len => (
             <option key={len} value={len}>
-              {len.toString().padStart(2, '0')}位
+              {len.toString().padStart(2, '0')}
+              {t('form.lengthUnit')}
             </option>
           ))}
         </select>
@@ -249,7 +258,7 @@ export function App(): React.JSX.Element {
           className="app__input app__input--prefix"
           name="prefix"
           type="text"
-          placeholder="区分代号前缀"
+          placeholder={t('form.prefixPlaceholder')}
           tabIndex={5}
           value={prefix}
           onChange={handlePrefixChange}
@@ -258,17 +267,17 @@ export function App(): React.JSX.Element {
           className="app__input app__input--suffix"
           name="suffix"
           type="text"
-          placeholder="区分代号后缀"
+          placeholder={t('form.suffixPlaceholder')}
           tabIndex={6}
           value={suffix}
           onChange={handleSuffixChange}
         />
       </div>
 
-      <p className="app__hint">· 记忆密码:可选择一个简单易记的密码,用于生成其他高强度密码。</p>
-      <p className="app__hint">· 区分代号:用于区别不同用途密码的简短代号,如淘宝账号可用"taobao"或"tb"等。</p>
+      <p className="app__hint">· {t('hints.password')}</p>
+      <p className="app__hint">· {t('hints.key')}</p>
       <p className="app__hint">
-        · 花密官网地址:
+        · {t('hints.website')}
         <a
           className="app__link"
           href="https://flowerpassword.com/"

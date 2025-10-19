@@ -31,6 +31,12 @@ export interface ElectronAPI {
    * @param callback - Callback function to receive domain
    */
   onKeyFromClipboard: (callback: (value: string) => void) => void;
+
+  /**
+   * Get system locale from main process
+   * @returns System locale string (e.g., 'en-US', 'zh-CN')
+   */
+  getSystemLocale: () => Promise<string>;
 }
 
 /**
@@ -42,6 +48,7 @@ export const IPC_CHANNELS = {
   CLIPBOARD_WRITE_TEXT: 'clipboard:writeText',
   SHELL_OPEN_EXTERNAL: 'shell:openExternal',
   KEY_FROM_CLIPBOARD: 'key-from-clipboard',
+  GET_SYSTEM_LOCALE: 'get-system-locale',
 } as const;
 
 /**
