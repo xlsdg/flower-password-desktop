@@ -11,7 +11,7 @@ This file provides comprehensive guidance for AI assistants (Claude Code) when w
 - **Runtime**: Electron 38 (Node.js + Chromium)
 - **UI**: React 19 (functional components + hooks)
 - **Language**: TypeScript 5.9 (strict mode)
-- **Bundler**: Rspack 1.5+ with SWC loader (fast builds)
+- **Bundler**: Vite 6+ (fast builds, HMR)
 - **Styles**: LESS with CSS variables (auto light/dark theme)
 - **i18n**: i18next + react-i18next (Chinese/English)
 - **Package Manager**: npm (lockfile v3)
@@ -35,9 +35,8 @@ npm install          # Install all dependencies
 ### Daily Development
 
 ```bash
-npm run dev          # Start dev mode (hot reload + auto-restart main process)
-npm start            # Build once and launch app (no hot reload)
-npm run build        # Manually build all processes (main/preload/renderer)
+npm start            # Start dev mode with Vite (HMR + auto-reload)
+npm run package      # Package app for current platform
 ```
 
 ### Code Quality
@@ -50,10 +49,14 @@ npm run format:check # Check formatting without modifying files
 
 ### Build System Notes
 
-- **Rspack** compiles all three Electron processes (main/preload/renderer) using SWC loader for fast transpilation
+- **Vite** handles all three Electron processes (main/preload/renderer) with fast builds and HMR
+- **@electron-forge/plugin-vite** integrates Vite with Electron Forge workflow
 - TypeScript runs in type-check-only mode (`noEmit: true`) - no TSC compilation overhead
-- Dev mode uses `watch` mode + `nodemon` to auto-restart on main process changes
-- Renderer uses hot module replacement (HMR) for instant UI updates
+- Dev mode (`npm start`) provides hot module replacement (HMR) for instant updates
+- Vite dev server for renderer process, watch mode for main/preload processes
+- Build output structure:
+  - `.vite/build/` - Main and preload process compiled files (main.js, preload.js)
+  - `.vite/renderer/` - Renderer process output (index.html, assets/, and public files)
 
 ## Production Builds
 
@@ -112,45 +115,85 @@ flower-password-desktop/
 │   │   └── locales/    # Main process translation files (en.ts, zh.ts)
 │   │
 │   ├── preload/        # Preload script (security bridge)
-│   │   └── index.ts    # contextBridge API exposure
+│   │   └── preload.ts  # contextBridge API exposure
 │   │
 │   ├── renderer/       # React app (renderer process)
 │   │   ├── App.tsx     # Main React component
 │   │   ├── index.tsx   # React entry point
+│   │   ├── index.html  # HTML template with Vite entry point
 │   │   ├── i18n.ts     # i18next configuration
 │   │   ├── locales/    # Translation files (en.ts, zh.ts)
-│   │   ├── html/       # HTML template
-│   │   ├── styles/     # LESS stylesheets
-│   │   ├── assets/     # Images, fonts, icons
+│   │   ├── styles/     # LESS stylesheets (index.less, reset.less)
 │   │   └── global.d.ts # TypeScript global declarations
 │   │
 │   ├── shared/         # Shared code (main + renderer)
 │   │   ├── types.ts    # TypeScript interfaces
 │   │   └── constants.ts # App constants
 │   │
-│   └── types/          # Type declarations for untyped packages
-│       └── psl.d.ts    # Public Suffix List library types
+│   └── types/          # Global type declarations
+│       ├── psl.d.ts    # Public Suffix List library types
+│       └── vite-env.d.ts # Vite/Electron Forge environment constants
 │
-├── assets/             # Build-time assets
-│   ├── FlowerPassword.icns  # macOS icon
-│   ├── FlowerPassword.ico   # Windows icon
-│   └── FlowerPassword.png   # Linux icon (PNG source)
+├── public/             # Static assets (auto-copied by Vite to output)
+│   ├── Icon.png        # App icon (512x512 or higher)
+│   ├── IconTemplate.png # macOS menubar icon (template mode, ~16x16)
+│   └── IconTemplate@2x.png # macOS menubar icon @2x (template mode, ~32x32)
 │
-├── dist/               # Compiled JavaScript (Rspack output)
-│   ├── main/           # Compiled main process
-│   ├── preload/        # Compiled preload script
-│   └── renderer/       # Compiled React app + assets
+├── assets/             # Build-time assets (for Electron Forge packaging)
+│   ├── FlowerPassword.icns  # macOS icon (multi-resolution .icns)
+│   ├── FlowerPassword.ico   # Windows icon (multi-resolution .ico)
+│   └── FlowerPassword.png   # Linux icon (PNG source, 512x512 recommended)
+│
+├── .vite/              # Vite build output (managed by Electron Forge)
+│   ├── build/          # Production build
+│   │   ├── main.js     # Compiled main process
+│   │   └── preload.js  # Compiled preload script
+│   └── renderer/       # Renderer process output
+│       ├── index.html  # HTML entry point
+│       ├── assets/     # JS, CSS, and images
+│       ├── Icon.png    # App icon (copied from public/)
+│       ├── IconTemplate.png # Menubar icon (copied from public/)
+│       └── IconTemplate@2x.png # Menubar icon @2x (copied from public/)
 │
 ├── out/                # Electron Forge packaging output
-│   ├── make/           # Distribution installers
-│   └── FlowerPassword-{platform}-{arch}/ # Packaged app
+│   ├── make/           # Distribution installers (.dmg, .exe, .deb, .rpm, .zip)
+│   └── FlowerPassword-{platform}-{arch}/ # Packaged app directory
 │
-├── rspack.config.js    # Rspack bundler configuration
-├── forge.config.js     # Electron Forge packaging config
-├── tsconfig.json       # TypeScript compiler settings
-├── eslint.config.mjs   # ESLint v9 flat config
-└── .prettierrc.json    # Prettier formatting rules
+├── vite.main.config.ts     # Vite config for main process
+├── vite.preload.config.ts  # Vite config for preload script
+├── vite.renderer.config.ts # Vite config for renderer process
+├── forge.config.js         # Electron Forge packaging config
+├── tsconfig.json           # TypeScript compiler settings
+├── eslint.config.mjs       # ESLint v9 flat config
+└── .prettierrc.json        # Prettier formatting rules
 ```
+
+**Key Directories Explained:**
+
+- **`public/`**: Static assets that are copied as-is to the renderer output directory by Vite. Used for runtime assets like app icons and tray icons that the application loads at runtime.
+- **`assets/`**: Build-time only assets used by Electron Forge during packaging (e.g., installer icons). These are not included in the final app bundle but used by packaging tools.
+- **`.vite/`**: Temporary build output directory managed by Vite and Electron Forge. Contains compiled JavaScript, HTML, CSS, and copied assets. This directory is gitignored.
+- **`out/`**: Final packaged application and installers. Generated by `npm run make` or `npm run package`. This directory is gitignored.
+
+### Icon Assets
+
+FlowerPassword uses different icon formats for different purposes:
+
+**Runtime Icons (`public/` directory):**
+
+- **`Icon.png`**: Main app icon displayed in the UI (recommended: 512x512px or higher, PNG format)
+- **`IconTemplate.png`**: macOS menubar tray icon in template mode (~16x16px for standard displays)
+- **`IconTemplate@2x.png`**: macOS menubar tray icon for Retina displays (~32x32px)
+
+**Packaging Icons (`assets/` directory):**
+
+- **`FlowerPassword.icns`**: macOS multi-resolution icon bundle (contains 16x16 to 1024x1024)
+- **`FlowerPassword.ico`**: Windows multi-resolution icon (contains 16x16 to 256x256)
+- **`FlowerPassword.png`**: Linux icon source (recommended: 512x512px PNG)
+
+**Template Icons (macOS only):**
+
+Template icons use a special naming convention (`IconTemplate.png`) that tells macOS to automatically adapt the icon color to match the system theme (light/dark mode). The icon should be a monochrome black shape with transparency - macOS will invert it for dark mode automatically.
 
 ### Key Modules & Responsibilities
 
@@ -169,17 +212,17 @@ flower-password-desktop/
 
 #### Preload Script (Security Bridge)
 
-| Module                           | Purpose        | Security Model                                                           |
-| -------------------------------- | -------------- | ------------------------------------------------------------------------ |
-| [index.ts](src/preload/index.ts) | Context bridge | Exposes `window.electronAPI` via `contextBridge` with strict API surface |
+| Module                               | Purpose        | Security Model                                                           |
+| ------------------------------------ | -------------- | ------------------------------------------------------------------------ |
+| [preload.ts](src/preload/preload.ts) | Context bridge | Exposes `window.electronAPI` via `contextBridge` with strict API surface |
 
 #### Renderer Process (React UI)
 
-| Module                              | Purpose           | Key Features                                                                                           |
-| ----------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
-| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation                           |
-| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                                |
-| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                              |
+| Module                              | Purpose           | Key Features                                                                                          |
+| ----------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation                          |
+| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                               |
+| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                             |
 | [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`) export |
 
 #### Shared Code
@@ -262,7 +305,7 @@ tray.setToolTip(t('trayTooltip')); // Reads from src/main/locales/en.ts or zh.ts
 // Example usage in React components
 import { useTranslation } from 'react-i18next';
 
-function App() {
+function App(): JSX.Element {
   const { t } = useTranslation();
   return <label>{t('form.passwordPlaceholder')}</label>;
 }
@@ -455,44 +498,43 @@ export const en = {
 
 ### Core Dependencies
 
-| Package              | Version  | Purpose                                         |
-| -------------------- | -------- | ----------------------------------------------- |
-| `electron`           | ^38.3.0  | Cross-platform desktop application framework    |
-| `react`              | ^19.2.0  | UI library for building user interfaces         |
-| `react-dom`          | ^19.2.0  | React renderer for web                          |
-| `flowerpassword.js`  | ^5.0.2   | Core password generation algorithm              |
-| `i18next`            | ^25.6.0  | Internationalization framework                  |
-| `react-i18next`      | ^16.1.0  | React bindings for i18next                      |
-| `psl`                | ^1.15.0  | Public Suffix List for domain parsing           |
+| Package             | Version | Purpose                                      |
+| ------------------- | ------- | -------------------------------------------- |
+| `electron`          | ^38.3.0 | Cross-platform desktop application framework |
+| `react`             | ^19.2.0 | UI library for building user interfaces      |
+| `react-dom`         | ^19.2.0 | React renderer for web                       |
+| `flowerpassword.js` | ^5.0.2  | Core password generation algorithm           |
+| `i18next`           | ^25.6.0 | Internationalization framework               |
+| `react-i18next`     | ^16.1.0 | React bindings for i18next                   |
+| `psl`               | ^1.15.0 | Public Suffix List for domain parsing        |
 
 **Note**: URL parsing is handled by Node.js native `URL` API (WHATWG standard), no external dependencies needed.
 
 ### Build Tools
 
-| Package                  | Version  | Purpose                                    |
-| ------------------------ | -------- | ------------------------------------------ |
-| `@rspack/cli`            | ^1.5.8   | Rspack bundler CLI                         |
-| `@rspack/core`           | ^1.5.8   | Fast Rust-based bundler                    |
-| `typescript`             | ^5.9.3   | TypeScript compiler for type checking      |
-| `eslint`                 | ^9.38.0  | JavaScript/TypeScript linter               |
-| `prettier`               | ^3.6.2   | Code formatter                             |
-| `less`                   | ^4.4.2   | CSS preprocessor                           |
-| `concurrently`           | ^9.2.1   | Run multiple commands concurrently         |
-| `nodemon`                | ^3.1.10  | Auto-restart on file changes (dev mode)    |
+| Package                | Version | Purpose                               |
+| ---------------------- | ------- | ------------------------------------- |
+| `vite`                 | ^6.4.0  | Fast build tool with HMR              |
+| `@vitejs/plugin-react` | ^5.0.4  | Vite plugin for React with HMR        |
+| `typescript`           | ^5.9.3  | TypeScript compiler for type checking |
+| `eslint`               | ^9.38.0 | JavaScript/TypeScript linter          |
+| `prettier`             | ^3.6.2  | Code formatter                        |
+| `less`                 | ^4.4.2  | CSS preprocessor                      |
 
 ### Electron Forge
 
-| Package                                    | Version  | Purpose                              |
-| ------------------------------------------ | -------- | ------------------------------------ |
-| `@electron-forge/cli`                      | ^7.10.2  | Electron Forge CLI                   |
-| `@electron-forge/maker-dmg`                | ^7.10.2  | macOS DMG installer maker            |
-| `@electron-forge/maker-zip`                | ^7.10.2  | ZIP archive maker (all platforms)    |
-| `@electron-forge/maker-squirrel`           | ^7.10.2  | Windows Squirrel installer maker     |
-| `@electron-forge/maker-deb`                | ^7.10.2  | Debian/Ubuntu package maker          |
-| `@electron-forge/maker-rpm`                | ^7.10.2  | Fedora/RHEL package maker            |
-| `@electron-forge/plugin-auto-unpack-natives` | ^7.10.2  | Auto-unpack native modules           |
-| `@electron-forge/plugin-fuses`             | ^7.10.2  | Electron fuses configuration         |
-| `@electron/fuses`                          | ^1.8.0   | Electron security fuses              |
+| Package                                      | Version | Purpose                           |
+| -------------------------------------------- | ------- | --------------------------------- |
+| `@electron-forge/cli`                        | ^7.10.2 | Electron Forge CLI                |
+| `@electron-forge/plugin-vite`                | ^7.10.2 | Vite plugin for Electron Forge    |
+| `@electron-forge/maker-dmg`                  | ^7.10.2 | macOS DMG installer maker         |
+| `@electron-forge/maker-zip`                  | ^7.10.2 | ZIP archive maker (all platforms) |
+| `@electron-forge/maker-squirrel`             | ^7.10.2 | Windows Squirrel installer maker  |
+| `@electron-forge/maker-deb`                  | ^7.10.2 | Debian/Ubuntu package maker       |
+| `@electron-forge/maker-rpm`                  | ^7.10.2 | Fedora/RHEL package maker         |
+| `@electron-forge/plugin-auto-unpack-natives` | ^7.10.2 | Auto-unpack native modules        |
+| `@electron-forge/plugin-fuses`               | ^7.10.2 | Electron fuses configuration      |
+| `@electron/fuses`                            | ^1.8.0  | Electron security fuses           |
 
 ## Code Style & Standards
 
@@ -532,13 +574,24 @@ function calculatePassword(input, length) {
 
 ```json
 {
+  "arrowParens": "avoid", // Avoid parentheses for single-parameter arrows
+  "bracketSpacing": true, // Spaces inside object braces
+  "embeddedLanguageFormatting": "auto", // Auto-format embedded languages
+  "endOfLine": "lf", // Unix line endings
+  "htmlWhitespaceSensitivity": "css", // CSS-like whitespace handling
+  "insertPragma": false, // Don't add @format pragma
+  "jsxBracketSameLine": false, // JSX closing bracket on new line
+  "jsxSingleQuote": false, // Double quotes in JSX
+  "printWidth": 120, // 120 characters per line
+  "proseWrap": "preserve", // Keep prose as-is
+  "quoteProps": "consistent", // Consistent quote style for object properties
+  "requirePragma": false, // Format all files, don't require pragma
   "semi": true, // Semicolons required
   "singleQuote": true, // Single quotes for strings
-  "printWidth": 120, // 120 characters per line
   "tabWidth": 2, // 2 spaces indentation
   "trailingComma": "es5", // ES5 trailing commas (objects, arrays)
-  "endOfLine": "lf", // Unix line endings
-  "arrowParens": "always" // Always parentheses for arrow functions
+  "useTabs": false, // Use spaces, not tabs
+  "vueIndentScriptAndStyle": false // Don't indent Vue script/style tags
 }
 ```
 
@@ -570,7 +623,7 @@ function Button({ label, onClick, disabled = false }: ButtonProps): JSX.Element 
 | `useCallback`    | Memoized callbacks       | `const handler = useCallback(() => {}, [deps])`   |
 | `useMemo`        | Memoized values          | `const value = useMemo(() => compute(), [deps])`  |
 | `useRef`         | DOM refs, mutable values | `const inputRef = useRef<HTMLInputElement>(null)` |
-| `useTranslation` | i18n (react-i18next)     | `const { t } = useTranslation('namespace')`       |
+| `useTranslation` | i18n (react-i18next)     | `const { t } = useTranslation()`                  |
 
 **Avoid:**
 
@@ -783,13 +836,13 @@ fix(i18n): correct Chinese translations for error messages
 
 Before submitting changes, ensure:
 
-- [ ] TypeScript compiles with no errors (`npm run build`)
+- [ ] TypeScript compiles with no errors (`npm run build` or type check via IDE)
 - [ ] ESLint passes with no warnings (`npm run lint`)
 - [ ] Prettier formatting applied (`npm run format`)
 - [ ] No `any` types introduced
 - [ ] All functions have explicit return types
 - [ ] Comments are in English
-- [ ] i18n keys added to both `en.ts` and `zh.ts`
+- [ ] i18n keys added to both `en.ts` and `zh.ts` (in both main and renderer locales if applicable)
 - [ ] Platform-specific code tested (macOS, Windows, Linux if applicable)
 - [ ] No console.log left in production code (use proper logging)
 
@@ -798,7 +851,7 @@ Before submitting changes, ensure:
 **Optimization Priorities:**
 
 1. **Startup time** - Keep main process imports minimal
-2. **Build time** - Leverage Rspack caching (`.rspack_cache/`)
+2. **Build time** - Leverage Vite caching (`.vite/` directory)
 3. **Bundle size** - Tree-shaking friendly code (named exports)
 4. **Runtime performance** - Use React.memo/useMemo for expensive renders
 
