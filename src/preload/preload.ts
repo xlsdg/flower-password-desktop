@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { ElectronAPI } from '../shared/types';
+import type { ElectronAPI, AppConfig, ThemeMode, LanguageMode } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 
 /**
@@ -37,6 +37,22 @@ const electronAPI: ElectronAPI = {
 
   getSystemLocale: (): Promise<string> => {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_SYSTEM_LOCALE);
+  },
+
+  getConfig: (): Promise<AppConfig> => {
+    return ipcRenderer.invoke(IPC_CHANNELS.GET_CONFIG);
+  },
+
+  onThemeChanged: (callback: (theme: ThemeMode) => void): void => {
+    ipcRenderer.on(IPC_CHANNELS.THEME_CHANGED, (_event, theme: ThemeMode) => {
+      callback(theme);
+    });
+  },
+
+  onLanguageChanged: (callback: (language: LanguageMode) => void): void => {
+    ipcRenderer.on(IPC_CHANNELS.LANGUAGE_CHANGED, (_event, language: LanguageMode) => {
+      callback(language);
+    });
   },
 };
 

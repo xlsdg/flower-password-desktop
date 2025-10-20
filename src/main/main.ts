@@ -1,9 +1,9 @@
 import { app, dialog } from 'electron';
-import { initMainI18n } from './i18n';
 import { createWindow } from './window';
 import { createTray } from './tray';
 import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
 import { setupIPC } from './ipc';
+import { initConfig } from './config';
 
 process.on('uncaughtException', (err: Error) => {
   dialog.showErrorBox(`Uncaught Exception: ${err.message}`, err.stack || '');
@@ -13,7 +13,8 @@ process.on('uncaughtException', (err: Error) => {
 app
   .whenReady()
   .then(() => {
-    initMainI18n();
+    initConfig();
+
     createWindow();
     createTray();
     createMenu();

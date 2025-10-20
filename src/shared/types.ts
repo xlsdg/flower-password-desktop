@@ -43,6 +43,24 @@ export interface ElectronAPI {
    * @param callback - Callback function invoked when window is shown
    */
   onWindowShown: (callback: () => void) => void;
+
+  /**
+   * Get application configuration
+   * @returns Current app configuration
+   */
+  getConfig: () => Promise<AppConfig>;
+
+  /**
+   * Listen for theme changes
+   * @param callback - Callback function to receive new theme
+   */
+  onThemeChanged: (callback: (theme: ThemeMode) => void) => void;
+
+  /**
+   * Listen for language changes
+   * @param callback - Callback function to receive new language
+   */
+  onLanguageChanged: (callback: (language: LanguageMode) => void) => void;
 }
 
 /**
@@ -56,6 +74,9 @@ export const IPC_CHANNELS = {
   KEY_FROM_CLIPBOARD: 'key-from-clipboard',
   GET_SYSTEM_LOCALE: 'get-system-locale',
   WINDOW_SHOWN: 'window-shown',
+  GET_CONFIG: 'config:get',
+  THEME_CHANGED: 'config:themeChanged',
+  LANGUAGE_CHANGED: 'config:languageChanged',
 } as const;
 
 /**
@@ -101,3 +122,21 @@ export interface Bounds {
  * Re-export ParsedDomain from psl package for convenience
  */
 export type { ParsedDomain } from 'psl';
+
+/**
+ * Theme mode options
+ */
+export type ThemeMode = 'light' | 'dark' | 'auto';
+
+/**
+ * Language options
+ */
+export type LanguageMode = 'zh' | 'en' | 'auto';
+
+/**
+ * Application configuration
+ */
+export interface AppConfig {
+  theme: ThemeMode;
+  language: LanguageMode;
+}

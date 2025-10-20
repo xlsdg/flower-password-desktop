@@ -1,8 +1,9 @@
 /**
  * i18n for main process
- * Simple translation helper for Electron main process
+ * Simple translation helper for Electron main process with nested key support
  */
 import { app } from 'electron';
+import type { LanguageMode } from '../shared/types';
 
 import { en } from './locales/en';
 import { zh } from './locales/zh';
@@ -15,8 +16,7 @@ const translations = {
   zh,
 } as const;
 
-type TranslationKey = keyof (typeof translations)['en'];
-type SupportedLanguage = 'en' | 'zh';
+type SupportedLanguage = keyof typeof translations;
 
 let currentLanguage: SupportedLanguage = 'en';
 
@@ -31,21 +31,35 @@ function detectLanguage(locale: string): SupportedLanguage {
 }
 
 /**
- * Initialize i18n for main process
- * Should be called during app initialization
+ * Apply language to main process
+ * @param language - Language mode to apply
  */
-export function initMainI18n(): void {
-  const systemLocale = app.getLocale();
-  currentLanguage = detectLanguage(systemLocale);
+export function applyLanguage(language: LanguageMode): void {
+  if (language === 'auto') {
+    const systemLocale = app.getLocale();
+    currentLanguage = detectLanguage(systemLocale);
+  } else {
+    currentLanguage = language;
+  }
 }
 
 /**
- * Get translation for a key
- * @param key - Translation key
+ * Get translation for a nested key
+ * Supports dot notation for nested keys (e.g., 'app.name', 'tray.tooltip')
+ * @param key - Translation key (supports dot notation)
  * @returns Translated string
  */
-export function t(key: TranslationKey): string {
-  return translations[currentLanguage][key];
+export function t(key: string): string {
+  const value = key.split('.').reduce<unknown>((obj, k) => {
+    return obj && typeof obj === 'object' && k in obj ? (obj as Record<string, unknown>)[k] : undefined;
+  }, translations[currentLanguage]);
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  console.warn(`Translation key not found: ${key}`);
+  return key;
 }
 
 /**

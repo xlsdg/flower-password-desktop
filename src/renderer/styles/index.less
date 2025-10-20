@@ -1,10 +1,11 @@
 /**
  * Main styles for FlowerPassword application
- * Supports automatic light/dark theme switching based on system preferences
+ * Supports manual and automatic light/dark theme switching
  */
 
 // Light theme colors
-:root {
+:root,
+:root[data-theme='light'] {
   --bg-color: #fff;
   --text-primary: #168bc3;
   --text-secondary: #999;
@@ -22,24 +23,34 @@
   --select-bg: transparent;
 }
 
-// Dark theme colors (auto-applied based on system preference)
+// Dark theme colors - mixin for reuse
+.dark-theme-vars() {
+  --bg-color: #1e1e1e;
+  --text-primary: #4db8e8;
+  --text-secondary: #aaa;
+  --text-tertiary: #999;
+  --border-color: #444;
+  --input-bg: #2d2d2d;
+  --input-text: #e0e0e0;
+  --btn-primary: #4db8e8;
+  --btn-primary-hover: #3a9fd1;
+  --btn-text: #1e1e1e;
+  --link-color: #4db8e8;
+  --link-hover: #ffa84d;
+  --close-btn-bg: #4db8e8;
+  --close-btn-border: #4db8e8;
+  --select-bg: transparent;
+}
+
+// Manual dark theme
+:root[data-theme='dark'] {
+  .dark-theme-vars();
+}
+
+// Auto theme: use system preference
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #1e1e1e;
-    --text-primary: #4db8e8;
-    --text-secondary: #aaa;
-    --text-tertiary: #999;
-    --border-color: #444;
-    --input-bg: #2d2d2d;
-    --input-text: #e0e0e0;
-    --btn-primary: #4db8e8;
-    --btn-primary-hover: #3a9fd1;
-    --btn-text: #1e1e1e;
-    --link-color: #4db8e8;
-    --link-hover: #ffa84d;
-    --close-btn-bg: #4db8e8;
-    --close-btn-border: #4db8e8;
-    --select-bg: transparent;
+  :root:not([data-theme='light']) {
+    .dark-theme-vars();
   }
 }
 

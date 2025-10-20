@@ -4,8 +4,12 @@ import { showWindow, hideWindow, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { t } from './i18n';
 import { ASSETS_PATH } from '../shared/constants';
+import { getConfig, setTheme, setLanguage } from './config';
+import type { ThemeMode, LanguageMode } from '../shared/types';
+import { IPC_CHANNELS } from '../shared/types';
 
 let tray: Tray | null = null;
+let contextMenu: Menu | null = null;
 
 /**
  * Create system tray
@@ -21,15 +25,37 @@ export function createTray(): Tray {
   }
 
   tray = new Tray(icon);
-  tray.setToolTip(t('trayTooltip'));
+  tray.setToolTip(t('tray.tooltip'));
 
   tray.on('click', () => {
     handleTrayClick();
   });
 
-  const contextMenu = Menu.buildFromTemplate([
+  tray.on('right-click', () => {
+    if (tray && contextMenu) {
+      tray.popUpContextMenu(contextMenu);
+    }
+  });
+
+  updateTrayMenu();
+
+  return tray;
+}
+
+/**
+ * Update tray context menu
+ * Rebuilds menu with current configuration state
+ */
+export function updateTrayMenu(): void {
+  if (!tray) {
+    return;
+  }
+
+  const config = getConfig();
+
+  contextMenu = Menu.buildFromTemplate([
     {
-      label: t('trayShow'),
+      label: t('tray.show'),
       click: (): void => {
         handleShowWindowBelowTray();
       },
@@ -38,20 +64,120 @@ export function createTray(): Tray {
       type: 'separator',
     },
     {
-      label: t('trayQuit'),
+      label: t('tray.settings'),
+      submenu: [
+        {
+          label: t('menu.theme'),
+          submenu: [
+            {
+              label: t('theme.light'),
+              type: 'checkbox',
+              checked: config.theme === 'light',
+              click: (): void => {
+                void handleThemeChange('light');
+              },
+            },
+            {
+              label: t('theme.dark'),
+              type: 'checkbox',
+              checked: config.theme === 'dark',
+              click: (): void => {
+                void handleThemeChange('dark');
+              },
+            },
+            {
+              label: t('theme.auto'),
+              type: 'checkbox',
+              checked: config.theme === 'auto',
+              click: (): void => {
+                void handleThemeChange('auto');
+              },
+            },
+          ],
+        },
+        {
+          label: t('menu.language'),
+          submenu: [
+            {
+              label: t('language.zh'),
+              type: 'checkbox',
+              checked: config.language === 'zh',
+              click: (): void => {
+                void handleLanguageChange('zh');
+              },
+            },
+            {
+              label: t('language.en'),
+              type: 'checkbox',
+              checked: config.language === 'en',
+              click: (): void => {
+                void handleLanguageChange('en');
+              },
+            },
+            {
+              label: t('language.auto'),
+              type: 'checkbox',
+              checked: config.language === 'auto',
+              click: (): void => {
+                void handleLanguageChange('auto');
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: t('tray.quit'),
       click: (): void => {
         void confirmQuit();
       },
     },
   ]);
+}
 
-  tray.on('right-click', () => {
-    if (tray) {
-      tray.popUpContextMenu(contextMenu);
-    }
-  });
+/**
+ * Handle theme change from tray menu
+ * @param theme - New theme mode
+ */
+function handleThemeChange(theme: ThemeMode): void {
+  setTheme(theme);
+  updateTrayMenu();
+  notifyRendererThemeChanged(theme);
+}
 
-  return tray;
+/**
+ * Handle language change from tray menu
+ * @param language - New language mode
+ */
+function handleLanguageChange(language: LanguageMode): void {
+  setLanguage(language);
+  updateTrayMenu();
+  notifyRendererLanguageChanged(language);
+}
+
+/**
+ * Notify renderer process of theme change
+ * @param theme - New theme mode
+ */
+function notifyRendererThemeChanged(theme: ThemeMode): void {
+  const win = getWindow();
+  if (win) {
+    win.webContents.send(IPC_CHANNELS.THEME_CHANGED, theme);
+  }
+}
+
+/**
+ * Notify renderer process of language change
+ * @param language - New language mode
+ */
+function notifyRendererLanguageChanged(language: LanguageMode): void {
+  const win = getWindow();
+  if (win) {
+    win.webContents.send(IPC_CHANNELS.LANGUAGE_CHANGED, language);
+  }
 }
 
 /**
@@ -96,10 +222,10 @@ export async function confirmQuit(): Promise<void> {
 
   const result = await dialog.showMessageBox({
     type: 'question',
-    buttons: [t('quitConfirm'), t('quitCancel')],
+    buttons: [t('dialog.quitConfirm'), t('dialog.quitCancel')],
     defaultId: 0,
-    title: t('appName'),
-    message: t('quitMessage'),
+    title: t('app.name'),
+    message: t('dialog.quitMessage'),
     icon: iconPath,
     cancelId: 1,
   });
