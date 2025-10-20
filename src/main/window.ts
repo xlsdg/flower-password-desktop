@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import * as psl from 'psl';
 import type { WindowConfig, Bounds, ParsedDomain } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
+import { isDevelopment } from '../shared/constants';
 import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
@@ -27,7 +28,8 @@ export function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     ...WINDOW_CONFIG,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      // Preload script is built to the same directory as main.js by Vite plugin
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -47,9 +49,14 @@ export function createWindow(): BrowserWindow {
     mainWindow.setAlwaysOnTop(true);
   }
 
-  // Load HTML file from dist/renderer (compiled by Rspack)
-  // __dirname is dist/main, so need ../renderer/index.html
-  void mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  // Load renderer process
+  // In development: Vite dev server (via MAIN_WINDOW_VITE_DEV_SERVER_URL constant set by Electron Forge)
+  // In production: Compiled HTML file from .vite/renderer/index.html (Vite 6 no longer uses subdirectories)
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    void mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    void mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  }
 
   // Hide window when it loses focus
   mainWindow.on('blur', () => {
@@ -108,7 +115,7 @@ function extractDomainFromClipboard(): void {
     } catch (error) {
       // Silently ignore parsing errors in production
       // URL constructor throws TypeError for invalid URLs
-      if (process.env.NODE_ENV !== 'production') {
+      if (isDevelopment) {
         console.error('Failed to parse clipboard URL:', error);
       }
     }

@@ -8,12 +8,15 @@ export const GLOBAL_SHORTCUTS = {
 } as const;
 
 /**
- * Asset file paths (relative to app root)
- * All assets are compiled to dist/assets by Rspack
+ * Environment detection
+ * Use MAIN_WINDOW_VITE_DEV_SERVER_URL as a reliable indicator of development mode
+ * This constant is set by @electron-forge/plugin-vite and undefined in production
  */
+export const isDevelopment = typeof MAIN_WINDOW_VITE_DEV_SERVER_URL !== 'undefined';
+
 export const ASSETS_PATH = {
-  TRAY_ICON: 'dist/assets/IconTemplate.png',
-  DIALOG_ICON: 'dist/assets/Icon.png',
+  TRAY_ICON: isDevelopment ? '../../public/IconTemplate.png' : '../renderer/IconTemplate.png',
+  DIALOG_ICON: isDevelopment ? '../../public/Icon.png' : '../renderer/Icon.png',
 } as const;
 
 /**

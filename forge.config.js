@@ -6,21 +6,7 @@ module.exports = {
     asar: true,
     icon: 'assets/FlowerPassword', // Will auto-select .icns for macOS, .ico for Windows
     appBundleId: 'org.xlsdg.flowerpassword',
-    // Ensure all necessary files are included
     extraResource: [],
-    ignore: [
-      /^\/src/, // Exclude source code directory
-      /^\/\.git/, // Exclude git directory
-      /^\/\.github/, // Exclude GitHub Actions
-      /^\/\.vscode/, // Exclude VSCode configuration
-      /tsconfig\.json$/, // Exclude TypeScript configuration
-      /^\/\.eslintrc/, // Exclude ESLint configuration
-      /^\/\.prettierrc/, // Exclude Prettier configuration
-      /^\/\.prettierignore/, // Exclude Prettier ignore
-      /\.ts$/, // Exclude TypeScript source files
-      /\.map$/, // Exclude source map files
-      /^\/CLAUDE\.md$/, // Exclude Claude instruction file
-    ],
   },
   rebuildConfig: {},
   makers: [
@@ -68,6 +54,32 @@ module.exports = {
     },
   ],
   plugins: [
+    {
+      name: '@electron-forge/plugin-vite',
+      config: {
+        // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
+        // If you are familiar with Vite configuration, it will look really familiar.
+        build: [
+          {
+            // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
+            entry: 'src/main/main.ts',
+            config: 'vite.main.config.ts',
+            target: 'main',
+          },
+          {
+            entry: 'src/preload/preload.ts',
+            config: 'vite.preload.config.ts',
+            target: 'preload',
+          },
+        ],
+        renderer: [
+          {
+            name: 'main_window',
+            config: 'vite.renderer.config.ts',
+          },
+        ],
+      },
+    },
     {
       name: '@electron-forge/plugin-auto-unpack-natives',
       config: {},

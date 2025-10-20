@@ -1,7 +1,0 @@
-{
-  "watch": ["dist"],
-  "ext": "js,html,css",
-  "ignore": ["dist/**/*.map"],
-  "exec": "electron-forge start",
-  "delay": 500
-}

@@ -12,8 +12,8 @@ let tray: Tray | null = null;
  * @returns Created Tray instance
  */
 export function createTray(): Tray {
-  // Use app.getAppPath() to get app root directory, ensures correct paths in both dev and production
-  const iconPath = path.join(app.getAppPath(), ASSETS_PATH.TRAY_ICON);
+  // Use __dirname (points to .vite/build/) for consistent path resolution across all environments
+  const iconPath = path.join(__dirname, ASSETS_PATH.TRAY_ICON);
   const icon = nativeImage.createFromPath(iconPath);
 
   // Set as template image only on macOS, adapts to macOS dark/light mode
@@ -99,7 +99,7 @@ export function handleShowWindowBelowTray(): void {
 export async function confirmQuit(): Promise<void> {
   hideWindow();
 
-  const iconPath = path.join(app.getAppPath(), ASSETS_PATH.DIALOG_ICON);
+  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
 
   const result = await dialog.showMessageBox({
     type: 'question',

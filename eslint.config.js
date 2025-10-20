@@ -7,7 +7,7 @@ const prettierConfig = require('eslint-config-prettier');
 module.exports = [
   // Global ignores
   {
-    ignores: ['dist/**', 'out/**', 'FlowerPassword.app/**', 'node_modules/**', '**/*.d.ts'],
+    ignores: ['dist/**', 'out/**', '.vite/**', 'FlowerPassword.app/**', 'node_modules/**', '**/*.d.ts'],
   },
   // JavaScript files (including this config file)
   {

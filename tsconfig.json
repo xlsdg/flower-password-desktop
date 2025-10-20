@@ -4,8 +4,6 @@
     "module": "ESNext",
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
-    "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,8 +15,12 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "out"]
+  "include": ["src/**/*", "vite.*.config.ts"],
+  "exclude": ["node_modules", "dist", "out", ".vite"]
 }

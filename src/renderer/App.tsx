@@ -3,7 +3,7 @@
  * Handles user interface and password generation logic
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fpCode } from 'flowerpassword.js';
 import { KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
