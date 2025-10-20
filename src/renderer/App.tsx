@@ -1,8 +1,3 @@
-/**
- * Main React application component
- * Handles user interface and password generation logic
- */
-
 import { useState, useEffect, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fpCode } from 'flowerpassword.js';
@@ -10,9 +5,6 @@ import { KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
 import './styles/reset.less';
 import './styles/index.less';
 
-/**
- * Password length range configuration
- */
 const PASSWORD_MIN_LENGTH = 6;
 const PASSWORD_MAX_LENGTH = 32;
 
@@ -41,7 +33,6 @@ function validateExternalUrl(url: string): boolean {
 
 /**
  * FlowerPassword main application component
- * @returns React component
  */
 export function App(): React.JSX.Element {
   const { t } = useTranslation();
@@ -52,7 +43,6 @@ export function App(): React.JSX.Element {
   const [passwordLength, setPasswordLength] = useState<number>(16);
   const [generatedPassword, setGeneratedPassword] = useState<string>(t('form.generateButton'));
 
-  // Refs for autofocus
   const keyInputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -72,31 +62,21 @@ export function App(): React.JSX.Element {
   /**
    * Copy password to clipboard and hide window
    * Extracted to avoid duplication in handleCopyPassword and handleKeyPress
-   * @param code - Generated password code
    */
   const copyPasswordAndHide = useCallback((code: string): void => {
     window.electronAPI.writeText(code);
     window.electronAPI.hide();
   }, []);
 
-  /**
-   * Update generated code when inputs change
-   */
   useEffect(() => {
     const code = generatePassword();
     setGeneratedPassword(code !== false ? code : t('form.generateButton'));
   }, [generatePassword, t]);
 
-  /**
-   * Handle close button click
-   */
   const handleClose = useCallback((): void => {
     window.electronAPI.hide();
   }, []);
 
-  /**
-   * Copy generated password to clipboard and hide window
-   */
   const handleCopyPassword = useCallback((): void => {
     const code = generatePassword();
     if (code !== false) {
@@ -104,10 +84,6 @@ export function App(): React.JSX.Element {
     }
   }, [generatePassword, copyPasswordAndHide]);
 
-  /**
-   * Handle Enter key press in key input
-   * @param event - Keyboard event
-   */
   const handleKeyPress = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
       if (event.key === KEYBOARD_KEYS.ENTER) {
@@ -122,11 +98,6 @@ export function App(): React.JSX.Element {
     [generatePassword, copyPasswordAndHide]
   );
 
-  /**
-   * Handle external link clicks
-   * @param event - Mouse event
-   * @param url - URL to open
-   */
   const handleExternalLink = useCallback((event: React.MouseEvent<HTMLAnchorElement>, url: string): void => {
     event.preventDefault();
     if (validateExternalUrl(url)) {
@@ -145,11 +116,9 @@ export function App(): React.JSX.Element {
     };
 
     const handleWindowShown = (): void => {
-      // Focus key input when window is shown
       keyInputRef.current?.focus();
     };
 
-    // Set up IPC listeners
     window.electronAPI.onKeyFromClipboard(handleClipboardKey);
     window.electronAPI.onWindowShown(handleWindowShown);
 
@@ -157,9 +126,6 @@ export function App(): React.JSX.Element {
     // (App component never unmounts in this single-window application)
   }, []);
 
-  /**
-   * Handle input change events
-   */
   const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
   }, []);

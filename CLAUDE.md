@@ -682,37 +682,158 @@ function Button({ label, onClick, disabled = false }: ButtonProps): JSX.Element 
 
 ### Comments & Documentation
 
+#### Core Principle: Code as Documentation
+
+Comments should explain **WHY**, not **WHAT**. If you need to explain what the code does, the code itself should be refactored to be more self-documenting through better naming, structure, or decomposition.
+
 **Language Policy:**
 
 - ✅ **All comments MUST be in English** (no Chinese/other languages)
-- ✅ Use JSDoc for function documentation
+- ✅ Use JSDoc for public API functions and complex functions
 - ✅ Explain "why", not "what" (code should be self-documenting)
+- ❌ Avoid redundant comments that merely repeat what the code clearly expresses
+
+**When to Add Comments:**
+
+✅ **DO add comments for:**
+
+- Platform-specific behavior that isn't obvious (e.g., macOS vs Windows differences)
+- Performance optimizations and their rationale
+- Security considerations and constraints
+- Complex algorithms or non-obvious logic
+- Workarounds for known issues or limitations
+- Important lifecycle or memory management decisions
+- Public API documentation (JSDoc)
+
+❌ **DON'T add comments for:**
+
+- Simple variable assignments or return statements
+- Function calls where the function name is self-explanatory
+- IPC handlers where the channel name describes the action
+- Event handlers with descriptive names
+- Getters/setters with obvious behavior
+- Code that simply repeats the function/variable name
+
+**Examples:**
 
 ```typescript
-// ✅ Good - Explains reasoning
-// Use setTimeout to debounce rapid clicks and prevent double submissions
-function handleClick() {
-  /* ... */
+// ✅ GOOD - Explains WHY (platform-specific behavior)
+if (process.platform === 'darwin') {
+  // macOS: Support fullscreen apps with visibleOnFullScreen option
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  mainWindow.setAlwaysOnTop(true, 'floating');
+} else {
+  mainWindow.setVisibleOnAllWorkspaces(true);
+  mainWindow.setAlwaysOnTop(true);
 }
 
-// ❌ Bad - States the obvious
-// This function handles clicks
-function handleClick() {
-  /* ... */
-}
+// ✅ GOOD - Explains WHY (performance optimization)
+/**
+ * Pre-computed password length options (6-32 characters)
+ * Using a constant array to avoid recalculation on every render
+ */
+const PASSWORD_LENGTH_OPTIONS = Array.from(
+  { length: PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1 },
+  (_, i) => i + PASSWORD_MIN_LENGTH
+);
 
-// ❌ Bad - Non-English comment
+// ✅ GOOD - Explains WHY (important lifecycle decision)
+useEffect(() => {
+  window.electronAPI.onKeyFromClipboard(handleClipboardKey);
+  window.electronAPI.onWindowShown(handleWindowShown);
+
+  // No cleanup needed: listener lifetime matches app lifetime
+  // (App component never unmounts in this single-window application)
+}, []);
+
+// ✅ GOOD - Explains WHY (security context)
+/**
+ * Safely expose APIs to renderer process
+ * Use contextBridge to ensure renderer process cannot directly access Electron internal APIs
+ */
+const electronAPI: ElectronAPI = {
+  // ...
+};
+
+// ❌ BAD - Redundant, just describes what the code does
+// Hide window
+ipcMain.on(IPC_CHANNELS.HIDE, () => {
+  hideWindow();
+});
+
+// ❌ BAD - Function name already says this
+// Handle close button click
+const handleClose = useCallback((): void => {
+  window.electronAPI.hide();
+}, []);
+
+// ❌ BAD - Obvious from the code structure
+// Set up IPC listeners
+window.electronAPI.onKeyFromClipboard(handleClipboardKey);
+window.electronAPI.onWindowShown(handleWindowShown);
+
+// ❌ BAD - States the obvious
+/**
+ * Window control - Hide window
+ */
+hide: (): void => {
+  ipcRenderer.send(IPC_CHANNELS.HIDE);
+};
+
+// ❌ BAD - Non-English comment
 // 处理点击事件
 function handleClick() {
   /* ... */
 }
 ```
 
-**JSDoc Example:**
+**JSDoc Guidelines:**
+
+Use JSDoc for public APIs and complex functions. Keep JSDoc concise - avoid repeating information that's already in the function signature.
+
+```typescript
+// ✅ GOOD - Adds value beyond the signature
+/**
+ * Calculate window position near tray icon
+ * @param tray - Tray instance
+ * @param windowBounds - Window bounds information
+ * @returns Coordinates where window should be displayed {x, y}
+ */
+export function calculatePositionBelowTray(tray: Tray, windowBounds: Size): Position {
+  // Implementation...
+}
+
+// ✅ GOOD - Documents non-obvious behavior
+/**
+ * Extract domain from clipboard URL and send to renderer
+ * If extraction succeeds, send domain to renderer process
+ */
+function extractDomainFromClipboard(): void {
+  // Implementation...
+}
+
+// ❌ BAD - Just repeats the function signature
+/**
+ * Get main window instance
+ * @returns Main window instance or null
+ */
+export function getWindow(): BrowserWindow | null {
+  return mainWindow;
+}
+
+// ✅ BETTER - Remove JSDoc if it doesn't add value
+export function getWindow(): BrowserWindow | null {
+  return mainWindow;
+}
+```
+
+**JSDoc Example with Context:**
 
 ````typescript
 /**
  * Generates a deterministic password from memory password and distinction code.
+ * Uses the FlowerPassword algorithm which ensures identical inputs always produce
+ * identical outputs without storing passwords.
  *
  * @param memoryPassword - User's master password (memorized)
  * @param distinctionCode - Site/service identifier
@@ -729,6 +850,18 @@ function generatePassword(memoryPassword: string, distinctionCode: string, lengt
   // Implementation...
 }
 ````
+
+**Comment Review Checklist:**
+
+Before committing, review your comments and ask:
+
+1. Does this comment explain WHY, not WHAT?
+2. Would the code be clear without this comment if I improved naming/structure?
+3. Does this comment add information beyond what the type signature provides?
+4. Is this explaining platform-specific behavior, security, or performance concerns?
+5. Would a future developer benefit from knowing this context?
+
+If you answer "no" to most of these questions, consider removing or refactoring instead of commenting.
 
 ### File Organization
 

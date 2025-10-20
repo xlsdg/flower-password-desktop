@@ -16,7 +16,6 @@ export function createTray(): Tray {
   const iconPath = path.join(__dirname, ASSETS_PATH.TRAY_ICON);
   const icon = nativeImage.createFromPath(iconPath);
 
-  // Set as template image only on macOS, adapts to macOS dark/light mode
   if (process.platform === 'darwin') {
     icon.setTemplateImage(true);
   }
@@ -24,12 +23,10 @@ export function createTray(): Tray {
   tray = new Tray(icon);
   tray.setToolTip(t('trayTooltip'));
 
-  // Click tray icon to show/hide window
   tray.on('click', () => {
     handleTrayClick();
   });
 
-  // Right-click menu
   const contextMenu = Menu.buildFromTemplate([
     {
       label: t('trayShow'),
@@ -67,10 +64,9 @@ export function getTray(): Tray | null {
 
 /**
  * Handle tray icon click
- * If window is already visible, hide it, otherwise show it below tray icon
+ * If window is already visible, hide it; otherwise show it below tray icon
  */
 function handleTrayClick(): void {
-  // Check if window is already visible
   const win = getWindow();
   if (win && win.isVisible()) {
     hideWindow();
@@ -81,15 +77,12 @@ function handleTrayClick(): void {
 
 /**
  * Handle showing window below tray icon
- * Position window below tray icon and show it
  */
 export function handleShowWindowBelowTray(): void {
-  // Calculate tray icon position
   const win = getWindow();
   if (win && tray) {
     positionWindowBelowTray(win, tray);
   }
-  // Show window (automatically extracts clipboard domain)
   showWindow();
 }
 

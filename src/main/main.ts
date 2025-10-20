@@ -5,19 +5,11 @@ import { createTray } from './tray';
 import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
 import { setupIPC } from './ipc';
 
-/**
- * Error handling
- * Catch unhandled exceptions and show error dialog
- */
 process.on('uncaughtException', (err: Error) => {
   dialog.showErrorBox(`Uncaught Exception: ${err.message}`, err.stack || '');
   app.quit();
 });
 
-/**
- * Application ready
- * Initialize window, tray, menu, etc.
- */
 app
   .whenReady()
   .then(() => {
@@ -43,10 +35,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-/**
- * Cleanup before application quits
- * Unregister all global shortcuts
- */
 app.on('will-quit', () => {
   unregisterShortcuts();
 });

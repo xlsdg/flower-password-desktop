@@ -55,7 +55,6 @@ export function createMenu(): void {
  * Register global shortcuts
  */
 export function registerShortcuts(): void {
-  // Register Cmd/Ctrl+Alt+S to show window at cursor position
   const success = globalShortcut.register(GLOBAL_SHORTCUTS.SHOW_WINDOW_AT_CURSOR, () => {
     showWindowAtCursor();
   });

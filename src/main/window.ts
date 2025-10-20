@@ -8,9 +8,6 @@ import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
 
-/**
- * Window configuration
- */
 const WINDOW_CONFIG: WindowConfig = {
   width: 300,
   height: 334,
@@ -58,7 +55,6 @@ export function createWindow(): BrowserWindow {
     void mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
-  // Hide window when it loses focus
   mainWindow.on('blur', () => {
     if (mainWindow && !mainWindow.webContents.isDevToolsOpened()) {
       mainWindow.hide();
@@ -84,12 +80,10 @@ export function getWindow(): BrowserWindow | null {
  * Automatically extracts domain from clipboard URL when window is shown
  */
 export function showWindow(): void {
-  // Extract domain from clipboard before showing window
   extractDomainFromClipboard();
 
   mainWindow?.show();
   mainWindow?.focus();
-  // Notify renderer that window is shown
   mainWindow?.webContents.send(IPC_CHANNELS.WINDOW_SHOWN);
 }
 
@@ -102,7 +96,6 @@ function extractDomainFromClipboard(): void {
 
   if (text && text.length > 0) {
     try {
-      // Use native URL API to parse the clipboard text
       const url = new URL(text);
 
       if (url.hostname && psl.isValid(url.hostname)) {
