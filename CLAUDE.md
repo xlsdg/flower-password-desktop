@@ -717,6 +717,254 @@ export const enUS = {
 
 ## Code Style & Standards
 
+### Design Principles
+
+FlowerPassword follows key software engineering principles to maintain code quality and sustainability:
+
+#### YAGNI (You Aren't Gonna Need It)
+
+**Core Concept**: Don't implement functionality until it's actually needed. Premature abstraction and speculative features add complexity without immediate value.
+
+**Guidelines:**
+
+- ✅ **Implement only what's required now** - Focus on current user stories and requirements
+- ✅ **Wait for patterns to emerge** - Don't create abstractions until you've seen the same pattern 2-3 times
+- ✅ **Delete unused code** - Remove commented-out code, unused functions, and dead imports
+- ❌ **Avoid "just in case" features** - Don't add configuration options, parameters, or features for hypothetical future needs
+- ❌ **Don't over-engineer** - Simple solutions are often better than complex, "flexible" ones
+
+**Examples:**
+
+```typescript
+// ✅ GOOD - Simple, addresses current need
+export function extractDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return psl.get(parsed.hostname);
+  } catch {
+    return null;
+  }
+}
+
+// ❌ BAD - Over-engineered for hypothetical needs
+export interface DomainExtractionOptions {
+  includeSubdomain?: boolean;
+  validateTLD?: boolean;
+  customTLDList?: string[];
+  throwOnError?: boolean;
+  cacheResults?: boolean;
+}
+
+export function extractDomain(
+  url: string,
+  options: DomainExtractionOptions = {}
+): string | null | DomainInfo {
+  // Complex implementation with features we don't currently need
+}
+
+// ✅ GOOD - Start simple, only one language switcher needed
+function LanguageMenu(): JSX.Element {
+  return (
+    <Menu>
+      <MenuItem onClick={() => setLanguage('en-US')}>English</MenuItem>
+      <MenuItem onClick={() => setLanguage('zh-CN')}>简体中文</MenuItem>
+      <MenuItem onClick={() => setLanguage('zh-TW')}>繁體中文</MenuItem>
+    </Menu>
+  );
+}
+
+// ❌ BAD - Premature abstraction for "flexibility"
+interface LanguageSwitcherConfig {
+  position: 'top' | 'bottom' | 'left' | 'right';
+  showFlags?: boolean;
+  showNativeNames?: boolean;
+  groupByRegion?: boolean;
+  customRenderer?: (language: Language) => JSX.Element;
+  onBeforeChange?: (from: string, to: string) => Promise<boolean>;
+}
+
+function LanguageSwitcher({ config }: { config: LanguageSwitcherConfig }): JSX.Element {
+  // We only need one simple language menu, not a configurable framework
+}
+```
+
+**When YAGNI Doesn't Apply:**
+
+- Security features (defense in depth is appropriate)
+- Core architectural decisions that are expensive to change later
+- Well-established patterns from the existing codebase
+- Platform compatibility requirements (e.g., macOS/Windows/Linux differences)
+
+#### DRY (Don't Repeat Yourself)
+
+**Core Concept**: Every piece of knowledge should have a single, authoritative representation. Duplication makes changes error-prone and maintenance costly.
+
+**Guidelines:**
+
+- ✅ **Extract repeated logic** - If you copy-paste code, consider extracting a function or component
+- ✅ **Centralize configuration** - Constants, types, and configuration should live in one place
+- ✅ **Reuse utilities** - Build shared utility functions for common operations
+- ✅ **Single source of truth** - Type definitions, API contracts, and business logic should not be duplicated
+- ⚠️ **Balance with clarity** - Don't abstract too early (see YAGNI); some duplication is acceptable if abstraction reduces readability
+
+**Examples:**
+
+```typescript
+// ✅ GOOD - Centralized constants (single source of truth)
+// src/shared/constants.ts
+export const IPC_CHANNELS = {
+  HIDE: 'window:hide',
+  QUIT: 'app:quit',
+  GET_CONFIG: 'config:get',
+  SET_THEME: 'config:set-theme',
+} as const;
+
+// Used consistently across main and renderer processes
+import { IPC_CHANNELS } from '@/shared/constants';
+
+// ❌ BAD - Duplicated channel names (brittle, error-prone)
+// In main process
+ipcMain.on('window:hide', () => hideWindow());
+
+// In renderer process
+ipcRenderer.send('window-hide'); // Typo! Should be 'window:hide'
+
+// ✅ GOOD - Shared type definitions
+// src/shared/types.ts
+export interface AppConfig {
+  theme: ThemeMode;
+  language: LanguageMode;
+}
+
+export type ThemeMode = 'light' | 'dark' | 'auto';
+export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
+
+// ❌ BAD - Duplicated types in different files
+// main/config.ts
+type Theme = 'light' | 'dark' | 'auto';
+
+// renderer/App.tsx
+type AppTheme = 'light' | 'dark' | 'auto'; // Duplication
+
+// ✅ GOOD - Reusable utility function
+// src/renderer/utils.ts
+export function extractDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return psl.get(parsed.hostname);
+  } catch {
+    return null;
+  }
+}
+
+// Used in multiple places
+import { extractDomain } from './utils';
+const domain = extractDomain(clipboardText);
+
+// ❌ BAD - Copy-pasted URL parsing logic
+function handleClipboard(text: string): void {
+  try {
+    const parsed = new URL(text);
+    const domain = psl.get(parsed.hostname);
+    // ...
+  } catch {
+    return null;
+  }
+}
+
+function handleInput(text: string): void {
+  try {
+    const parsed = new URL(text); // Same logic repeated
+    const domain = psl.get(parsed.hostname);
+    // ...
+  } catch {
+    return null;
+  }
+}
+
+// ✅ GOOD - Balanced abstraction (acceptable duplication for clarity)
+// Platform-specific window setup - duplication is acceptable here
+if (process.platform === 'darwin') {
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  mainWindow.setAlwaysOnTop(true, 'floating');
+} else {
+  mainWindow.setVisibleOnAllWorkspaces(true);
+  mainWindow.setAlwaysOnTop(true);
+}
+// Abstracting this would reduce clarity without significant benefit
+
+// ❌ BAD - Over-abstraction hurts readability
+function configurePlatformSpecificWindowBehavior(
+  window: BrowserWindow,
+  platform: NodeJS.Platform
+): void {
+  const configs = {
+    darwin: {
+      workspaces: { visible: true, options: { visibleOnFullScreen: true } },
+      alwaysOnTop: { enabled: true, level: 'floating' as const },
+    },
+    // ... complex nested config object
+  };
+  // Complex generic implementation
+}
+```
+
+**When to Accept Duplication:**
+
+- Platform-specific code (macOS vs Windows vs Linux)
+- Test fixtures and mock data
+- Simple, stable code that's unlikely to change in sync
+- When abstraction would significantly reduce readability
+- Initial implementation (wait for the third occurrence before extracting)
+
+**Rule of Three**: Consider extracting common code after the third occurrence, not the second. This balances DRY with YAGNI.
+
+#### Balancing YAGNI and DRY
+
+These principles sometimes tension with each other:
+
+- **YAGNI says**: "Don't add abstractions you don't need yet"
+- **DRY says**: "Don't duplicate code; extract to a shared function"
+
+**Resolution Strategy:**
+
+1. **First occurrence**: Write inline code (YAGNI)
+2. **Second occurrence**: Consider duplication acceptable; note the pattern (YAGNI + wait for pattern)
+3. **Third occurrence**: Extract to a shared utility (DRY)
+4. **Exception**: If duplication is very obvious and the abstraction is trivial, extract immediately
+
+**Example:**
+
+```typescript
+// First occurrence - inline is fine
+function handlePasswordInput(value: string): void {
+  const trimmed = value.trim();
+  if (trimmed.length > 0) {
+    setPassword(trimmed);
+  }
+}
+
+// Second occurrence - still acceptable
+function handleKeyInput(value: string): void {
+  const trimmed = value.trim();
+  if (trimmed.length > 0) {
+    setKey(trimmed);
+  }
+}
+
+// Third occurrence - time to extract
+function sanitizeInput(value: string): string {
+  return value.trim();
+}
+
+function handlePasswordInput(value: string): void {
+  const sanitized = sanitizeInput(value);
+  if (sanitized.length > 0) {
+    setPassword(sanitized);
+  }
+}
+```
+
 ### TypeScript Rules (Strict Mode)
 
 **Type Safety (Enforced by ESLint + TSC):**
