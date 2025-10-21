@@ -19,6 +19,7 @@ export const zhTW = {
   menu: {
     theme: '主題',
     language: '語言',
+    autoLaunch: '開機自啟',
   },
   theme: {
     light: '淺色',

@@ -19,6 +19,7 @@ export const enUS = {
   menu: {
     theme: 'Theme',
     language: 'Language',
+    autoLaunch: 'Launch at Login',
   },
   theme: {
     light: 'Light',

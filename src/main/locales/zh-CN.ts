@@ -19,6 +19,7 @@ export const zhCN = {
   menu: {
     theme: '主题',
     language: '语言',
+    autoLaunch: '开机自启',
   },
   theme: {
     light: '浅色',

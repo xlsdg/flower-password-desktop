@@ -4,7 +4,7 @@ import { showWindow, hideWindow, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { t } from './i18n';
 import { ASSETS_PATH } from '../shared/constants';
-import { getConfig, setTheme, setLanguage } from './config';
+import { getConfig, setTheme, setLanguage, setAutoLaunch } from './config';
 import type { ThemeMode, LanguageMode } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 
@@ -132,6 +132,17 @@ export function updateTrayMenu(): void {
             },
           ],
         },
+        {
+          type: 'separator',
+        },
+        {
+          label: t('menu.autoLaunch'),
+          type: 'checkbox',
+          checked: config.autoLaunch,
+          click: (): void => {
+            void handleAutoLaunchChange(!config.autoLaunch);
+          },
+        },
       ],
     },
     {
@@ -164,6 +175,17 @@ function handleLanguageChange(language: LanguageMode): void {
   setLanguage(language);
   updateTrayMenu();
   notifyRendererLanguageChanged(language);
+}
+
+/**
+ * Handle auto-launch change from tray menu
+ * @param enabled - Enable or disable auto-launch
+ */
+function handleAutoLaunchChange(enabled: boolean): void {
+  const success = setAutoLaunch(enabled);
+  if (success) {
+    updateTrayMenu();
+  }
 }
 
 /**

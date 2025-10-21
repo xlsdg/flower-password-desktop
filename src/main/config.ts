@@ -20,6 +20,7 @@ const DEFAULT_CONFIG: AppConfig = {
   theme: 'auto',
   language: 'auto',
   formSettings: DEFAULT_FORM_SETTINGS,
+  autoLaunch: false,
 };
 
 /**
@@ -54,6 +55,7 @@ export function loadConfig(): AppConfig {
         formSettings: isValidFormSettings(parsedConfig.formSettings)
           ? parsedConfig.formSettings
           : DEFAULT_CONFIG.formSettings,
+        autoLaunch: typeof parsedConfig.autoLaunch === 'boolean' ? parsedConfig.autoLaunch : DEFAULT_CONFIG.autoLaunch,
       };
     } else {
       configCache = { ...DEFAULT_CONFIG };
@@ -189,6 +191,39 @@ export function updateFormSettings(settings: Partial<FormSettings>): void {
 }
 
 /**
+ * Update auto-launch setting
+ * @param enabled - Enable or disable auto-launch
+ * @returns True if successfully applied, false otherwise
+ */
+export function setAutoLaunch(enabled: boolean): boolean {
+  const success = applyAutoLaunch(enabled);
+  if (success) {
+    const config = loadConfig();
+    config.autoLaunch = enabled;
+    saveConfig(config);
+  }
+  return success;
+}
+
+/**
+ * Apply auto-launch setting to system
+ * @param enabled - Enable or disable auto-launch
+ * @returns True if successfully applied, false otherwise
+ */
+export function applyAutoLaunch(enabled: boolean): boolean {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      openAsHidden: false,
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to set auto-launch:', error);
+    return false;
+  }
+}
+
+/**
  * Initialize configuration system
  * Load config and apply theme and language on startup
  */
@@ -196,4 +231,5 @@ export function initConfig(): void {
   const config = loadConfig();
   applyTheme(config.theme);
   applyLanguage(config.language);
+  applyAutoLaunch(config.autoLaunch);
 }
