@@ -253,10 +253,10 @@ export async function confirmQuit(): Promise<void> {
 
   const result = await dialog.showMessageBox({
     type: 'question',
-    buttons: [t('dialog.quitConfirm'), t('dialog.quitCancel')],
+    buttons: [t('dialog.quit.confirm'), t('dialog.quit.cancel')],
     defaultId: 0,
     title: t('app.name'),
-    message: t('dialog.quitMessage'),
+    message: t('dialog.quit.message'),
     icon: iconPath,
     cancelId: 1,
   });

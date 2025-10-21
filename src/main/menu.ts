@@ -1,6 +1,7 @@
-import { Menu, globalShortcut } from 'electron';
+import { Menu, globalShortcut, dialog } from 'electron';
 import { showWindowAtCursor } from './window';
 import { GLOBAL_SHORTCUTS } from '../shared/constants';
+import { t } from './i18n';
 
 /**
  * Create application menu
@@ -61,6 +62,7 @@ export function registerShortcuts(): void {
 
   if (!success) {
     console.error('Failed to register global shortcut');
+    dialog.showErrorBox(t('dialog.shortcut.registerFailed'), t('dialog.shortcut.registerFailedMessage'));
   }
 }
 

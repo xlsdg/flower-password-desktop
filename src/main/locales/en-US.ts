@@ -6,9 +6,20 @@ export const enUS = {
     name: 'FlowerPassword',
   },
   dialog: {
-    quitMessage: 'Are you sure you want to quit?',
-    quitConfirm: 'Quit',
-    quitCancel: 'Cancel',
+    quit: {
+      message: 'Are you sure you want to quit?',
+      confirm: 'Quit',
+      cancel: 'Cancel',
+    },
+    shortcut: {
+      registerFailed: 'Failed to register global shortcut',
+      registerFailedMessage:
+        'Failed to register global shortcut (CmdOrCtrl+Alt+S). The shortcut may be already in use by another application.',
+    },
+    autoLaunch: {
+      setFailed: 'Failed to set auto-launch',
+      setFailedMessage: 'Failed to configure launch at login. Please check system permissions.',
+    },
   },
   tray: {
     tooltip: 'FlowerPassword',

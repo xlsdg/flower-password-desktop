@@ -1,9 +1,9 @@
-import { app, nativeTheme } from 'electron';
+import { app, nativeTheme, dialog } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import AutoLaunch from 'auto-launch';
 import type { AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
-import { applyLanguage } from './i18n';
+import { applyLanguage, t } from './i18n';
 
 /**
  * Default form settings
@@ -233,6 +233,7 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
     return isEnabled === enabled;
   } catch (error) {
     console.error('Failed to set auto-launch:', error);
+    dialog.showErrorBox(t('dialog.autoLaunch.setFailed'), t('dialog.autoLaunch.setFailedMessage'));
     return false;
   }
 }

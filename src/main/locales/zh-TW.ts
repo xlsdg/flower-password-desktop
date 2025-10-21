@@ -6,9 +6,19 @@ export const zhTW = {
     name: '花密',
   },
   dialog: {
-    quitMessage: '確定退出？',
-    quitConfirm: '確定',
-    quitCancel: '取消',
+    quit: {
+      message: '確定退出？',
+      confirm: '確定',
+      cancel: '取消',
+    },
+    shortcut: {
+      registerFailed: '快速鍵註冊失敗',
+      registerFailedMessage: '無法註冊全域快速鍵（CmdOrCtrl+Alt+S）。該快速鍵可能已被其他應用程式佔用。',
+    },
+    autoLaunch: {
+      setFailed: '開機自啟設定失敗',
+      setFailedMessage: '無法配置開機自啟功能，請檢查系統權限設定。',
+    },
   },
   tray: {
     tooltip: '花密',
