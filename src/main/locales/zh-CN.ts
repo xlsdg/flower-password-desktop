@@ -17,7 +17,7 @@ export const zhCN = {
     },
     autoLaunch: {
       setFailed: '开机自启设置失败',
-      setFailedMessage: '无法配置开机自启功能，请检查系统权限设置。',
+      setFailedMessage: '错误详情：',
     },
   },
   tray: {

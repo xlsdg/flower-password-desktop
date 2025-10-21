@@ -41,9 +41,10 @@ function getAutoLauncher(): AutoLaunch {
   if (!autoLauncher) {
     autoLauncher = new AutoLaunch({
       name: 'FlowerPassword',
-      // auto-launch will automatically determine the correct path
-      // For macOS, it handles the .app bundle correctly
-      // For Windows, it handles the executable path
+      path: app.getPath('exe'),
+      mac: {
+        useLaunchAgent: true,
+      },
     });
   }
   return autoLauncher;
@@ -183,13 +184,11 @@ function isValidFormSettings(settings: unknown): settings is FormSettings {
 export function updateFormSettings(settings: Partial<FormSettings>): void {
   const config = loadConfig();
 
-  // Merge with existing form settings
   const updatedFormSettings: FormSettings = {
     ...config.formSettings,
     ...settings,
   };
 
-  // Validate merged settings
   if (!isValidFormSettings(updatedFormSettings)) {
     console.error('Invalid form settings provided');
     return;
@@ -228,12 +227,15 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
       await launcher.disable();
     }
 
-    // Verify the setting was applied
     const isEnabled = await launcher.isEnabled();
     return isEnabled === enabled;
   } catch (error) {
     console.error('Failed to set auto-launch:', error);
-    dialog.showErrorBox(t('dialog.autoLaunch.setFailed'), t('dialog.autoLaunch.setFailedMessage'));
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const detailedMessage = `${t('dialog.autoLaunch.setFailedMessage')}${errorMessage}`;
+    dialog.showErrorBox(t('dialog.autoLaunch.setFailed'), detailedMessage);
+
     return false;
   }
 }

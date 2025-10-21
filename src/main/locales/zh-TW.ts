@@ -17,7 +17,7 @@ export const zhTW = {
     },
     autoLaunch: {
       setFailed: '開機自啟設定失敗',
-      setFailedMessage: '無法配置開機自啟功能，請檢查系統權限設定。',
+      setFailedMessage: '錯誤詳情：',
     },
   },
   tray: {

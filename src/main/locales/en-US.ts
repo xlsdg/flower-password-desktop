@@ -18,7 +18,7 @@ export const enUS = {
     },
     autoLaunch: {
       setFailed: 'Failed to set auto-launch',
-      setFailedMessage: 'Failed to configure launch at login. Please check system permissions.',
+      setFailedMessage: 'Error details: ',
     },
   },
   tray: {
