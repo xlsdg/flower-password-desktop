@@ -1,7 +1,7 @@
 /**
- * Chinese translations for main process
+ * Simplified Chinese translations for main process
  */
-export const zh = {
+export const zhCN = {
   app: {
     name: '花密',
   },
@@ -26,9 +26,10 @@ export const zh = {
     auto: '自动',
   },
   language: {
-    zh: '简体中文',
-    en: 'English',
-    auto: '自动',
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'auto': '自动',
   },
   metadata: {
     htmlTitle: '花密',

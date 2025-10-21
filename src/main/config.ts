@@ -129,7 +129,7 @@ function isValidTheme(theme: unknown): theme is ThemeMode {
  * @returns True if valid language
  */
 function isValidLanguage(language: unknown): language is LanguageMode {
-  return typeof language === 'string' && ['zh', 'en', 'auto'].includes(language);
+  return typeof language === 'string' && ['zh-CN', 'zh-TW', 'en-US', 'auto'].includes(language);
 }
 
 /**

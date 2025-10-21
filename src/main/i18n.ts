@@ -5,29 +5,48 @@
 import { app } from 'electron';
 import type { LanguageMode } from '../shared/types';
 
-import { en } from './locales/en';
-import { zh } from './locales/zh';
+import { enUS } from './locales/en-US';
+import { zhCN } from './locales/zh-CN';
+import { zhTW } from './locales/zh-TW';
 
 /**
  * Main process translations
  */
 const translations = {
-  en,
-  zh,
+  'en-US': enUS,
+  'zh-CN': zhCN,
+  'zh-TW': zhTW,
 } as const;
 
 type SupportedLanguage = keyof typeof translations;
 
-let currentLanguage: SupportedLanguage = 'en';
+let currentLanguage: SupportedLanguage = 'en-US';
 
 /**
  * Detect language from system locale
- * @param locale - System locale string (e.g., 'en-US', 'zh-CN')
+ * @param locale - System locale string (e.g., 'en-US', 'zh-CN', 'zh-TW')
  * @returns Supported language code
  */
 function detectLanguage(locale: string): SupportedLanguage {
-  const languageCode = locale.toLowerCase().split(/[-_]/)[0];
-  return languageCode === 'zh' ? 'zh' : 'en';
+  const normalizedLocale = locale.toLowerCase().replace('_', '-');
+
+  if (
+    normalizedLocale.startsWith('zh-tw') ||
+    normalizedLocale.startsWith('zh-hk') ||
+    normalizedLocale.startsWith('zh-mo')
+  ) {
+    return 'zh-TW';
+  }
+
+  if (normalizedLocale.startsWith('zh')) {
+    return 'zh-CN';
+  }
+
+  if (normalizedLocale.startsWith('en')) {
+    return 'en-US';
+  }
+
+  return 'en-US';
 }
 
 /**

@@ -99,19 +99,27 @@ export function updateTrayMenu(): void {
           label: t('menu.language'),
           submenu: [
             {
-              label: t('language.zh'),
+              label: t('language.zh-CN'),
               type: 'checkbox',
-              checked: config.language === 'zh',
+              checked: config.language === 'zh-CN',
               click: (): void => {
-                void handleLanguageChange('zh');
+                void handleLanguageChange('zh-CN');
               },
             },
             {
-              label: t('language.en'),
+              label: t('language.zh-TW'),
               type: 'checkbox',
-              checked: config.language === 'en',
+              checked: config.language === 'zh-TW',
               click: (): void => {
-                void handleLanguageChange('en');
+                void handleLanguageChange('zh-TW');
+              },
+            },
+            {
+              label: t('language.en-US'),
+              type: 'checkbox',
+              checked: config.language === 'en-US',
+              click: (): void => {
+                void handleLanguageChange('en-US');
               },
             },
             {

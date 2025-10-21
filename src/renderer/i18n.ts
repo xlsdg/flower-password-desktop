@@ -4,8 +4,9 @@
  */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { en } from './locales/en';
-import { zh } from './locales/zh';
+import { enUS } from './locales/en-US';
+import { zhCN } from './locales/zh-CN';
+import { zhTW } from './locales/zh-TW';
 
 /**
  * Initialize i18n instance
@@ -14,11 +15,12 @@ import { zh } from './locales/zh';
 export async function initI18n(): Promise<void> {
   await i18n.use(initReactI18next).init({
     resources: {
-      en: { translation: en },
-      zh: { translation: zh },
+      'en-US': { translation: enUS },
+      'zh-CN': { translation: zhCN },
+      'zh-TW': { translation: zhTW },
     },
-    lng: 'en',
-    fallbackLng: 'en',
+    lng: 'en-US',
+    fallbackLng: 'en-US',
     interpolation: {
       escapeValue: false, // React already escapes values
     },

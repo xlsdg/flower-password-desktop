@@ -1,7 +1,7 @@
 /**
  * English translations
  */
-export const en = {
+export const enUS = {
   app: {
     title: 'Flower Password',
     close: 'Close',
@@ -9,7 +9,7 @@ export const en = {
   metadata: {
     title: 'FlowerPassword',
     description: 'FlowerPassword - Generate passwords based on memory password and distinction code',
-    htmlLang: 'en',
+    htmlLang: 'en-US',
   },
   form: {
     passwordPlaceholder: 'Memory Password',

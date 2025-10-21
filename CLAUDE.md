@@ -211,7 +211,7 @@ Template icons use a special naming convention (`IconTemplate.png`) that tells m
 | [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard, shell, locale, config access                          |
 | [config.ts](src/main/config.ts)     | Configuration management    | Theme and language settings, persistent storage, auto-apply on startup                       |
 | [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system with nested structure for organized content                   |
-| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - nested objects by category (app, dialog, tray, etc.)     |
+| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - nested objects by category (app, dialog, tray, etc.)      |
 
 #### Preload Script (Security Bridge)
 
@@ -221,20 +221,20 @@ Template icons use a special naming convention (`IconTemplate.png`) that tells m
 
 #### Renderer Process (React UI)
 
-| Module                              | Purpose           | Key Features                                                                                          |
-| ----------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation, theme/language sync    |
-| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                               |
-| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                             |
-| [utils.ts](src/renderer/utils.ts)   | Utility functions | Domain extraction from URLs using psl library                                                         |
-| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`)       |
+| Module                              | Purpose           | Key Features                                                                                      |
+| ----------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------- |
+| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation, theme/language sync |
+| [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                           |
+| [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                         |
+| [utils.ts](src/renderer/utils.ts)   | Utility functions | Domain extraction from URLs using psl library                                                     |
+| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`)    |
 
 #### Shared Code
 
-| Module                                  | Purpose               | Usage                                                                        |
-| --------------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
-| [types.ts](src/shared/types.ts)         | TypeScript interfaces | Shared types (ElectronAPI, AppConfig, ThemeMode, etc.), IPC channel names   |
-| [constants.ts](src/shared/constants.ts) | App constants         | Global shortcuts, asset paths, keyboard keys, allowed URL protocols          |
+| Module                                  | Purpose               | Usage                                                                     |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------- |
+| [types.ts](src/shared/types.ts)         | TypeScript interfaces | Shared types (ElectronAPI, AppConfig, ThemeMode, etc.), IPC channel names |
+| [constants.ts](src/shared/constants.ts) | App constants         | Global shortcuts, asset paths, keyboard keys, allowed URL protocols       |
 
 ### Security Architecture
 
@@ -271,10 +271,11 @@ The app adapts to each OS for optimal UX:
 
 ### Supported Languages
 
-| Language    | Code | Fallback   | Regions                     |
-| ----------- | ---- | ---------- | --------------------------- |
-| **English** | `en` | ✅ Default | Global (en-US, en-GB, etc.) |
-| **Chinese** | `zh` | -          | zh-CN, zh-TW, zh-HK         |
+| Language                | Code    | Fallback   | Auto-Detection              |
+| ----------------------- | ------- | ---------- | --------------------------- |
+| **English**             | `en-US` | ✅ Default | en-\* (all English locales) |
+| **Simplified Chinese**  | `zh-CN` | -          | zh, zh-CN, zh-SG            |
+| **Traditional Chinese** | `zh-TW` | -          | zh-TW, zh-HK, zh-MO         |
 
 ### Architecture Overview
 
@@ -286,14 +287,14 @@ FlowerPassword uses a **dual i18n system** to handle translations in both Electr
 
 - **Lightweight** - No external dependencies (simple object lookup)
 - **Use Cases** - Error dialogs, system tray menu, tooltips, notifications
-- **Detection** - `app.getLocale()` (e.g., `zh-CN` → `zh`)
+- **Detection** - `app.getLocale()` with smart region mapping (e.g., `zh-TW` → Traditional Chinese, `zh-CN` → Simplified Chinese)
 - **API** - `t(key)` function returns translated string
-- **Structure** - Separate translation files in `src/main/locales/` (en.ts, zh.ts)
+- **Structure** - Separate translation files in `src/main/locales/` (en-US.ts, zh-CN.ts, zh-TW.ts)
 
 ```typescript
 // Example usage in main process
 import { t } from './i18n';
-tray.setToolTip(t('tray.tooltip')); // Reads from src/main/locales/en.ts or zh.ts
+tray.setToolTip(t('tray.tooltip')); // Reads from src/main/locales/en-US.ts, zh-CN.ts, or zh-TW.ts
 ```
 
 #### Renderer Process i18n
@@ -319,21 +320,22 @@ function App(): JSX.Element {
 
 ```
 1. System Locale (Electron API)
-   ↓ app.getLocale() → "zh-CN" | "en-US" | "ja-JP" | ...
+   ↓ app.getLocale() → "zh-TW" | "zh-CN" | "en-US" | "zh-HK" | ...
 
-2. Language Extraction
-   ↓ Extract prefix → "zh" | "en" | "ja" | ...
+2. Region Mapping
+   ↓ Normalize locale (replace _ with -)
+   ↓ Map to supported language:
+   │  • zh-TW, zh-HK, zh-MO → "zh-TW" (Traditional Chinese)
+   │  • zh, zh-CN, zh-SG   → "zh-CN" (Simplified Chinese)
+   │  • en-*               → "en-US" (English)
+   │  • Others             → "en-US" (fallback)
 
-3. Support Check
-   ↓ Is "zh"? → Use Chinese
-   ↓ Otherwise → Use English (fallback)
-
-4. Apply to Processes
-   ├─ Main: Load translations from i18n.ts
+3. Apply to Processes
+   ├─ Main: Load translations from i18n.ts (applyLanguage)
    └─ Renderer: Initialize i18next with locale
 
-5. Dynamic UI Updates
-   ├─ <html lang="zh-CN"> or lang="en"
+4. Dynamic UI Updates
+   ├─ <html lang="zh-CN"> or lang="zh-TW"> or lang="en-US">
    ├─ <title> and <meta description>
    └─ All UI text via t() function
 ```
@@ -342,11 +344,18 @@ function App(): JSX.Element {
 
 To add support for another language (e.g., Japanese):
 
-**Step 1**: Add main process translations
+**Step 1**: Update LanguageMode type
 
 ```typescript
-// src/main/locales/en.ts
-export const en = {
+// src/shared/types.ts
+export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'auto';
+```
+
+**Step 2**: Add main process translations
+
+```typescript
+// src/main/locales/en-US.ts
+export const enUS = {
   app: {
     name: 'FlowerPassword',
   },
@@ -354,11 +363,18 @@ export const en = {
     tooltip: 'FlowerPassword',
     // ...
   },
-  // Add new sections...
+  language: {
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'ja-JP': '日本語', // Add new language
+    'auto': 'Auto',
+  },
+  // ...
 } as const;
 
-// src/main/locales/zh.ts
-export const zh = {
+// src/main/locales/zh-CN.ts
+export const zhCN = {
   app: {
     name: '花密',
   },
@@ -366,27 +382,60 @@ export const zh = {
     tooltip: '花密',
     // ...
   },
-  // Add new sections...
+  language: {
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'ja-JP': '日本語', // Add new language
+    'auto': '自动',
+  },
+  // ...
 } as const;
 
-// src/main/locales/ja.ts (new file)
-export const ja = {
+// src/main/locales/ja-JP.ts (new file)
+export const jaJP = {
   app: {
     name: 'フラワーパスワード',
   },
+  dialog: {
+    quitMessage: '終了してもよろしいですか？',
+    quitConfirm: '終了',
+    quitCancel: 'キャンセル',
+  },
   tray: {
     tooltip: 'フラワーパスワード',
-    // ...
+    show: '表示',
+    quit: '終了',
+    settings: '設定',
   },
-  // Add new sections...
+  menu: {
+    theme: 'テーマ',
+    language: '言語',
+  },
+  theme: {
+    light: 'ライト',
+    dark: 'ダーク',
+    auto: '自動',
+  },
+  language: {
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'ja-JP': '日本語',
+    'auto': '自動',
+  },
+  metadata: {
+    htmlTitle: 'フラワーパスワード',
+    htmlDescription: 'フラワーパスワード - 記憶パスワードと区別コードでパスワードを生成',
+  },
 } as const;
 ```
 
-**Step 2**: Create renderer translation file
+**Step 3**: Create renderer translation file
 
 ```typescript
-// src/renderer/locales/ja.ts
-export const ja = {
+// src/renderer/locales/ja-JP.ts
+export const jaJP = {
   app: {
     title: 'Flower Password',
     close: '閉じる',
@@ -394,60 +443,147 @@ export const ja = {
   metadata: {
     title: 'フラワーパスワード',
     description: 'フラワーパスワード - 記憶パスワードと区別コードでパスワードを生成',
-    htmlLang: 'ja',
+    htmlLang: 'ja-JP',
   },
   form: {
     passwordPlaceholder: '記憶パスワード',
     keyPlaceholder: '区別コード',
-    // ...
+    prefixPlaceholder: 'プレフィックス',
+    suffixPlaceholder: 'サフィックス',
+    generateButton: 'パスワード生成（クリックでコピー）',
+    lengthUnit: '文字',
   },
   hints: {
-    password: '記憶パスワード: 簡単に覚えられるパスワード...',
-    // ...
+    password: '記憶パスワード: 簡単に覚えられるパスワードを選択してください...',
+    key: '区別コード: 異なるアカウントを区別するための短いコード...',
+    website: '公式サイト: ',
   },
 } as const;
 ```
 
-**Step 3**: Import and register in main process
+**Step 4**: Import and register in main process
 
 ```typescript
 // src/main/i18n.ts
-import { en } from './locales/en';
-import { zh } from './locales/zh';
-import { ja } from './locales/ja'; // Add import
+import { enUS } from './locales/en-US';
+import { zhCN } from './locales/zh-CN';
+import { zhTW } from './locales/zh-TW';
+import { jaJP } from './locales/ja-JP'; // Add import
 
-const TRANSLATIONS: Record<string, Record<string, string>> = {
-  en,
-  zh,
-  ja, // Register new language
-};
+const translations = {
+  'en-US': enUS,
+  'zh-CN': zhCN,
+  'zh-TW': zhTW,
+  'ja-JP': jaJP, // Register new language
+} as const;
 
-const detectLanguage = (locale: string): string => {
-  const lang = locale.split('-')[0];
-  if (lang === 'zh') return 'zh';
-  if (lang === 'ja') return 'ja'; // Add check
-  return 'en'; // Default fallback
-};
+function detectLanguage(locale: string): SupportedLanguage {
+  const normalizedLocale = locale.toLowerCase().replace('_', '-');
+
+  if (
+    normalizedLocale.startsWith('zh-tw') ||
+    normalizedLocale.startsWith('zh-hk') ||
+    normalizedLocale.startsWith('zh-mo')
+  ) {
+    return 'zh-TW';
+  }
+
+  if (normalizedLocale.startsWith('zh')) {
+    return 'zh-CN';
+  }
+
+  if (normalizedLocale.startsWith('ja')) {
+    return 'ja-JP'; // Add check
+  }
+
+  if (normalizedLocale.startsWith('en')) {
+    return 'en-US';
+  }
+
+  return 'en-US'; // Default fallback
+}
 ```
 
-**Step 4**: Import and register in renderer process
+**Step 5**: Import and register in renderer process
 
 ```typescript
 // src/renderer/i18n.ts
-import { en } from './locales/en';
-import { zh } from './locales/zh';
-import { ja } from './locales/ja'; // Add import
+import { enUS } from './locales/en-US';
+import { zhCN } from './locales/zh-CN';
+import { zhTW } from './locales/zh-TW';
+import { jaJP } from './locales/ja-JP'; // Add import
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: en },
-    zh: { translation: zh },
-    ja: { translation: ja }, // Add resource
+    'en-US': { translation: enUS },
+    'zh-CN': { translation: zhCN },
+    'zh-TW': { translation: zhTW },
+    'ja-JP': { translation: jaJP }, // Add resource
   },
-  lng: currentLanguage, // Detected language
-  fallbackLng: 'en',
+  lng: 'en-US',
+  fallbackLng: 'en-US',
   // ...
 });
+```
+
+**Step 6**: Update config validation
+
+```typescript
+// src/main/config.ts
+function isValidLanguage(language: unknown): language is LanguageMode {
+  return typeof language === 'string' && ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'auto'].includes(language);
+}
+```
+
+**Step 7**: Add to tray menu
+
+```typescript
+// src/main/tray.ts
+{
+  label: t('menu.language'),
+  submenu: [
+    {
+      label: t('language.zh-CN'),
+      type: 'checkbox',
+      checked: config.language === 'zh-CN',
+      click: (): void => {
+        void handleLanguageChange('zh-CN');
+      },
+    },
+    {
+      label: t('language.zh-TW'),
+      type: 'checkbox',
+      checked: config.language === 'zh-TW',
+      click: (): void => {
+        void handleLanguageChange('zh-TW');
+      },
+    },
+    {
+      label: t('language.en-US'),
+      type: 'checkbox',
+      checked: config.language === 'en-US',
+      click: (): void => {
+        void handleLanguageChange('en-US');
+      },
+    },
+    {
+      label: t('language.ja-JP'),  // Add new language
+      type: 'checkbox',
+      checked: config.language === 'ja-JP',
+      click: (): void => {
+        void handleLanguageChange('ja-JP');
+      },
+    },
+    {
+      label: t('language.auto'),
+      type: 'checkbox',
+      checked: config.language === 'auto',
+      click: (): void => {
+        void handleLanguageChange('auto');
+      },
+    },
+  ],
+}
 ```
 
 ### Translation File Structure
@@ -457,8 +593,8 @@ i18n.use(initReactI18next).init({
 Main process translations use nested objects organized by category:
 
 ```typescript
-// src/main/locales/en.ts
-export const en = {
+// src/main/locales/en-US.ts
+export const enUS = {
   app: {
     name: 'FlowerPassword',
   },
@@ -483,9 +619,10 @@ export const en = {
     auto: 'Auto',
   },
   language: {
-    zh: '简体中文',
-    en: 'English',
-    auto: 'Auto',
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'auto': 'Auto',
   },
   metadata: {
     htmlTitle: 'FlowerPassword',
@@ -499,8 +636,8 @@ export const en = {
 Renderer translations use sections for organization:
 
 ```typescript
-// src/renderer/locales/en.ts
-export const en = {
+// src/renderer/locales/en-US.ts
+export const enUS = {
   app: {
     title: 'Flower Password',
     close: 'Close',
@@ -508,7 +645,7 @@ export const en = {
   metadata: {
     title: 'FlowerPassword',
     description: 'FlowerPassword - Generate passwords based on memory password and distinction code',
-    htmlLang: 'en',
+    htmlLang: 'en-US',
   },
   form: {
     passwordPlaceholder: 'Memory Password',
@@ -534,7 +671,7 @@ export const en = {
 - Main process uses simple string lookups with basic category nesting
 - Use i18next features in renderer (plurals, context, interpolation if needed)
 - Always use `as const` for type safety and immutability
-- Use named exports (`export const en = {...}`) instead of default exports
+- Use named exports with camelCase (e.g., `export const enUS`, `export const zhCN`, `export const zhTW`) instead of default exports
 
 ## Dependencies
 

@@ -1,7 +1,7 @@
 /**
  * English translations for main process
  */
-export const en = {
+export const enUS = {
   app: {
     name: 'FlowerPassword',
   },
@@ -26,9 +26,10 @@ export const en = {
     auto: 'Auto',
   },
   language: {
-    zh: '简体中文',
-    en: 'English',
-    auto: 'Auto',
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+    'auto': 'Auto',
   },
   metadata: {
     htmlTitle: 'FlowerPassword',

@@ -1,7 +1,7 @@
 /**
- * Chinese translations
+ * Simplified Chinese translations
  */
-export const zh = {
+export const zhCN = {
   app: {
     title: 'Flower Password',
     close: '关闭',

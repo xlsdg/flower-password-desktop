@@ -131,7 +131,7 @@ export type ThemeMode = 'light' | 'dark' | 'auto';
 /**
  * Language options
  */
-export type LanguageMode = 'zh' | 'en' | 'auto';
+export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
 
 /**
  * Application configuration
