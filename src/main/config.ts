@@ -1,6 +1,7 @@
 import { app, nativeTheme } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import AutoLaunch from 'auto-launch';
 import type { AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
 import { applyLanguage } from './i18n';
 
@@ -28,9 +29,25 @@ const DEFAULT_CONFIG: AppConfig = {
 const CONFIG_FILE_PATH = path.join(app.getPath('userData'), 'config.json');
 
 /**
- * In-memory config cache
+ * AutoLaunch instance for managing login items
+ * Initialized lazily to ensure app.getPath() is available
  */
-let configCache: AppConfig | null = null;
+let autoLauncher: AutoLaunch | null = null;
+
+/**
+ * Get or create AutoLaunch instance
+ */
+function getAutoLauncher(): AutoLaunch {
+  if (!autoLauncher) {
+    autoLauncher = new AutoLaunch({
+      name: 'FlowerPassword',
+      // auto-launch will automatically determine the correct path
+      // For macOS, it handles the .app bundle correctly
+      // For Windows, it handles the executable path
+    });
+  }
+  return autoLauncher;
+}
 
 /**
  * Load configuration from file
@@ -38,17 +55,13 @@ let configCache: AppConfig | null = null;
  * @returns Application configuration
  */
 export function loadConfig(): AppConfig {
-  if (configCache) {
-    return configCache;
-  }
-
   try {
     if (fs.existsSync(CONFIG_FILE_PATH)) {
       const configData = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
       const parsedConfig = JSON.parse(configData) as Partial<AppConfig>;
 
       // Validate and merge with defaults
-      configCache = {
+      return {
         theme: isValidTheme(parsedConfig.theme) ? parsedConfig.theme : DEFAULT_CONFIG.theme,
         language: isValidLanguage(parsedConfig.language) ? parsedConfig.language : DEFAULT_CONFIG.language,
         formSettings: isValidFormSettings(parsedConfig.formSettings)
@@ -56,15 +69,14 @@ export function loadConfig(): AppConfig {
           : DEFAULT_CONFIG.formSettings,
       };
     } else {
-      configCache = { ...DEFAULT_CONFIG };
-      saveConfig(configCache);
+      const config = { ...DEFAULT_CONFIG };
+      saveConfig(config);
+      return config;
     }
   } catch (error) {
     console.error('Failed to load config:', error);
-    configCache = { ...DEFAULT_CONFIG };
+    return { ...DEFAULT_CONFIG };
   }
-
-  return configCache;
 }
 
 /**
@@ -79,7 +91,6 @@ export function saveConfig(config: AppConfig): void {
     }
 
     fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), 'utf-8');
-    configCache = config;
   } catch (error) {
     console.error('Failed to save config:', error);
   }
@@ -189,13 +200,13 @@ export function updateFormSettings(settings: Partial<FormSettings>): void {
 }
 
 /**
- * Get current auto-launch setting from system
- * @returns True if auto-launch is enabled
+ * Get current auto-launch setting
+ * @returns Promise that resolves to true if auto-launch is enabled
  */
-export function getAutoLaunch(): boolean {
+export async function getAutoLaunch(): Promise<boolean> {
   try {
-    const settings = app.getLoginItemSettings();
-    return settings.openAtLogin;
+    const launcher = getAutoLauncher();
+    return await launcher.isEnabled();
   } catch (error) {
     console.error('Failed to get auto-launch status:', error);
     return false;
@@ -205,22 +216,21 @@ export function getAutoLaunch(): boolean {
 /**
  * Update auto-launch setting
  * @param enabled - Enable or disable auto-launch
- * @returns True if successfully applied, false otherwise
+ * @returns Promise that resolves to true if successful
  */
-export function setAutoLaunch(enabled: boolean): boolean {
+export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
   try {
-    const settings: Electron.Settings = {
-      openAtLogin: enabled,
-    };
+    const launcher = getAutoLauncher();
 
-    // Windows Squirrel installer requires special args to launch the app correctly
-    // Without this, it would launch the Update.exe instead of the actual app
-    if (process.platform === 'win32' && app.isPackaged) {
-      settings.args = ['--processStart', `${path.basename(process.execPath)}`];
+    if (enabled) {
+      await launcher.enable();
+    } else {
+      await launcher.disable();
     }
 
-    app.setLoginItemSettings(settings);
-    return true;
+    // Verify the setting was applied
+    const isEnabled = await launcher.isEnabled();
+    return isEnabled === enabled;
   } catch (error) {
     console.error('Failed to set auto-launch:', error);
     return false;

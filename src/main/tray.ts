@@ -37,7 +37,7 @@ export function createTray(): Tray {
     }
   });
 
-  updateTrayMenu();
+  void updateTrayMenu();
 
   return tray;
 }
@@ -46,13 +46,13 @@ export function createTray(): Tray {
  * Update tray context menu
  * Rebuilds menu with current configuration state
  */
-export function updateTrayMenu(): void {
+export async function updateTrayMenu(): Promise<void> {
   if (!tray) {
     return;
   }
 
   const config = getConfig();
-  const autoLaunchEnabled = getAutoLaunch();
+  const autoLaunchEnabled = await getAutoLaunch();
 
   contextMenu = Menu.buildFromTemplate([
     {
@@ -162,9 +162,9 @@ export function updateTrayMenu(): void {
  * Handle theme change from tray menu
  * @param theme - New theme mode
  */
-function handleThemeChange(theme: ThemeMode): void {
+async function handleThemeChange(theme: ThemeMode): Promise<void> {
   setTheme(theme);
-  updateTrayMenu();
+  await updateTrayMenu();
   notifyRendererThemeChanged(theme);
 }
 
@@ -172,9 +172,9 @@ function handleThemeChange(theme: ThemeMode): void {
  * Handle language change from tray menu
  * @param language - New language mode
  */
-function handleLanguageChange(language: LanguageMode): void {
+async function handleLanguageChange(language: LanguageMode): Promise<void> {
   setLanguage(language);
-  updateTrayMenu();
+  await updateTrayMenu();
   notifyRendererLanguageChanged(language);
 }
 
@@ -182,10 +182,10 @@ function handleLanguageChange(language: LanguageMode): void {
  * Handle auto-launch change from tray menu
  * @param enabled - Enable or disable auto-launch
  */
-function handleAutoLaunchChange(enabled: boolean): void {
-  const success = setAutoLaunch(enabled);
+async function handleAutoLaunchChange(enabled: boolean): Promise<void> {
+  const success = await setAutoLaunch(enabled);
   if (success) {
-    updateTrayMenu();
+    await updateTrayMenu();
   }
 }
 

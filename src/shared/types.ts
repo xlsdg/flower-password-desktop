@@ -141,6 +141,12 @@ export type ThemeMode = 'light' | 'dark' | 'auto';
 export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
 
 /**
+ * Specific language codes (excluding 'auto')
+ * Automatically derived from LanguageMode
+ */
+export type SpecificLanguage = Exclude<LanguageMode, 'auto'>;
+
+/**
  * Form settings configuration
  */
 export interface FormSettings {

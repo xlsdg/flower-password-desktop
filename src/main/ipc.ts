@@ -1,9 +1,10 @@
-import { ipcMain, clipboard, shell, app } from 'electron';
+import { ipcMain, clipboard, shell } from 'electron';
 import { hideWindow } from './window';
 import { confirmQuit } from './tray';
 import { IPC_CHANNELS } from '../shared/types';
 import type { AppConfig, FormSettings } from '../shared/types';
 import { getConfig, updateFormSettings } from './config';
+import { getCurrentLanguage } from './i18n';
 
 /**
  * Setup IPC message handlers
@@ -26,7 +27,7 @@ export function setupIPC(): void {
   });
 
   ipcMain.handle(IPC_CHANNELS.GET_SYSTEM_LOCALE, (): string => {
-    return app.getLocale();
+    return getCurrentLanguage();
   });
 
   ipcMain.handle(IPC_CHANNELS.GET_CONFIG, (): AppConfig => {

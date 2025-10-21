@@ -2,7 +2,7 @@
  * Renderer process utility functions
  */
 import i18n from 'i18next';
-import type { ThemeMode, LanguageMode } from '../shared/types';
+import type { ThemeMode, LanguageMode, SpecificLanguage } from '../shared/types';
 
 /**
  * Apply theme to document root
@@ -19,15 +19,15 @@ export function applyTheme(theme: ThemeMode): void {
 
 /**
  * Apply language to i18n and update document metadata
- * @param language - Language mode ('zh', 'en', or 'auto')
+ * @param language - Language mode ('zh-CN', 'zh-TW', 'en-US', or 'auto')
  */
 export async function applyLanguage(language: LanguageMode): Promise<void> {
-  let targetLanguage: 'zh' | 'en';
+  let targetLanguage: SpecificLanguage;
 
   if (language === 'auto') {
+    // Auto-detect based on system locale
     const systemLocale = await window.electronAPI.getSystemLocale();
-    const languageCode = systemLocale.toLowerCase().split(/[-_]/)[0];
-    targetLanguage = languageCode === 'zh' ? 'zh' : 'en';
+    targetLanguage = systemLocale as SpecificLanguage;
   } else {
     targetLanguage = language;
   }
