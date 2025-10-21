@@ -111,6 +111,7 @@ flower-password-desktop/
 │   │   ├── menu.ts     # Application menu & shortcuts
 │   │   ├── ipc.ts      # IPC handlers (main ↔ renderer communication)
 │   │   ├── position.ts # Smart window positioning logic
+│   │   ├── config.ts   # Configuration management (theme, language)
 │   │   ├── i18n.ts     # Main process translations
 │   │   └── locales/    # Main process translation files (en.ts, zh.ts)
 │   │
@@ -122,6 +123,7 @@ flower-password-desktop/
 │   │   ├── index.tsx   # React entry point
 │   │   ├── index.html  # HTML template with Vite entry point
 │   │   ├── i18n.ts     # i18next configuration
+│   │   ├── utils.ts    # Utility functions (domain extraction, etc.)
 │   │   ├── locales/    # Translation files (en.ts, zh.ts)
 │   │   ├── styles/     # LESS stylesheets (index.less, reset.less)
 │   │   └── global.d.ts # TypeScript global declarations
@@ -164,7 +166,7 @@ flower-password-desktop/
 ├── vite.renderer.config.ts # Vite config for renderer process
 ├── forge.config.js         # Electron Forge packaging config
 ├── tsconfig.json           # TypeScript compiler settings
-├── eslint.config.mjs       # ESLint v9 flat config
+├── eslint.config.js        # ESLint v9 flat config
 └── .prettierrc.json        # Prettier formatting rules
 ```
 
@@ -201,14 +203,15 @@ Template icons use a special naming convention (`IconTemplate.png`) that tells m
 
 | Module                              | Purpose                     | Key Features                                                                                 |
 | ----------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| [main.ts](src/main/main.ts)         | App lifecycle & entry point | Single instance enforcement, error handling, macOS dock hiding, i18n init                    |
+| [main.ts](src/main/main.ts)         | App lifecycle & entry point | Single instance enforcement, error handling, macOS dock hiding, config initialization        |
 | [window.ts](src/main/window.ts)     | Window management           | Platform-specific configs (macOS: floating level + all workspaces; Win/Linux: always-on-top) |
-| [tray.ts](src/main/tray.ts)         | System tray integration     | Template icons (macOS), context menu, clipboard URL parsing, click handlers                  |
+| [tray.ts](src/main/tray.ts)         | System tray integration     | Template icons (macOS), context menu with theme/language settings, clipboard URL parsing     |
 | [position.ts](src/main/position.ts) | Smart positioning           | Tray-relative positioning (macOS menubar, Win/Linux taskbar), cursor-based fallback          |
 | [menu.ts](src/main/menu.ts)         | Application menu            | Edit menu, global shortcut registration (`Cmd+Alt+S` for show/hide)                          |
-| [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard access, shell integration, locale detection            |
-| [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system for dialogs/tray (no dependencies)                            |
-| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - simple key-value objects                                  |
+| [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard, shell, locale, config access                          |
+| [config.ts](src/main/config.ts)     | Configuration management    | Theme and language settings, persistent storage, auto-apply on startup                       |
+| [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system with nested structure for organized content                   |
+| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - nested objects by category (app, dialog, tray, etc.)     |
 
 #### Preload Script (Security Bridge)
 
@@ -220,17 +223,18 @@ Template icons use a special naming convention (`IconTemplate.png`) that tells m
 
 | Module                              | Purpose           | Key Features                                                                                          |
 | ----------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation                          |
+| [App.tsx](src/renderer/App.tsx)     | Main UI component | Password generation, real-time updates, clipboard auto-fill, form validation, theme/language sync    |
 | [index.tsx](src/renderer/index.tsx) | React entry point | i18n initialization, React 19 createRoot, dynamic `<html lang>` updates                               |
 | [i18n.ts](src/renderer/i18n.ts)     | Renderer i18n     | i18next + react-i18next, namespace-free flat structure, fallback handling                             |
-| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`) export |
+| [utils.ts](src/renderer/utils.ts)   | Utility functions | Domain extraction from URLs using psl library                                                         |
+| [locales/](src/renderer/locales/)   | Translation files | en.ts (English), zh.ts (Chinese) - structured by sections (`app`, `metadata`, `form`, `hints`)       |
 
 #### Shared Code
 
-| Module                                  | Purpose               | Usage                                           |
-| --------------------------------------- | --------------------- | ----------------------------------------------- |
-| [types.ts](src/shared/types.ts)         | TypeScript interfaces | Shared types between main/renderer processes    |
-| [constants.ts](src/shared/constants.ts) | App constants         | IPC channel names, app metadata, default values |
+| Module                                  | Purpose               | Usage                                                                        |
+| --------------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| [types.ts](src/shared/types.ts)         | TypeScript interfaces | Shared types (ElectronAPI, AppConfig, ThemeMode, etc.), IPC channel names   |
+| [constants.ts](src/shared/constants.ts) | App constants         | Global shortcuts, asset paths, keyboard keys, allowed URL protocols          |
 
 ### Security Architecture
 
@@ -289,7 +293,7 @@ FlowerPassword uses a **dual i18n system** to handle translations in both Electr
 ```typescript
 // Example usage in main process
 import { t } from './i18n';
-tray.setToolTip(t('trayTooltip')); // Reads from src/main/locales/en.ts or zh.ts
+tray.setToolTip(t('tray.tooltip')); // Reads from src/main/locales/en.ts or zh.ts
 ```
 
 #### Renderer Process i18n
@@ -343,23 +347,38 @@ To add support for another language (e.g., Japanese):
 ```typescript
 // src/main/locales/en.ts
 export const en = {
-  appName: 'FlowerPassword',
-  trayTooltip: 'FlowerPassword',
-  // Add new keys...
+  app: {
+    name: 'FlowerPassword',
+  },
+  tray: {
+    tooltip: 'FlowerPassword',
+    // ...
+  },
+  // Add new sections...
 } as const;
 
 // src/main/locales/zh.ts
 export const zh = {
-  appName: '花密',
-  trayTooltip: '花密',
-  // Add new keys...
+  app: {
+    name: '花密',
+  },
+  tray: {
+    tooltip: '花密',
+    // ...
+  },
+  // Add new sections...
 } as const;
 
 // src/main/locales/ja.ts (new file)
 export const ja = {
-  appName: 'フラワーパスワード',
-  trayTooltip: 'フラワーパスワード',
-  // Add new keys...
+  app: {
+    name: 'フラワーパスワード',
+  },
+  tray: {
+    tooltip: 'フラワーパスワード',
+    // ...
+  },
+  // Add new sections...
 } as const;
 ```
 
@@ -435,20 +454,43 @@ i18n.use(initReactI18next).init({
 
 #### Main Process Translation Structure
 
-Main process translations use simple key-value objects:
+Main process translations use nested objects organized by category:
 
 ```typescript
 // src/main/locales/en.ts
 export const en = {
-  appName: 'FlowerPassword',
-  quitMessage: 'Are you sure you want to quit?',
-  quitConfirm: 'Quit',
-  quitCancel: 'Cancel',
-  trayShow: 'Show',
-  trayQuit: 'Quit',
-  trayTooltip: 'FlowerPassword',
-  htmlTitle: 'FlowerPassword',
-  htmlDescription: 'FlowerPassword - Generate passwords based on memory password and distinction code',
+  app: {
+    name: 'FlowerPassword',
+  },
+  dialog: {
+    quitMessage: 'Are you sure you want to quit?',
+    quitConfirm: 'Quit',
+    quitCancel: 'Cancel',
+  },
+  tray: {
+    tooltip: 'FlowerPassword',
+    show: 'Show',
+    quit: 'Quit',
+    settings: 'Settings',
+  },
+  menu: {
+    theme: 'Theme',
+    language: 'Language',
+  },
+  theme: {
+    light: 'Light',
+    dark: 'Dark',
+    auto: 'Auto',
+  },
+  language: {
+    zh: '简体中文',
+    en: 'English',
+    auto: 'Auto',
+  },
+  metadata: {
+    htmlTitle: 'FlowerPassword',
+    htmlDescription: 'FlowerPassword - Generate passwords based on memory password and distinction code',
+  },
 } as const;
 ```
 
@@ -486,10 +528,10 @@ export const en = {
 
 **Best Practices:**
 
-- **Main process**: Use flat keys like `t('trayTooltip')` or `t('appName')`
+- **Main process**: Use dot notation for nested keys like `t('tray.tooltip')` or `t('app.name')`
 - **Renderer process**: Use dot notation for nested keys like `t('form.passwordPlaceholder')` or `t('app.title')`
 - Keep keys in English (language-neutral)
-- No interpolation in main process (simple string lookups)
+- Main process uses simple string lookups with basic category nesting
 - Use i18next features in renderer (plurals, context, interpolation if needed)
 - Always use `as const` for type safety and immutability
 - Use named exports (`export const en = {...}`) instead of default exports
@@ -563,10 +605,10 @@ function calculatePassword(input, length) {
 
 **ESLint Configuration:**
 
-- **Version**: ESLint v9+ (flat config format - `eslint.config.mjs`)
+- **Version**: ESLint v9+ (flat config format - `eslint.config.js`)
 - **Parser**: `@typescript-eslint/parser` with type-aware rules
 - **Plugins**: `@typescript-eslint`, `prettier`
-- **Rules**: `recommended-type-checked` + Prettier integration
+- **Rules**: `recommended-type-checked` + `recommended-requiring-type-checking` + Prettier integration
 
 ### Code Formatting (Prettier)
 
