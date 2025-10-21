@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { ElectronAPI, AppConfig, ThemeMode, LanguageMode } from '../shared/types';
+import type { ElectronAPI, AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 
 /**
@@ -53,6 +53,10 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.on(IPC_CHANNELS.LANGUAGE_CHANGED, (_event, language: LanguageMode) => {
       callback(language);
     });
+  },
+
+  updateFormSettings: (settings: Partial<FormSettings>): void => {
+    ipcRenderer.send(IPC_CHANNELS.UPDATE_FORM_SETTINGS, settings);
   },
 };
 

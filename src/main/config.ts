@@ -1,8 +1,17 @@
 import { app, nativeTheme } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { AppConfig, ThemeMode, LanguageMode } from '../shared/types';
+import type { AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
 import { applyLanguage } from './i18n';
+
+/**
+ * Default form settings
+ */
+const DEFAULT_FORM_SETTINGS: FormSettings = {
+  passwordLength: 16,
+  prefix: '',
+  suffix: '',
+};
 
 /**
  * Default application configuration
@@ -10,6 +19,7 @@ import { applyLanguage } from './i18n';
 const DEFAULT_CONFIG: AppConfig = {
   theme: 'auto',
   language: 'auto',
+  formSettings: DEFAULT_FORM_SETTINGS,
 };
 
 /**
@@ -41,6 +51,9 @@ export function loadConfig(): AppConfig {
       configCache = {
         theme: isValidTheme(parsedConfig.theme) ? parsedConfig.theme : DEFAULT_CONFIG.theme,
         language: isValidLanguage(parsedConfig.language) ? parsedConfig.language : DEFAULT_CONFIG.language,
+        formSettings: isValidFormSettings(parsedConfig.formSettings)
+          ? parsedConfig.formSettings
+          : DEFAULT_CONFIG.formSettings,
       };
     } else {
       configCache = { ...DEFAULT_CONFIG };
@@ -130,6 +143,49 @@ function isValidTheme(theme: unknown): theme is ThemeMode {
  */
 function isValidLanguage(language: unknown): language is LanguageMode {
   return typeof language === 'string' && ['zh-CN', 'zh-TW', 'en-US', 'auto'].includes(language);
+}
+
+/**
+ * Validate form settings
+ * @param settings - Form settings to validate
+ * @returns True if valid form settings
+ */
+function isValidFormSettings(settings: unknown): settings is FormSettings {
+  if (typeof settings !== 'object' || settings === null) {
+    return false;
+  }
+
+  const s = settings as Partial<FormSettings>;
+
+  const hasValidPasswordLength =
+    typeof s.passwordLength === 'number' && s.passwordLength >= 6 && s.passwordLength <= 32;
+  const hasValidPrefix = typeof s.prefix === 'string';
+  const hasValidSuffix = typeof s.suffix === 'string';
+
+  return hasValidPasswordLength && hasValidPrefix && hasValidSuffix;
+}
+
+/**
+ * Update form settings
+ * @param settings - Partial form settings to update
+ */
+export function updateFormSettings(settings: Partial<FormSettings>): void {
+  const config = loadConfig();
+
+  // Merge with existing form settings
+  const updatedFormSettings: FormSettings = {
+    ...config.formSettings,
+    ...settings,
+  };
+
+  // Validate merged settings
+  if (!isValidFormSettings(updatedFormSettings)) {
+    console.error('Invalid form settings provided');
+    return;
+  }
+
+  config.formSettings = updatedFormSettings;
+  saveConfig(config);
 }
 
 /**

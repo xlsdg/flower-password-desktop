@@ -2,8 +2,8 @@ import { ipcMain, clipboard, shell, app } from 'electron';
 import { hideWindow } from './window';
 import { confirmQuit } from './tray';
 import { IPC_CHANNELS } from '../shared/types';
-import type { AppConfig } from '../shared/types';
-import { getConfig } from './config';
+import type { AppConfig, FormSettings } from '../shared/types';
+import { getConfig, updateFormSettings } from './config';
 
 /**
  * Setup IPC message handlers
@@ -31,5 +31,9 @@ export function setupIPC(): void {
 
   ipcMain.handle(IPC_CHANNELS.GET_CONFIG, (): AppConfig => {
     return getConfig();
+  });
+
+  ipcMain.on(IPC_CHANNELS.UPDATE_FORM_SETTINGS, (_event, settings: Partial<FormSettings>): void => {
+    updateFormSettings(settings);
   });
 }

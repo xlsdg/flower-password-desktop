@@ -108,6 +108,22 @@ export function App(): React.JSX.Element {
   }, []);
 
   /**
+   * Load configuration on component mount
+   */
+  useEffect(() => {
+    window.electronAPI
+      .getConfig()
+      .then(config => {
+        setPasswordLength(config.formSettings.passwordLength);
+        setPrefix(config.formSettings.prefix);
+        setSuffix(config.formSettings.suffix);
+      })
+      .catch((error: Error) => {
+        console.error('Failed to load config:', error);
+      });
+  }, []);
+
+  /**
    * Listen to clipboard domain extraction and window shown event
    */
   useEffect(() => {
@@ -135,15 +151,21 @@ export function App(): React.JSX.Element {
   }, []);
 
   const handlePrefixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    setPrefix(e.target.value);
+    const newPrefix = e.target.value;
+    setPrefix(newPrefix);
+    window.electronAPI.updateFormSettings({ prefix: newPrefix });
   }, []);
 
   const handleSuffixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    setSuffix(e.target.value);
+    const newSuffix = e.target.value;
+    setSuffix(newSuffix);
+    window.electronAPI.updateFormSettings({ suffix: newSuffix });
   }, []);
 
   const handlePasswordLengthChange = useCallback((e: ChangeEvent<HTMLSelectElement>): void => {
-    setPasswordLength(parseInt(e.target.value, 10));
+    const newLength = parseInt(e.target.value, 10);
+    setPasswordLength(newLength);
+    window.electronAPI.updateFormSettings({ passwordLength: newLength });
   }, []);
 
   return (

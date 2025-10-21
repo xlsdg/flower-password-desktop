@@ -61,6 +61,12 @@ export interface ElectronAPI {
    * @param callback - Callback function to receive new language
    */
   onLanguageChanged: (callback: (language: LanguageMode) => void) => void;
+
+  /**
+   * Update form settings
+   * @param settings - Form settings to update
+   */
+  updateFormSettings: (settings: Partial<FormSettings>) => void;
 }
 
 /**
@@ -77,6 +83,7 @@ export const IPC_CHANNELS = {
   GET_CONFIG: 'config:get',
   THEME_CHANGED: 'config:themeChanged',
   LANGUAGE_CHANGED: 'config:languageChanged',
+  UPDATE_FORM_SETTINGS: 'config:updateFormSettings',
 } as const;
 
 /**
@@ -134,9 +141,19 @@ export type ThemeMode = 'light' | 'dark' | 'auto';
 export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
 
 /**
+ * Form settings configuration
+ */
+export interface FormSettings {
+  passwordLength: number;
+  prefix: string;
+  suffix: string;
+}
+
+/**
  * Application configuration
  */
 export interface AppConfig {
   theme: ThemeMode;
   language: LanguageMode;
+  formSettings: FormSettings;
 }
