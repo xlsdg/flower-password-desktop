@@ -11,6 +11,10 @@ let isCheckingForUpdates = false;
  * Only works in production builds (packaged apps)
  */
 export function initUpdater(): void {
+  if (!app.isPackaged) {
+    return;
+  }
+
   // Configure update server (GitHub Releases)
   autoUpdater.setFeedURL({
     provider: 'github',

@@ -1,4 +1,4 @@
-import { dialog, MessageBoxOptions, MessageBoxReturnValue } from 'electron';
+import { dialog, nativeImage, MessageBoxOptions, MessageBoxReturnValue } from 'electron';
 import * as path from 'node:path';
 
 import { ASSETS_PATH } from '../shared/constants';
@@ -12,9 +12,10 @@ import { ASSETS_PATH } from '../shared/constants';
  */
 export async function showMessageBox(options: MessageBoxOptions): Promise<MessageBoxReturnValue> {
   const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
+  const icon = nativeImage.createFromPath(iconPath);
 
   return dialog.showMessageBox({
     ...options,
-    icon: iconPath,
+    icon: icon.isEmpty() ? undefined : icon,
   });
 }
