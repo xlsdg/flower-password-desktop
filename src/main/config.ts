@@ -1,9 +1,12 @@
-import { app, nativeTheme, dialog } from 'electron';
+import { app, nativeTheme } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import AutoLaunch from 'auto-launch';
-import type { AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
+import type { AppConfig, ThemeMode, LanguageMode, FormSettings, GlobalShortcut } from '../shared/types';
 import { applyLanguage, t } from './i18n';
+import { GLOBAL_SHORTCUTS, AVAILABLE_SHORTCUTS } from '../shared/constants';
+import { showMessageBox } from './dialog';
+import { applyShortcuts } from './shortcut';
 
 /**
  * Default form settings
@@ -21,6 +24,7 @@ const DEFAULT_CONFIG: AppConfig = {
   theme: 'auto',
   language: 'auto',
   formSettings: DEFAULT_FORM_SETTINGS,
+  globalShortcut: GLOBAL_SHORTCUTS.SHOW_WINDOW_AT_CURSOR,
 };
 
 /**
@@ -68,6 +72,9 @@ export function loadConfig(): AppConfig {
         formSettings: isValidFormSettings(parsedConfig.formSettings)
           ? parsedConfig.formSettings
           : DEFAULT_CONFIG.formSettings,
+        globalShortcut: isValidGlobalShortcut(parsedConfig.globalShortcut)
+          ? parsedConfig.globalShortcut
+          : DEFAULT_CONFIG.globalShortcut,
       };
     } else {
       const config = { ...DEFAULT_CONFIG };
@@ -178,6 +185,15 @@ function isValidFormSettings(settings: unknown): settings is FormSettings {
 }
 
 /**
+ * Validate global shortcut
+ * @param shortcut - Shortcut string to validate
+ * @returns True if valid shortcut
+ */
+function isValidGlobalShortcut(shortcut: unknown): shortcut is GlobalShortcut {
+  return typeof shortcut === 'string' && AVAILABLE_SHORTCUTS.includes(shortcut as GlobalShortcut);
+}
+
+/**
  * Update form settings
  * @param settings - Partial form settings to update
  */
@@ -233,10 +249,10 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
     console.error('Failed to set auto-launch:', error);
 
     const errorMessage = error instanceof Error ? error.message : String(error);
-    await dialog.showMessageBox({
+    await showMessageBox({
       type: 'error',
-      title: t('dialog.autoLaunch.setFailed'),
-      message: t('dialog.autoLaunch.setFailedMessage'),
+      title: t('dialog.autoLaunch.set.failed.title'),
+      message: t('dialog.autoLaunch.set.failed.message'),
       detail: errorMessage,
     });
 
@@ -245,11 +261,23 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
 }
 
 /**
+ * Update global shortcut setting
+ * @param shortcut - Shortcut to set
+ */
+export function setGlobalShortcut(shortcut: GlobalShortcut): void {
+  const config = loadConfig();
+  config.globalShortcut = shortcut;
+  saveConfig(config);
+  applyShortcuts(shortcut);
+}
+
+/**
  * Initialize configuration system
- * Load config and apply theme and language on startup
+ * Load config and apply theme, language, and global shortcuts on startup
  */
 export function initConfig(): void {
   const config = loadConfig();
   applyTheme(config.theme);
   applyLanguage(config.language);
+  applyShortcuts(config.globalShortcut);
 }

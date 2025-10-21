@@ -1,5 +1,7 @@
 // Shared type definitions
 
+import type { AVAILABLE_SHORTCUTS } from './constants';
+
 /**
  * Electron API interface
  */
@@ -70,23 +72,6 @@ export interface ElectronAPI {
 }
 
 /**
- * IPC channel names
- */
-export const IPC_CHANNELS = {
-  HIDE: 'hide',
-  QUIT: 'quit',
-  CLIPBOARD_WRITE_TEXT: 'clipboard:writeText',
-  SHELL_OPEN_EXTERNAL: 'shell:openExternal',
-  KEY_FROM_CLIPBOARD: 'key-from-clipboard',
-  GET_SYSTEM_LOCALE: 'get-system-locale',
-  WINDOW_SHOWN: 'window-shown',
-  GET_CONFIG: 'config:get',
-  THEME_CHANGED: 'config:themeChanged',
-  LANGUAGE_CHANGED: 'config:languageChanged',
-  UPDATE_FORM_SETTINGS: 'config:updateFormSettings',
-} as const;
-
-/**
  * Window configuration
  */
 export interface WindowConfig {
@@ -147,6 +132,12 @@ export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
 export type SpecificLanguage = Exclude<LanguageMode, 'auto'>;
 
 /**
+ * Global shortcut type
+ * Automatically inferred from AVAILABLE_SHORTCUTS in constants.ts
+ */
+export type GlobalShortcut = (typeof AVAILABLE_SHORTCUTS)[number];
+
+/**
  * Form settings configuration
  */
 export interface FormSettings {
@@ -162,4 +153,5 @@ export interface AppConfig {
   theme: ThemeMode;
   language: LanguageMode;
   formSettings: FormSettings;
+  globalShortcut: GlobalShortcut;
 }

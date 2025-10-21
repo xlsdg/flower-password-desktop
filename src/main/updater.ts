@@ -1,8 +1,7 @@
 import { autoUpdater } from 'electron-updater';
-import { dialog, app } from 'electron';
-import * as path from 'node:path';
+import { app } from 'electron';
 import { t } from './i18n';
-import { ASSETS_PATH } from '../shared/constants';
+import { showMessageBox } from './dialog';
 
 let isCheckingForUpdates = false;
 
@@ -85,17 +84,15 @@ export async function checkForUpdates(): Promise<void> {
  * @param version - New version number
  */
 async function showUpdateAvailable(version: string): Promise<void> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
   const currentVersion = app.getVersion();
 
-  const result = await dialog.showMessageBox({
+  const result = await showMessageBox({
     type: 'info',
     buttons: [t('dialog.update.download'), t('dialog.update.cancel')],
     defaultId: 0,
     title: t('dialog.update.available.title'),
     message: t('dialog.update.available.message').replace('{current}', currentVersion).replace('{latest}', version),
     detail: t('dialog.update.available.detail'),
-    icon: iconPath,
     cancelId: 1,
   });
 
@@ -109,16 +106,13 @@ async function showUpdateAvailable(version: string): Promise<void> {
  * @param version - Current version number
  */
 async function showNoUpdate(version: string): Promise<void> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-
-  await dialog.showMessageBox({
+  await showMessageBox({
     type: 'info',
     buttons: [t('dialog.update.ok')],
     defaultId: 0,
     title: t('dialog.update.title'),
     message: t('dialog.update.noUpdate.message'),
     detail: `${t('dialog.update.message')}${version}`,
-    icon: iconPath,
   });
 }
 
@@ -127,16 +121,13 @@ async function showNoUpdate(version: string): Promise<void> {
  * @param version - New version number
  */
 async function showUpdateDownloaded(version: string): Promise<void> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-
-  const result = await dialog.showMessageBox({
+  const result = await showMessageBox({
     type: 'info',
     buttons: [t('dialog.update.downloaded.install'), t('dialog.update.downloaded.later')],
     defaultId: 0,
     title: t('dialog.update.downloaded.title'),
     message: t('dialog.update.downloaded.message').replace('{version}', version),
     detail: t('dialog.update.downloaded.detail'),
-    icon: iconPath,
     cancelId: 1,
   });
 
@@ -150,16 +141,13 @@ async function showUpdateDownloaded(version: string): Promise<void> {
  * @param errorMessage - Error message
  */
 async function showUpdateError(errorMessage: string): Promise<void> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-
-  await dialog.showMessageBox({
+  await showMessageBox({
     type: 'error',
     buttons: [t('dialog.update.ok')],
     defaultId: 0,
     title: t('dialog.update.error.title'),
     message: t('dialog.update.error.message'),
     detail: errorMessage,
-    icon: iconPath,
   });
 }
 
@@ -167,16 +155,13 @@ async function showUpdateError(errorMessage: string): Promise<void> {
  * Download update
  */
 async function downloadUpdate(): Promise<void> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-
-  void dialog.showMessageBox({
+  void showMessageBox({
     type: 'info',
     buttons: [t('dialog.update.ok')],
     defaultId: 0,
     title: t('dialog.update.downloading.title'),
     message: t('dialog.update.downloading.message'),
     detail: t('dialog.update.downloading.detail'),
-    icon: iconPath,
   });
 
   try {

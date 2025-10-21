@@ -1,7 +1,7 @@
 import { app, dialog } from 'electron';
 import { createWindow } from './window';
 import { createTray } from './tray';
-import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
+import { unregisterShortcuts } from './shortcut';
 import { setupIPC } from './ipc';
 import { initConfig } from './config';
 import { initUpdater } from './updater';
@@ -31,8 +31,6 @@ app
 
     createWindow();
     createTray();
-    createMenu();
-    registerShortcuts();
     setupIPC();
   })
   .catch((error: Error) => {

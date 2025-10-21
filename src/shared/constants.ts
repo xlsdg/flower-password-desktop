@@ -1,11 +1,53 @@
 // Shared constants
 
 /**
+ * IPC channel names
+ */
+export const IPC_CHANNELS = {
+  HIDE: 'hide',
+  QUIT: 'quit',
+  CLIPBOARD_WRITE_TEXT: 'clipboard:writeText',
+  SHELL_OPEN_EXTERNAL: 'shell:openExternal',
+  KEY_FROM_CLIPBOARD: 'key-from-clipboard',
+  GET_SYSTEM_LOCALE: 'get-system-locale',
+  WINDOW_SHOWN: 'window-shown',
+  GET_CONFIG: 'config:get',
+  THEME_CHANGED: 'config:themeChanged',
+  LANGUAGE_CHANGED: 'config:languageChanged',
+  UPDATE_FORM_SETTINGS: 'config:updateFormSettings',
+} as const;
+
+/**
+ * Window configuration
+ */
+export const WINDOW_CONFIG = {
+  width: 300,
+  height: 334,
+  show: false,
+  frame: false,
+  resizable: false,
+  skipTaskbar: true,
+} as const;
+
+/**
  * Global keyboard shortcuts
  */
 export const GLOBAL_SHORTCUTS = {
   SHOW_WINDOW_AT_CURSOR: 'CmdOrCtrl+Alt+S',
 } as const;
+
+/**
+ * Available global shortcut options
+ * Single source of truth for shortcut keys
+ */
+export const AVAILABLE_SHORTCUTS = [
+  'CmdOrCtrl+Alt+S',
+  'CmdOrCtrl+Shift+S',
+  'CmdOrCtrl+Alt+P',
+  'CmdOrCtrl+Shift+P',
+  'CmdOrCtrl+Alt+F',
+  'CmdOrCtrl+Shift+F',
+] as const;
 
 /**
  * Environment detection

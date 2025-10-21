@@ -1,7 +1,7 @@
 import { ipcMain, clipboard, shell } from 'electron';
 import { hideWindow } from './window';
 import { confirmQuit } from './tray';
-import { IPC_CHANNELS } from '../shared/types';
+import { IPC_CHANNELS } from '../shared/constants';
 import type { AppConfig, FormSettings } from '../shared/types';
 import { getConfig, updateFormSettings } from './config';
 import { getCurrentLanguage } from './i18n';

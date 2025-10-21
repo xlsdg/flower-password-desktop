@@ -1,13 +1,14 @@
-import { Tray, Menu, nativeImage, dialog, app } from 'electron';
+import { Tray, Menu, nativeImage, app } from 'electron';
 import * as path from 'node:path';
 import { showWindow, hideWindow, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { t } from './i18n';
-import { ASSETS_PATH } from '../shared/constants';
+import { ASSETS_PATH, IPC_CHANNELS } from '../shared/constants';
 import { getConfig, setTheme, setLanguage, setAutoLaunch, getAutoLaunch } from './config';
 import type { ThemeMode, LanguageMode } from '../shared/types';
-import { IPC_CHANNELS } from '../shared/types';
 import { checkForUpdates } from './updater';
+import { showShortcutDialog } from './shortcut';
+import { showMessageBox } from './dialog';
 
 let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
@@ -66,95 +67,93 @@ export async function updateTrayMenu(): Promise<void> {
       type: 'separator',
     },
     {
-      label: t('tray.settings'),
+      label: t('menu.theme'),
       submenu: [
         {
-          label: t('menu.theme'),
-          submenu: [
-            {
-              label: t('theme.light'),
-              type: 'checkbox',
-              checked: config.theme === 'light',
-              click: (): void => {
-                void handleThemeChange('light');
-              },
-            },
-            {
-              label: t('theme.dark'),
-              type: 'checkbox',
-              checked: config.theme === 'dark',
-              click: (): void => {
-                void handleThemeChange('dark');
-              },
-            },
-            {
-              label: t('theme.auto'),
-              type: 'checkbox',
-              checked: config.theme === 'auto',
-              click: (): void => {
-                void handleThemeChange('auto');
-              },
-            },
-          ],
-        },
-        {
-          label: t('menu.language'),
-          submenu: [
-            {
-              label: t('language.zh-CN'),
-              type: 'checkbox',
-              checked: config.language === 'zh-CN',
-              click: (): void => {
-                void handleLanguageChange('zh-CN');
-              },
-            },
-            {
-              label: t('language.zh-TW'),
-              type: 'checkbox',
-              checked: config.language === 'zh-TW',
-              click: (): void => {
-                void handleLanguageChange('zh-TW');
-              },
-            },
-            {
-              label: t('language.en-US'),
-              type: 'checkbox',
-              checked: config.language === 'en-US',
-              click: (): void => {
-                void handleLanguageChange('en-US');
-              },
-            },
-            {
-              label: t('language.auto'),
-              type: 'checkbox',
-              checked: config.language === 'auto',
-              click: (): void => {
-                void handleLanguageChange('auto');
-              },
-            },
-          ],
-        },
-        {
-          type: 'separator',
-        },
-        {
-          label: t('menu.autoLaunch'),
+          label: t('theme.light'),
           type: 'checkbox',
-          checked: autoLaunchEnabled,
+          checked: config.theme === 'light',
           click: (): void => {
-            void handleAutoLaunchChange(!autoLaunchEnabled);
+            void handleThemeChange('light');
           },
         },
         {
-          type: 'separator',
+          label: t('theme.dark'),
+          type: 'checkbox',
+          checked: config.theme === 'dark',
+          click: (): void => {
+            void handleThemeChange('dark');
+          },
         },
         {
-          label: t('menu.checkUpdate'),
+          label: t('theme.auto'),
+          type: 'checkbox',
+          checked: config.theme === 'auto',
           click: (): void => {
-            void checkForUpdates();
+            void handleThemeChange('auto');
           },
         },
       ],
+    },
+    {
+      label: t('menu.language'),
+      submenu: [
+        {
+          label: t('language.zh-CN'),
+          type: 'checkbox',
+          checked: config.language === 'zh-CN',
+          click: (): void => {
+            void handleLanguageChange('zh-CN');
+          },
+        },
+        {
+          label: t('language.zh-TW'),
+          type: 'checkbox',
+          checked: config.language === 'zh-TW',
+          click: (): void => {
+            void handleLanguageChange('zh-TW');
+          },
+        },
+        {
+          label: t('language.en-US'),
+          type: 'checkbox',
+          checked: config.language === 'en-US',
+          click: (): void => {
+            void handleLanguageChange('en-US');
+          },
+        },
+        {
+          label: t('language.auto'),
+          type: 'checkbox',
+          checked: config.language === 'auto',
+          click: (): void => {
+            void handleLanguageChange('auto');
+          },
+        },
+      ],
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: t('menu.autoLaunch'),
+      type: 'checkbox',
+      checked: autoLaunchEnabled,
+      click: (): void => {
+        void handleAutoLaunchChange(!autoLaunchEnabled);
+      },
+    },
+    {
+      label: t('menu.globalShortcut'),
+      click: (): void => {
+        void showShortcutDialog();
+      },
+    },
+    {
+      label: t('menu.checkUpdate'),
+      click: (): void => {
+        void checkForUpdates();
+      },
     },
     {
       type: 'separator',
@@ -259,14 +258,12 @@ export function handleShowWindowBelowTray(): void {
 export async function confirmQuit(): Promise<void> {
   hideWindow();
 
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-  const result = await dialog.showMessageBox({
+  const result = await showMessageBox({
     type: 'question',
     buttons: [t('dialog.quit.confirm'), t('dialog.quit.cancel')],
     defaultId: 0,
     title: t('app.name'),
     message: t('dialog.quit.message'),
-    icon: iconPath,
     cancelId: 1,
   });
 

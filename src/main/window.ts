@@ -1,21 +1,11 @@
 import { BrowserWindow, clipboard } from 'electron';
 import * as path from 'node:path';
 import * as psl from 'psl';
-import type { WindowConfig, Bounds, ParsedDomain } from '../shared/types';
-import { IPC_CHANNELS } from '../shared/types';
-import { isDevelopment } from '../shared/constants';
+import type { Bounds, ParsedDomain } from '../shared/types';
+import { IPC_CHANNELS, WINDOW_CONFIG, isDevelopment } from '../shared/constants';
 import { positionWindowAtCursor } from './position';
 
 let mainWindow: BrowserWindow | null = null;
-
-const WINDOW_CONFIG: WindowConfig = {
-  width: 300,
-  height: 334,
-  show: false,
-  frame: false,
-  resizable: false,
-  skipTaskbar: true,
-};
 
 /**
  * Create main window

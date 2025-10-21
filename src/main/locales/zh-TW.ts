@@ -12,12 +12,25 @@ export const zhTW = {
       cancel: '取消',
     },
     shortcut: {
-      registerFailed: '快速鍵註冊失敗',
-      registerFailedMessage: '無法註冊全域快速鍵（CmdOrCtrl+Alt+S）。該快速鍵可能已被其他應用程式佔用。',
+      register: {
+        failed: {
+          title: '快速鍵註冊失敗',
+          message: '無法註冊全域快速鍵（CmdOrCtrl+Alt+S）。該快速鍵可能已被其他應用程式佔用。',
+        },
+      },
+      set: {
+        title: '設定全域快速鍵',
+        message: '請輸入全域快速鍵（例如：CmdOrCtrl+Alt+S）：',
+        current: '目前快速鍵：',
+      },
     },
     autoLaunch: {
-      setFailed: '開機自啟設定失敗',
-      setFailedMessage: '無法配置開機自啟功能，請檢查系統權限設定。',
+      set: {
+        failed: {
+          title: '開機自啟設定失敗',
+          message: '無法配置開機自啟功能，請檢查系統權限設定。',
+        },
+      },
     },
     update: {
       title: '檢查更新',
@@ -55,13 +68,13 @@ export const zhTW = {
     tooltip: '花密',
     show: '顯示',
     quit: '退出',
-    settings: '設定',
   },
   menu: {
     theme: '主題',
     language: '語言',
     autoLaunch: '開機自啟',
     checkUpdate: '檢查更新',
+    globalShortcut: '全域快速鍵',
   },
   theme: {
     light: '淺色',

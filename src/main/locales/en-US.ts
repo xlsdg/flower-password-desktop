@@ -12,13 +12,26 @@ export const enUS = {
       cancel: 'Cancel',
     },
     shortcut: {
-      registerFailed: 'Failed to register global shortcut',
-      registerFailedMessage:
-        'Failed to register global shortcut (CmdOrCtrl+Alt+S). The shortcut may be already in use by another application.',
+      register: {
+        failed: {
+          title: 'Failed to register global shortcut',
+          message:
+            'Failed to register global shortcut (CmdOrCtrl+Alt+S). The shortcut may be already in use by another application.',
+        },
+      },
+      set: {
+        title: 'Set Global Shortcut',
+        message: 'Enter global shortcut (e.g., CmdOrCtrl+Alt+S):',
+        current: 'Current shortcut: ',
+      },
     },
     autoLaunch: {
-      setFailed: 'Failed to set auto-launch',
-      setFailedMessage: 'Failed to configure launch at login. Please check system permissions.',
+      set: {
+        failed: {
+          title: 'Failed to set auto-launch',
+          message: 'Failed to configure launch at login. Please check system permissions.',
+        },
+      },
     },
     update: {
       title: 'Check for Updates',
@@ -56,13 +69,13 @@ export const enUS = {
     tooltip: 'FlowerPassword',
     show: 'Show',
     quit: 'Quit',
-    settings: 'Settings',
   },
   menu: {
     theme: 'Theme',
     language: 'Language',
     autoLaunch: 'Launch at Login',
     checkUpdate: 'Check for Updates',
+    globalShortcut: 'Global Shortcut',
   },
   theme: {
     light: 'Light',

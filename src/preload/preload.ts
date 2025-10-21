@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronAPI, AppConfig, ThemeMode, LanguageMode, FormSettings } from '../shared/types';
-import { IPC_CHANNELS } from '../shared/types';
+import { IPC_CHANNELS } from '../shared/constants';
 
 /**
  * Safely expose APIs to renderer process
