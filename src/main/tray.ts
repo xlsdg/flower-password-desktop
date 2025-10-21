@@ -4,7 +4,7 @@ import { showWindow, hideWindow, getWindow } from './window';
 import { positionWindowBelowTray } from './position';
 import { t } from './i18n';
 import { ASSETS_PATH } from '../shared/constants';
-import { getConfig, setTheme, setLanguage, setAutoLaunch } from './config';
+import { getConfig, setTheme, setLanguage, setAutoLaunch, getAutoLaunch } from './config';
 import type { ThemeMode, LanguageMode } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
 
@@ -52,6 +52,7 @@ export function updateTrayMenu(): void {
   }
 
   const config = getConfig();
+  const autoLaunchEnabled = getAutoLaunch();
 
   contextMenu = Menu.buildFromTemplate([
     {
@@ -138,9 +139,9 @@ export function updateTrayMenu(): void {
         {
           label: t('menu.autoLaunch'),
           type: 'checkbox',
-          checked: config.autoLaunch,
+          checked: autoLaunchEnabled,
           click: (): void => {
-            void handleAutoLaunchChange(!config.autoLaunch);
+            void handleAutoLaunchChange(!autoLaunchEnabled);
           },
         },
       ],

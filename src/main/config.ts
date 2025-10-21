@@ -20,7 +20,6 @@ const DEFAULT_CONFIG: AppConfig = {
   theme: 'auto',
   language: 'auto',
   formSettings: DEFAULT_FORM_SETTINGS,
-  autoLaunch: false,
 };
 
 /**
@@ -55,7 +54,6 @@ export function loadConfig(): AppConfig {
         formSettings: isValidFormSettings(parsedConfig.formSettings)
           ? parsedConfig.formSettings
           : DEFAULT_CONFIG.formSettings,
-        autoLaunch: typeof parsedConfig.autoLaunch === 'boolean' ? parsedConfig.autoLaunch : DEFAULT_CONFIG.autoLaunch,
       };
     } else {
       configCache = { ...DEFAULT_CONFIG };
@@ -191,31 +189,37 @@ export function updateFormSettings(settings: Partial<FormSettings>): void {
 }
 
 /**
+ * Get current auto-launch setting from system
+ * @returns True if auto-launch is enabled
+ */
+export function getAutoLaunch(): boolean {
+  try {
+    const settings = app.getLoginItemSettings();
+    return settings.openAtLogin;
+  } catch (error) {
+    console.error('Failed to get auto-launch status:', error);
+    return false;
+  }
+}
+
+/**
  * Update auto-launch setting
  * @param enabled - Enable or disable auto-launch
  * @returns True if successfully applied, false otherwise
  */
 export function setAutoLaunch(enabled: boolean): boolean {
-  const success = applyAutoLaunch(enabled);
-  if (success) {
-    const config = loadConfig();
-    config.autoLaunch = enabled;
-    saveConfig(config);
-  }
-  return success;
-}
-
-/**
- * Apply auto-launch setting to system
- * @param enabled - Enable or disable auto-launch
- * @returns True if successfully applied, false otherwise
- */
-export function applyAutoLaunch(enabled: boolean): boolean {
   try {
-    app.setLoginItemSettings({
+    const settings: Electron.Settings = {
       openAtLogin: enabled,
-      openAsHidden: false,
-    });
+    };
+
+    // Windows Squirrel installer requires special args to launch the app correctly
+    // Without this, it would launch the Update.exe instead of the actual app
+    if (process.platform === 'win32' && app.isPackaged) {
+      settings.args = ['--processStart', `${path.basename(process.execPath)}`];
+    }
+
+    app.setLoginItemSettings(settings);
     return true;
   } catch (error) {
     console.error('Failed to set auto-launch:', error);
@@ -231,5 +235,4 @@ export function initConfig(): void {
   const config = loadConfig();
   applyTheme(config.theme);
   applyLanguage(config.language);
-  applyAutoLaunch(config.autoLaunch);
 }

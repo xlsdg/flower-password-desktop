@@ -156,5 +156,4 @@ export interface AppConfig {
   theme: ThemeMode;
   language: LanguageMode;
   formSettings: FormSettings;
-  autoLaunch: boolean;
 }
