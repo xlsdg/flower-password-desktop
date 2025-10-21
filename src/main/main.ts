@@ -4,16 +4,30 @@ import { createTray } from './tray';
 import { createMenu, registerShortcuts, unregisterShortcuts } from './menu';
 import { setupIPC } from './ipc';
 import { initConfig } from './config';
+import { initUpdater } from './updater';
 
 process.on('uncaughtException', (err: Error) => {
-  dialog.showErrorBox(`Uncaught Exception: ${err.message}`, err.stack || '');
-  app.quit();
+  dialog
+    .showMessageBox({
+      type: 'error',
+      title: 'Uncaught Exception',
+      message: err.message,
+      detail: err.stack || '',
+    })
+    .then(() => {
+      app.quit();
+    })
+    .catch((error: Error) => {
+      console.error('Failed to show error dialog:', error);
+      app.quit();
+    });
 });
 
 app
   .whenReady()
   .then(() => {
     initConfig();
+    initUpdater();
 
     createWindow();
     createTray();

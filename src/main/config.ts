@@ -233,8 +233,12 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
     console.error('Failed to set auto-launch:', error);
 
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const detailedMessage = `${t('dialog.autoLaunch.setFailedMessage')}${errorMessage}`;
-    dialog.showErrorBox(t('dialog.autoLaunch.setFailed'), detailedMessage);
+    await dialog.showMessageBox({
+      type: 'error',
+      title: t('dialog.autoLaunch.setFailed'),
+      message: t('dialog.autoLaunch.setFailedMessage'),
+      detail: errorMessage,
+    });
 
     return false;
   }

@@ -29,8 +29,18 @@
   },
   "author": "xLsDg",
   "license": "MIT",
+  "build": {
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "xlsdg",
+        "repo": "flower-password-desktop"
+      }
+    ]
+  },
   "dependencies": {
     "auto-launch": "^5.0.6",
+    "electron-updater": "^6.6.2",
     "flowerpassword.js": "^5.0.2",
     "i18next": "^25.6.0",
     "psl": "^1.15.0",

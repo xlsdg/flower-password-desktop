@@ -17,7 +17,38 @@ export const zhCN = {
     },
     autoLaunch: {
       setFailed: '开机自启设置失败',
-      setFailedMessage: '错误详情：',
+      setFailedMessage: '无法配置开机自启功能，请检查系统权限设置。',
+    },
+    update: {
+      title: '检查更新',
+      message: '当前版本：',
+      ok: '确定',
+      download: '下载',
+      cancel: '取消',
+      available: {
+        title: '发现新版本',
+        message: '发现新版本！\n\n当前版本：{current}\n最新版本：{latest}',
+        detail: '是否立即下载更新？',
+      },
+      noUpdate: {
+        message: '您正在使用最新版本。',
+      },
+      downloading: {
+        title: '正在下载更新',
+        message: '正在后台下载更新...',
+        detail: '下载完成后将通知您。',
+      },
+      downloaded: {
+        title: '更新已就绪',
+        message: '版本 {version} 已下载完成。',
+        detail: '是否立即重启并安装更新？',
+        install: '重启并安装',
+        later: '稍后',
+      },
+      error: {
+        title: '更新错误',
+        message: '检查更新失败。',
+      },
     },
   },
   tray: {
@@ -30,6 +61,7 @@ export const zhCN = {
     theme: '主题',
     language: '语言',
     autoLaunch: '开机自启',
+    checkUpdate: '检查更新',
   },
   theme: {
     light: '浅色',

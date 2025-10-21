@@ -17,7 +17,38 @@ export const zhTW = {
     },
     autoLaunch: {
       setFailed: '開機自啟設定失敗',
-      setFailedMessage: '錯誤詳情：',
+      setFailedMessage: '無法配置開機自啟功能，請檢查系統權限設定。',
+    },
+    update: {
+      title: '檢查更新',
+      message: '目前版本：',
+      ok: '確定',
+      download: '下載',
+      cancel: '取消',
+      available: {
+        title: '發現新版本',
+        message: '發現新版本！\n\n目前版本：{current}\n最新版本：{latest}',
+        detail: '是否立即下載更新？',
+      },
+      noUpdate: {
+        message: '您正在使用最新版本。',
+      },
+      downloading: {
+        title: '正在下載更新',
+        message: '正在背景下載更新...',
+        detail: '下載完成後將通知您。',
+      },
+      downloaded: {
+        title: '更新已就緒',
+        message: '版本 {version} 已下載完成。',
+        detail: '是否立即重新啟動並安裝更新？',
+        install: '重新啟動並安裝',
+        later: '稍後',
+      },
+      error: {
+        title: '更新錯誤',
+        message: '檢查更新失敗。',
+      },
     },
   },
   tray: {
@@ -30,6 +61,7 @@ export const zhTW = {
     theme: '主題',
     language: '語言',
     autoLaunch: '開機自啟',
+    checkUpdate: '檢查更新',
   },
   theme: {
     light: '淺色',

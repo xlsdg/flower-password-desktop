@@ -7,6 +7,7 @@ import { ASSETS_PATH } from '../shared/constants';
 import { getConfig, setTheme, setLanguage, setAutoLaunch, getAutoLaunch } from './config';
 import type { ThemeMode, LanguageMode } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/types';
+import { checkForUpdates } from './updater';
 
 let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
@@ -144,6 +145,15 @@ export async function updateTrayMenu(): Promise<void> {
             void handleAutoLaunchChange(!autoLaunchEnabled);
           },
         },
+        {
+          type: 'separator',
+        },
+        {
+          label: t('menu.checkUpdate'),
+          click: (): void => {
+            void checkForUpdates();
+          },
+        },
       ],
     },
     {
@@ -250,7 +260,6 @@ export async function confirmQuit(): Promise<void> {
   hideWindow();
 
   const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
-
   const result = await dialog.showMessageBox({
     type: 'question',
     buttons: [t('dialog.quit.confirm'), t('dialog.quit.cancel')],

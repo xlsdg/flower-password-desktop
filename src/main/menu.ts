@@ -62,7 +62,12 @@ export function registerShortcuts(): void {
 
   if (!success) {
     console.error('Failed to register global shortcut');
-    dialog.showErrorBox(t('dialog.shortcut.registerFailed'), t('dialog.shortcut.registerFailedMessage'));
+    void dialog.showMessageBox({
+      type: 'error',
+      title: t('dialog.shortcut.registerFailed'),
+      message: t('dialog.shortcut.registerFailedMessage'),
+      buttons: ['OK'],
+    });
   }
 }
 

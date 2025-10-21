@@ -18,7 +18,38 @@ export const enUS = {
     },
     autoLaunch: {
       setFailed: 'Failed to set auto-launch',
-      setFailedMessage: 'Error details: ',
+      setFailedMessage: 'Failed to configure launch at login. Please check system permissions.',
+    },
+    update: {
+      title: 'Check for Updates',
+      message: 'Current version: ',
+      ok: 'OK',
+      download: 'Download',
+      cancel: 'Cancel',
+      available: {
+        title: 'Update Available',
+        message: 'A new version is available!\n\nCurrent: {current}\nLatest: {latest}',
+        detail: 'Would you like to download the update now?',
+      },
+      noUpdate: {
+        message: 'You are using the latest version.',
+      },
+      downloading: {
+        title: 'Downloading Update',
+        message: 'Downloading update in the background...',
+        detail: 'You will be notified when the download is complete.',
+      },
+      downloaded: {
+        title: 'Update Ready',
+        message: 'Version {version} has been downloaded.',
+        detail: 'Restart now to install the update?',
+        install: 'Restart & Install',
+        later: 'Later',
+      },
+      error: {
+        title: 'Update Error',
+        message: 'Failed to check for updates.',
+      },
     },
   },
   tray: {
@@ -31,6 +62,7 @@ export const enUS = {
     theme: 'Theme',
     language: 'Language',
     autoLaunch: 'Launch at Login',
+    checkUpdate: 'Check for Updates',
   },
   theme: {
     light: 'Light',
