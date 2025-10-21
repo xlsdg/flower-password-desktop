@@ -13,7 +13,7 @@ This file provides comprehensive guidance for AI assistants (Claude Code) when w
 - **Language**: TypeScript 5.9 (strict mode)
 - **Bundler**: Vite 6+ (fast builds, HMR)
 - **Styles**: LESS with CSS variables (auto light/dark theme)
-- **i18n**: i18next + react-i18next (Chinese/English)
+- **i18n**: i18next + react-i18next (Simplified Chinese/Traditional Chinese/English)
 - **Package Manager**: npm (lockfile v3)
 
 ### Supported Platforms
@@ -134,6 +134,7 @@ flower-password-desktop/
 │   │
 │   └── types/          # Global type declarations
 │       ├── psl.d.ts    # Public Suffix List library types
+│       ├── auto-launch.d.ts # Auto-launch library types
 │       └── vite-env.d.ts # Vite/Electron Forge environment constants
 │
 ├── public/             # Static assets (auto-copied by Vite to output)
@@ -201,17 +202,18 @@ Template icons use a special naming convention (`IconTemplate.png`) that tells m
 
 #### Main Process (Node.js Backend)
 
-| Module                              | Purpose                     | Key Features                                                                                 |
-| ----------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| [main.ts](src/main/main.ts)         | App lifecycle & entry point | Single instance enforcement, error handling, macOS dock hiding, config initialization        |
-| [window.ts](src/main/window.ts)     | Window management           | Platform-specific configs (macOS: floating level + all workspaces; Win/Linux: always-on-top) |
-| [tray.ts](src/main/tray.ts)         | System tray integration     | Template icons (macOS), context menu with theme/language settings, clipboard URL parsing     |
-| [position.ts](src/main/position.ts) | Smart positioning           | Tray-relative positioning (macOS menubar, Win/Linux taskbar), cursor-based fallback          |
-| [menu.ts](src/main/menu.ts)         | Application menu            | Edit menu, global shortcut registration (`Cmd+Alt+S` for show/hide)                          |
-| [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard, shell, locale, config access                          |
-| [config.ts](src/main/config.ts)     | Configuration management    | Theme and language settings, persistent storage, auto-apply on startup                       |
-| [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system with nested structure for organized content                   |
-| [locales/](src/main/locales/)       | Main translations           | en.ts (English), zh.ts (Chinese) - nested objects by category (app, dialog, tray, etc.)      |
+| Module                              | Purpose                     | Key Features                                                                                                 |
+| ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [main.ts](src/main/main.ts)         | App lifecycle & entry point | Single instance enforcement, error handling, macOS dock hiding, config initialization                        |
+| [window.ts](src/main/window.ts)     | Window management           | Platform-specific configs (macOS: floating level + all workspaces; Win/Linux: always-on-top)                 |
+| [tray.ts](src/main/tray.ts)         | System tray integration     | Template icons (macOS), context menu with theme/language/auto-launch/update settings, clipboard URL parsing  |
+| [position.ts](src/main/position.ts) | Smart positioning           | Tray-relative positioning (macOS menubar, Win/Linux taskbar), cursor-based fallback                          |
+| [menu.ts](src/main/menu.ts)         | Application menu            | Edit menu, global shortcut registration (`Cmd+Alt+S` for show/hide)                                          |
+| [ipc.ts](src/main/ipc.ts)           | IPC handlers                | Window control (hide/quit), clipboard, shell, locale, config access                                          |
+| [config.ts](src/main/config.ts)     | Configuration management    | Theme and language settings, persistent storage, auto-apply on startup                                       |
+| [updater.ts](src/main/updater.ts)   | Auto-updater                | GitHub releases integration, download progress, update notifications, install on quit                        |
+| [i18n.ts](src/main/i18n.ts)         | Main process i18n           | Lightweight translation system with nested structure for organized content                                   |
+| [locales/](src/main/locales/)       | Main translations           | en-US.ts, zh-CN.ts, zh-TW.ts (English, Simplified Chinese, Traditional Chinese) - nested objects by category |
 
 #### Preload Script (Security Bridge)
 
@@ -342,249 +344,30 @@ function App(): JSX.Element {
 
 ### Adding New Languages
 
-To add support for another language (e.g., Japanese):
+To add support for a new language, follow these key steps:
 
-**Step 1**: Update LanguageMode type
+1. **Update type definition**: Add the new language code to `LanguageMode` type in `src/shared/types.ts`
+2. **Create translation files**:
+   - Main process: Create `src/main/locales/{language-code}.ts` (e.g., `ja-JP.ts`)
+   - Renderer process: Create `src/renderer/locales/{language-code}.ts`
+   - Use existing files (`en-US.ts`, `zh-CN.ts`, `zh-TW.ts`) as templates
+3. **Register translations**:
+   - Import and register in `src/main/i18n.ts` (add to `translations` object and `detectLanguage` function)
+   - Import and register in `src/renderer/i18n.ts` (add to `resources` object)
+4. **Update validation**: Add the new language code to the validation array in `src/main/config.ts`
+5. **Add menu item**: Add the new language option to the tray menu in `src/main/tray.ts`
 
-```typescript
-// src/shared/types.ts
-export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'auto';
-```
+**Translation File Naming Convention:**
 
-**Step 2**: Add main process translations
+- Use `{languageCode}-{regionCode}` format (e.g., `en-US`, `zh-CN`, `zh-TW`, `ja-JP`)
+- Export with camelCase naming: `export const enUS`, `export const zhCN`, `export const zhTW`
+- Always use `as const` for type safety
 
-```typescript
-// src/main/locales/en-US.ts
-export const enUS = {
-  app: {
-    name: 'FlowerPassword',
-  },
-  tray: {
-    tooltip: 'FlowerPassword',
-    // ...
-  },
-  language: {
-    'zh-CN': '简体中文',
-    'zh-TW': '繁體中文',
-    'en-US': 'English',
-    'ja-JP': '日本語', // Add new language
-    'auto': 'Auto',
-  },
-  // ...
-} as const;
+**Reference Files:**
 
-// src/main/locales/zh-CN.ts
-export const zhCN = {
-  app: {
-    name: '花密',
-  },
-  tray: {
-    tooltip: '花密',
-    // ...
-  },
-  language: {
-    'zh-CN': '简体中文',
-    'zh-TW': '繁體中文',
-    'en-US': 'English',
-    'ja-JP': '日本語', // Add new language
-    'auto': '自动',
-  },
-  // ...
-} as const;
-
-// src/main/locales/ja-JP.ts (new file)
-export const jaJP = {
-  app: {
-    name: 'フラワーパスワード',
-  },
-  dialog: {
-    quitMessage: '終了してもよろしいですか？',
-    quitConfirm: '終了',
-    quitCancel: 'キャンセル',
-  },
-  tray: {
-    tooltip: 'フラワーパスワード',
-    show: '表示',
-    quit: '終了',
-    settings: '設定',
-  },
-  menu: {
-    theme: 'テーマ',
-    language: '言語',
-  },
-  theme: {
-    light: 'ライト',
-    dark: 'ダーク',
-    auto: '自動',
-  },
-  language: {
-    'zh-CN': '简体中文',
-    'zh-TW': '繁體中文',
-    'en-US': 'English',
-    'ja-JP': '日本語',
-    'auto': '自動',
-  },
-  metadata: {
-    htmlTitle: 'フラワーパスワード',
-    htmlDescription: 'フラワーパスワード - 記憶パスワードと区別コードでパスワードを生成',
-  },
-} as const;
-```
-
-**Step 3**: Create renderer translation file
-
-```typescript
-// src/renderer/locales/ja-JP.ts
-export const jaJP = {
-  app: {
-    title: 'Flower Password',
-    close: '閉じる',
-  },
-  metadata: {
-    title: 'フラワーパスワード',
-    description: 'フラワーパスワード - 記憶パスワードと区別コードでパスワードを生成',
-    htmlLang: 'ja-JP',
-  },
-  form: {
-    passwordPlaceholder: '記憶パスワード',
-    keyPlaceholder: '区別コード',
-    prefixPlaceholder: 'プレフィックス',
-    suffixPlaceholder: 'サフィックス',
-    generateButton: 'パスワード生成（クリックでコピー）',
-    lengthUnit: '文字',
-  },
-  hints: {
-    password: '記憶パスワード: 簡単に覚えられるパスワードを選択してください...',
-    key: '区別コード: 異なるアカウントを区別するための短いコード...',
-    website: '公式サイト: ',
-  },
-} as const;
-```
-
-**Step 4**: Import and register in main process
-
-```typescript
-// src/main/i18n.ts
-import { enUS } from './locales/en-US';
-import { zhCN } from './locales/zh-CN';
-import { zhTW } from './locales/zh-TW';
-import { jaJP } from './locales/ja-JP'; // Add import
-
-const translations = {
-  'en-US': enUS,
-  'zh-CN': zhCN,
-  'zh-TW': zhTW,
-  'ja-JP': jaJP, // Register new language
-} as const;
-
-function detectLanguage(locale: string): SupportedLanguage {
-  const normalizedLocale = locale.toLowerCase().replace('_', '-');
-
-  if (
-    normalizedLocale.startsWith('zh-tw') ||
-    normalizedLocale.startsWith('zh-hk') ||
-    normalizedLocale.startsWith('zh-mo')
-  ) {
-    return 'zh-TW';
-  }
-
-  if (normalizedLocale.startsWith('zh')) {
-    return 'zh-CN';
-  }
-
-  if (normalizedLocale.startsWith('ja')) {
-    return 'ja-JP'; // Add check
-  }
-
-  if (normalizedLocale.startsWith('en')) {
-    return 'en-US';
-  }
-
-  return 'en-US'; // Default fallback
-}
-```
-
-**Step 5**: Import and register in renderer process
-
-```typescript
-// src/renderer/i18n.ts
-import { enUS } from './locales/en-US';
-import { zhCN } from './locales/zh-CN';
-import { zhTW } from './locales/zh-TW';
-import { jaJP } from './locales/ja-JP'; // Add import
-
-i18n.use(initReactI18next).init({
-  resources: {
-    'en-US': { translation: enUS },
-    'zh-CN': { translation: zhCN },
-    'zh-TW': { translation: zhTW },
-    'ja-JP': { translation: jaJP }, // Add resource
-  },
-  lng: 'en-US',
-  fallbackLng: 'en-US',
-  // ...
-});
-```
-
-**Step 6**: Update config validation
-
-```typescript
-// src/main/config.ts
-function isValidLanguage(language: unknown): language is LanguageMode {
-  return typeof language === 'string' && ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'auto'].includes(language);
-}
-```
-
-**Step 7**: Add to tray menu
-
-```typescript
-// src/main/tray.ts
-{
-  label: t('menu.language'),
-  submenu: [
-    {
-      label: t('language.zh-CN'),
-      type: 'checkbox',
-      checked: config.language === 'zh-CN',
-      click: (): void => {
-        void handleLanguageChange('zh-CN');
-      },
-    },
-    {
-      label: t('language.zh-TW'),
-      type: 'checkbox',
-      checked: config.language === 'zh-TW',
-      click: (): void => {
-        void handleLanguageChange('zh-TW');
-      },
-    },
-    {
-      label: t('language.en-US'),
-      type: 'checkbox',
-      checked: config.language === 'en-US',
-      click: (): void => {
-        void handleLanguageChange('en-US');
-      },
-    },
-    {
-      label: t('language.ja-JP'),  // Add new language
-      type: 'checkbox',
-      checked: config.language === 'ja-JP',
-      click: (): void => {
-        void handleLanguageChange('ja-JP');
-      },
-    },
-    {
-      label: t('language.auto'),
-      type: 'checkbox',
-      checked: config.language === 'auto',
-      click: (): void => {
-        void handleLanguageChange('auto');
-      },
-    },
-  ],
-}
-```
+- Existing implementations: [src/main/locales/](src/main/locales/), [src/renderer/locales/](src/renderer/locales/)
+- Main process i18n: [src/main/i18n.ts](src/main/i18n.ts)
+- Renderer process i18n: [src/renderer/i18n.ts](src/renderer/i18n.ts)
 
 ### Translation File Structure
 
@@ -686,6 +469,8 @@ export const enUS = {
 | `i18next`           | ^25.6.0 | Internationalization framework               |
 | `react-i18next`     | ^16.1.0 | React bindings for i18next                   |
 | `psl`               | ^1.15.0 | Public Suffix List for domain parsing        |
+| `auto-launch`       | ^5.0.6  | Launch app automatically at system startup   |
+| `electron-updater`  | ^6.6.2  | Auto-update functionality for Electron apps  |
 
 **Note**: URL parsing is handled by Node.js native `URL` API (WHATWG standard), no external dependencies needed.
 
@@ -894,10 +679,7 @@ if (process.platform === 'darwin') {
 // Abstracting this would reduce clarity without significant benefit
 
 // ❌ BAD - Over-abstraction hurts readability
-function configurePlatformSpecificWindowBehavior(
-  window: BrowserWindow,
-  platform: NodeJS.Platform
-): void {
+function configurePlatformSpecificWindowBehavior(window: BrowserWindow, platform: NodeJS.Platform): void {
   const configs = {
     darwin: {
       workspaces: { visible: true, options: { visibleOnFullScreen: true } },
