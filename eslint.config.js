@@ -5,11 +5,9 @@ const prettier = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
 
 module.exports = [
-  // Global ignores
   {
     ignores: ['dist/**', 'out/**', '.vite/**', 'FlowerPassword.app/**', 'node_modules/**', '**/*.d.ts'],
   },
-  // JavaScript files (including this config file)
   {
     files: ['**/*.js'],
     languageOptions: {
@@ -28,7 +26,6 @@ module.exports = [
       ...eslint.configs.recommended.rules,
     },
   },
-  // TypeScript files configuration
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
