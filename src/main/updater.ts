@@ -1,42 +1,31 @@
-import { autoUpdater } from 'electron-updater';
 import { app } from 'electron';
-import { t } from './i18n';
+import { autoUpdater } from 'electron-updater';
+
 import { showMessageBox } from './dialog';
+import { t } from './i18n';
 
 let isCheckingForUpdates = false;
 
-/**
- * Initialize auto-updater
- * Configures update settings and event handlers
- * Only works in production builds (packaged apps)
- */
 export function initUpdater(): void {
   if (!app.isPackaged) {
     return;
   }
 
-  // Configure update server (GitHub Releases)
   autoUpdater.setFeedURL({
     provider: 'github',
     owner: 'xlsdg',
     repo: 'flower-password-desktop',
   });
 
-  // Configure auto-updater
-  autoUpdater.autoDownload = false; // Don't auto-download, ask user first
-  autoUpdater.autoInstallOnAppQuit = true; // Auto-install when app quits
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
 
-  // Set up event handlers
   autoUpdater.on('error', (error: Error) => {
     console.error('Update error:', error);
     if (isCheckingForUpdates) {
       void showUpdateError(error.message);
       isCheckingForUpdates = false;
     }
-  });
-
-  autoUpdater.on('checking-for-update', () => {
-    // Checking for updates...
   });
 
   autoUpdater.on('update-available', info => {
@@ -63,10 +52,6 @@ export function initUpdater(): void {
     void showUpdateDownloaded(info.version);
   });
 }
-
-/**
- * Check for updates manually (triggered by user)
- */
 export async function checkForUpdates(): Promise<void> {
   if (isCheckingForUpdates) {
     return;
@@ -83,10 +68,6 @@ export async function checkForUpdates(): Promise<void> {
   }
 }
 
-/**
- * Show dialog when update is available
- * @param version - New version number
- */
 async function showUpdateAvailable(version: string): Promise<void> {
   const currentVersion = app.getVersion();
 
@@ -95,7 +76,7 @@ async function showUpdateAvailable(version: string): Promise<void> {
     buttons: [t('dialog.update.download'), t('dialog.update.cancel')],
     defaultId: 0,
     title: t('dialog.update.available.title'),
-    message: t('dialog.update.available.message').replace('{current}', currentVersion).replace('{latest}', version),
+    message: t('dialog.update.available.message', { current: currentVersion, latest: version }),
     detail: t('dialog.update.available.detail'),
     cancelId: 1,
   });
@@ -104,11 +85,6 @@ async function showUpdateAvailable(version: string): Promise<void> {
     void downloadUpdate();
   }
 }
-
-/**
- * Show dialog when no update is available
- * @param version - Current version number
- */
 async function showNoUpdate(version: string): Promise<void> {
   await showMessageBox({
     type: 'info',
@@ -116,21 +92,16 @@ async function showNoUpdate(version: string): Promise<void> {
     defaultId: 0,
     title: t('dialog.update.title'),
     message: t('dialog.update.noUpdate.message'),
-    detail: `${t('dialog.update.message')}${version}`,
+    detail: t('dialog.update.message', { version }),
   });
 }
-
-/**
- * Show dialog when update download completes
- * @param version - New version number
- */
 async function showUpdateDownloaded(version: string): Promise<void> {
   const result = await showMessageBox({
     type: 'info',
     buttons: [t('dialog.update.downloaded.install'), t('dialog.update.downloaded.later')],
     defaultId: 0,
     title: t('dialog.update.downloaded.title'),
-    message: t('dialog.update.downloaded.message').replace('{version}', version),
+    message: t('dialog.update.downloaded.message', { version }),
     detail: t('dialog.update.downloaded.detail'),
     cancelId: 1,
   });
@@ -139,11 +110,6 @@ async function showUpdateDownloaded(version: string): Promise<void> {
     autoUpdater.quitAndInstall(false, true);
   }
 }
-
-/**
- * Show error dialog
- * @param errorMessage - Error message
- */
 async function showUpdateError(errorMessage: string): Promise<void> {
   await showMessageBox({
     type: 'error',
@@ -154,10 +120,6 @@ async function showUpdateError(errorMessage: string): Promise<void> {
     detail: errorMessage,
   });
 }
-
-/**
- * Download update
- */
 async function downloadUpdate(): Promise<void> {
   void showMessageBox({
     type: 'info',

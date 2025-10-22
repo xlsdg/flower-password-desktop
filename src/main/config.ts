@@ -1,226 +1,69 @@
-import { app, nativeTheme } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import AutoLaunch from 'auto-launch';
-import type { AppConfig, ThemeMode, LanguageMode, FormSettings, GlobalShortcut } from '../shared/types';
-import { applyLanguage, t } from './i18n';
-import { GLOBAL_SHORTCUTS, AVAILABLE_SHORTCUTS } from '../shared/constants';
-import { showMessageBox } from './dialog';
-import { applyShortcuts } from './shortcut';
 
-/**
- * Default form settings
- */
-const DEFAULT_FORM_SETTINGS: FormSettings = {
+import AutoLaunch from 'auto-launch';
+import { app, nativeTheme } from 'electron';
+
+import { AVAILABLE_LANGUAGES, AVAILABLE_SHORTCUTS, AVAILABLE_THEMES, GLOBAL_SHORTCUTS } from '../shared/constants';
+import type { AppConfig, FormSettings, GlobalShortcut, LanguageMode, ThemeMode } from '../shared/types';
+import { showMessageBox } from './dialog';
+import { applyLanguage, t } from './i18n';
+import { registerGlobalShortcut } from './shortcut';
+
+const CONFIG_FILE_PATH = path.join(app.getPath('userData'), 'config.json');
+
+const DEFAULT_FORM_SETTINGS = {
   passwordLength: 16,
   prefix: '',
   suffix: '',
-};
+} as const satisfies FormSettings;
 
-/**
- * Default application configuration
- */
-const DEFAULT_CONFIG: AppConfig = {
+const DEFAULT_CONFIG = {
   theme: 'auto',
   language: 'auto',
-  formSettings: DEFAULT_FORM_SETTINGS,
+  formSettings: { ...DEFAULT_FORM_SETTINGS },
   globalShortcut: GLOBAL_SHORTCUTS.SHOW_WINDOW_AT_CURSOR,
-};
+} as const satisfies AppConfig;
 
-/**
- * Configuration file path
- */
-const CONFIG_FILE_PATH = path.join(app.getPath('userData'), 'config.json');
-
-/**
- * AutoLaunch instance for managing login items
- * Initialized lazily to ensure app.getPath() is available
- */
 let autoLauncher: AutoLaunch | null = null;
 
-/**
- * Get or create AutoLaunch instance
- */
-function getAutoLauncher(): AutoLaunch {
-  if (!autoLauncher) {
-    autoLauncher = new AutoLaunch({
-      name: 'FlowerPassword',
-      path: app.getPath('exe'),
-      mac: {
-        useLaunchAgent: true,
-      },
-    });
-  }
-  return autoLauncher;
-}
-
-/**
- * Load configuration from file
- * Creates default config if file doesn't exist
- * @returns Application configuration
- */
-export function loadConfig(): AppConfig {
-  try {
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-      const configData = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
-      const parsedConfig = JSON.parse(configData) as Partial<AppConfig>;
-
-      // Validate and merge with defaults
-      return {
-        theme: isValidTheme(parsedConfig.theme) ? parsedConfig.theme : DEFAULT_CONFIG.theme,
-        language: isValidLanguage(parsedConfig.language) ? parsedConfig.language : DEFAULT_CONFIG.language,
-        formSettings: isValidFormSettings(parsedConfig.formSettings)
-          ? parsedConfig.formSettings
-          : DEFAULT_CONFIG.formSettings,
-        globalShortcut: isValidGlobalShortcut(parsedConfig.globalShortcut)
-          ? parsedConfig.globalShortcut
-          : DEFAULT_CONFIG.globalShortcut,
-      };
-    } else {
-      const config = { ...DEFAULT_CONFIG };
-      saveConfig(config);
-      return config;
-    }
-  } catch (error) {
-    console.error('Failed to load config:', error);
-    return { ...DEFAULT_CONFIG };
-  }
-}
-
-/**
- * Save configuration to file
- * @param config - Configuration to save
- */
-export function saveConfig(config: AppConfig): void {
-  try {
-    const configDir = path.dirname(CONFIG_FILE_PATH);
-    if (!fs.existsSync(configDir)) {
-      fs.mkdirSync(configDir, { recursive: true });
-    }
-
-    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Failed to save config:', error);
-  }
-}
-
-/**
- * Get current configuration
- * @returns Current app configuration
- */
-export function getConfig(): AppConfig {
-  return loadConfig();
-}
-
-/**
- * Update theme setting
- * @param theme - Theme mode to set
- */
 export function setTheme(theme: ThemeMode): void {
-  const config = loadConfig();
-  config.theme = theme;
-  saveConfig(config);
-  applyTheme(theme);
+  if (!isValidTheme(theme)) {
+    console.error('Attempted to set unsupported theme:', theme);
+    return;
+  }
+
+  const config = readConfig();
+  writeConfig({ ...config, theme });
+  applyNativeTheme(theme);
 }
 
-/**
- * Update language setting
- * @param language - Language mode to set
- */
 export function setLanguage(language: LanguageMode): void {
-  const config = loadConfig();
-  config.language = language;
-  saveConfig(config);
+  if (!isValidLanguage(language)) {
+    console.error('Attempted to set unsupported language:', language);
+    return;
+  }
+
+  const config = readConfig();
+  writeConfig({ ...config, language });
   applyLanguage(language);
 }
 
-/**
- * Apply theme to Electron's nativeTheme
- * @param theme - Theme mode to apply
- */
-export function applyTheme(theme: ThemeMode): void {
-  if (theme === 'auto') {
-    nativeTheme.themeSource = 'system';
-  } else {
-    nativeTheme.themeSource = theme;
-  }
-}
-
-/**
- * Validate theme value
- * @param theme - Theme value to validate
- * @returns True if valid theme
- */
-function isValidTheme(theme: unknown): theme is ThemeMode {
-  return typeof theme === 'string' && ['light', 'dark', 'auto'].includes(theme);
-}
-
-/**
- * Validate language value
- * @param language - Language value to validate
- * @returns True if valid language
- */
-function isValidLanguage(language: unknown): language is LanguageMode {
-  return typeof language === 'string' && ['zh-CN', 'zh-TW', 'en-US', 'auto'].includes(language);
-}
-
-/**
- * Validate form settings
- * @param settings - Form settings to validate
- * @returns True if valid form settings
- */
-function isValidFormSettings(settings: unknown): settings is FormSettings {
-  if (typeof settings !== 'object' || settings === null) {
-    return false;
-  }
-
-  const s = settings as Partial<FormSettings>;
-
-  const hasValidPasswordLength =
-    typeof s.passwordLength === 'number' && s.passwordLength >= 6 && s.passwordLength <= 32;
-  const hasValidPrefix = typeof s.prefix === 'string';
-  const hasValidSuffix = typeof s.suffix === 'string';
-
-  return hasValidPasswordLength && hasValidPrefix && hasValidSuffix;
-}
-
-/**
- * Validate global shortcut
- * @param shortcut - Shortcut string to validate
- * @returns True if valid shortcut
- */
-function isValidGlobalShortcut(shortcut: unknown): shortcut is GlobalShortcut {
-  return typeof shortcut === 'string' && AVAILABLE_SHORTCUTS.includes(shortcut as GlobalShortcut);
-}
-
-/**
- * Update form settings
- * @param settings - Partial form settings to update
- */
 export function updateFormSettings(settings: Partial<FormSettings>): void {
-  const config = loadConfig();
+  const config = readConfig();
+  const merged: FormSettings = { ...config.formSettings, ...settings };
 
-  const updatedFormSettings: FormSettings = {
-    ...config.formSettings,
-    ...settings,
-  };
-
-  if (!isValidFormSettings(updatedFormSettings)) {
+  if (!isValidFormSettings(merged)) {
     console.error('Invalid form settings provided');
     return;
   }
 
-  config.formSettings = updatedFormSettings;
-  saveConfig(config);
+  writeConfig({ ...config, formSettings: merged });
 }
 
-/**
- * Get current auto-launch setting
- * @returns Promise that resolves to true if auto-launch is enabled
- */
 export async function getAutoLaunch(): Promise<boolean> {
   try {
-    const launcher = getAutoLauncher();
+    const launcher = ensureAutoLauncher();
     return await launcher.isEnabled();
   } catch (error) {
     console.error('Failed to get auto-launch status:', error);
@@ -228,14 +71,9 @@ export async function getAutoLaunch(): Promise<boolean> {
   }
 }
 
-/**
- * Update auto-launch setting
- * @param enabled - Enable or disable auto-launch
- * @returns Promise that resolves to true if successful
- */
 export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
   try {
-    const launcher = getAutoLauncher();
+    const launcher = ensureAutoLauncher();
 
     if (enabled) {
       await launcher.enable();
@@ -260,24 +98,119 @@ export async function setAutoLaunch(enabled: boolean): Promise<boolean> {
   }
 }
 
-/**
- * Update global shortcut setting
- * @param shortcut - Shortcut to set
- */
 export function setGlobalShortcut(shortcut: GlobalShortcut): void {
-  const config = loadConfig();
-  config.globalShortcut = shortcut;
-  saveConfig(config);
-  applyShortcuts(shortcut);
+  if (!isValidGlobalShortcut(shortcut)) {
+    console.error('Attempted to set unsupported shortcut:', shortcut);
+    return;
+  }
+
+  const config = readConfig();
+  writeConfig({ ...config, globalShortcut: shortcut });
+  registerGlobalShortcut(shortcut);
 }
 
-/**
- * Initialize configuration system
- * Load config and apply theme, language, and global shortcuts on startup
- */
 export function initConfig(): void {
-  const config = loadConfig();
-  applyTheme(config.theme);
+  const config = readConfig();
+  applyNativeTheme(config.theme);
   applyLanguage(config.language);
-  applyShortcuts(config.globalShortcut);
+  registerGlobalShortcut(config.globalShortcut);
+}
+
+export function readConfig(): AppConfig {
+  try {
+    if (!fs.existsSync(CONFIG_FILE_PATH)) {
+      const config = defaultConfig();
+      writeConfig(config);
+      return config;
+    }
+
+    const configData = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
+    const parsed = JSON.parse(configData) as Partial<AppConfig>;
+    const sanitized = sanitizeConfig(parsed);
+    return {
+      ...sanitized,
+      formSettings: { ...sanitized.formSettings },
+    };
+  } catch (error) {
+    console.error('Failed to load config:', error);
+    const fallback = defaultConfig();
+    writeConfig(fallback);
+    return fallback;
+  }
+}
+
+function writeConfig(config: AppConfig): void {
+  try {
+    fs.mkdirSync(path.dirname(CONFIG_FILE_PATH), { recursive: true });
+    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Failed to save config:', error);
+  }
+}
+
+function sanitizeConfig(partial: Partial<AppConfig>): AppConfig {
+  const config = defaultConfig();
+
+  config.theme = isValidTheme(partial.theme) ? partial.theme : config.theme;
+  config.language = isValidLanguage(partial.language) ? partial.language : config.language;
+  config.formSettings = isValidFormSettings(partial.formSettings)
+    ? { ...partial.formSettings }
+    : { ...config.formSettings };
+  config.globalShortcut = isValidGlobalShortcut(partial.globalShortcut)
+    ? partial.globalShortcut
+    : config.globalShortcut;
+
+  return config;
+}
+
+function defaultConfig(): AppConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    formSettings: { ...DEFAULT_CONFIG.formSettings },
+  };
+}
+
+function ensureAutoLauncher(): AutoLaunch {
+  if (!autoLauncher) {
+    autoLauncher = new AutoLaunch({
+      name: 'FlowerPassword',
+      path: app.getPath('exe'),
+      mac: {
+        useLaunchAgent: true,
+      },
+    });
+  }
+
+  return autoLauncher;
+}
+
+function applyNativeTheme(theme: ThemeMode): void {
+  nativeTheme.themeSource = theme === 'auto' ? 'system' : theme;
+}
+
+function isValidTheme(theme: unknown): theme is ThemeMode {
+  return typeof theme === 'string' && AVAILABLE_THEMES.includes(theme as ThemeMode);
+}
+
+function isValidLanguage(language: unknown): language is LanguageMode {
+  return typeof language === 'string' && AVAILABLE_LANGUAGES.includes(language as LanguageMode);
+}
+
+function isValidFormSettings(settings: unknown): settings is FormSettings {
+  if (typeof settings !== 'object' || settings === null) {
+    return false;
+  }
+
+  const candidate = settings as Partial<FormSettings>;
+  const passwordLength = candidate.passwordLength;
+
+  const hasValidLength = typeof passwordLength === 'number' && passwordLength >= 6 && passwordLength <= 32;
+  const hasValidPrefix = typeof candidate.prefix === 'string';
+  const hasValidSuffix = typeof candidate.suffix === 'string';
+
+  return hasValidLength && hasValidPrefix && hasValidSuffix;
+}
+
+function isValidGlobalShortcut(shortcut: unknown): shortcut is GlobalShortcut {
+  return typeof shortcut === 'string' && AVAILABLE_SHORTCUTS.includes(shortcut as GlobalShortcut);
 }

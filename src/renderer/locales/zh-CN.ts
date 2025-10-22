@@ -1,6 +1,3 @@
-/**
- * Simplified Chinese translations
- */
 export const zhCN = {
   app: {
     title: 'Flower Password',

@@ -1,6 +1,3 @@
-/**
- * Traditional Chinese translations for main process
- */
 export const zhTW = {
   app: {
     name: '花密',
@@ -20,8 +17,9 @@ export const zhTW = {
       },
       set: {
         title: '設定全域快速鍵',
-        message: '請輸入全域快速鍵（例如：CmdOrCtrl+Alt+S）：',
-        current: '目前快速鍵：',
+        message: '請選擇新的快速鍵：',
+        detail: '目前快速鍵：{shortcut}',
+        cancel: '取消',
       },
     },
     autoLaunch: {
@@ -34,7 +32,7 @@ export const zhTW = {
     },
     update: {
       title: '檢查更新',
-      message: '目前版本：',
+      message: '目前版本：{version}',
       ok: '確定',
       download: '下載',
       cancel: '取消',

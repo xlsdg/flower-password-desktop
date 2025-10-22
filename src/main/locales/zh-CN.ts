@@ -1,6 +1,3 @@
-/**
- * Simplified Chinese translations for main process
- */
 export const zhCN = {
   app: {
     name: '花密',
@@ -20,8 +17,9 @@ export const zhCN = {
       },
       set: {
         title: '设置全局快捷键',
-        message: '请输入全局快捷键（例如：CmdOrCtrl+Alt+S）：',
-        current: '当前快捷键：',
+        message: '请选择一个新的快捷键：',
+        detail: '当前快捷键：{shortcut}',
+        cancel: '取消',
       },
     },
     autoLaunch: {
@@ -34,7 +32,7 @@ export const zhCN = {
     },
     update: {
       title: '检查更新',
-      message: '当前版本：',
+      message: '当前版本：{version}',
       ok: '确定',
       download: '下载',
       cancel: '取消',

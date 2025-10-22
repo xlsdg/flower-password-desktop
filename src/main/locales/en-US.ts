@@ -1,6 +1,3 @@
-/**
- * English translations for main process
- */
 export const enUS = {
   app: {
     name: 'FlowerPassword',
@@ -21,8 +18,9 @@ export const enUS = {
       },
       set: {
         title: 'Set Global Shortcut',
-        message: 'Enter global shortcut (e.g., CmdOrCtrl+Alt+S):',
-        current: 'Current shortcut: ',
+        message: 'Select a new shortcut:',
+        detail: 'Current shortcut: {shortcut}',
+        cancel: 'Cancel',
       },
     },
     autoLaunch: {
@@ -35,7 +33,7 @@ export const enUS = {
     },
     update: {
       title: 'Check for Updates',
-      message: 'Current version: ',
+      message: 'Current version: {version}',
       ok: 'OK',
       download: 'Download',
       cancel: 'Cancel',

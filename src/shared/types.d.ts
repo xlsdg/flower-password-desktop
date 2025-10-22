@@ -1,154 +1,45 @@
-// Shared type definitions
+import type { AVAILABLE_LANGUAGES, AVAILABLE_SHORTCUTS, AVAILABLE_THEMES } from './constants';
 
-import type { AVAILABLE_SHORTCUTS } from './constants';
+export type { ParsedDomain } from 'psl';
 
-/**
- * Electron API interface
- */
-export interface ElectronAPI {
-  /**
-   * Hide window
-   */
-  hide: () => void;
-
-  /**
-   * Quit application
-   */
-  quit: () => void;
-
-  /**
-   * Write text to clipboard
-   * @param text - Text to write
-   */
-  writeText: (text: string) => void;
-
-  /**
-   * Open external link in default browser
-   * @param url - URL to open
-   */
-  openExternal: (url: string) => Promise<void>;
-
-  /**
-   * Listen for domain extracted from clipboard
-   * @param callback - Callback function to receive domain
-   */
-  onKeyFromClipboard: (callback: (value: string) => void) => void;
-
-  /**
-   * Get system locale from main process
-   * @returns System locale string (e.g., 'en-US', 'zh-CN')
-   */
-  getSystemLocale: () => Promise<string>;
-
-  /**
-   * Listen for window shown event
-   * @param callback - Callback function invoked when window is shown
-   */
-  onWindowShown: (callback: () => void) => void;
-
-  /**
-   * Get application configuration
-   * @returns Current app configuration
-   */
-  getConfig: () => Promise<AppConfig>;
-
-  /**
-   * Listen for theme changes
-   * @param callback - Callback function to receive new theme
-   */
-  onThemeChanged: (callback: (theme: ThemeMode) => void) => void;
-
-  /**
-   * Listen for language changes
-   * @param callback - Callback function to receive new language
-   */
-  onLanguageChanged: (callback: (language: LanguageMode) => void) => void;
-
-  /**
-   * Update form settings
-   * @param settings - Form settings to update
-   */
-  updateFormSettings: (settings: Partial<FormSettings>) => void;
+export interface RendererBridge {
+  hide(): void;
+  quit(): void;
+  writeText(text: string): void;
+  openExternal(url: string): Promise<void>;
+  getSystemLocale(): Promise<string>;
+  getConfig(): Promise<AppConfig>;
+  onKeyFromClipboard(callback: (value: string) => void): void;
+  onWindowShown(callback: () => void): void;
+  onThemeChanged(callback: (theme: ThemeMode) => void): void;
+  onLanguageChanged(callback: (language: LanguageMode) => void): void;
+  updateFormSettings(settings: Partial<FormSettings>): void;
 }
 
-/**
- * Window configuration
- */
-export interface WindowConfig {
-  width: number;
-  height: number;
-  show: boolean;
-  frame: boolean;
-  resizable: boolean;
-  skipTaskbar: boolean;
-}
-
-/**
- * Position coordinates
- */
 export interface Position {
   x: number;
   y: number;
 }
 
-/**
- * Size dimensions
- */
 export interface Size {
   width: number;
   height: number;
 }
 
-/**
- * Bounds information (position + size)
- */
-export interface Bounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export interface Bounds extends Position, Size {}
 
-/**
- * PSL parsing result
- * Re-export ParsedDomain from psl package for convenience
- */
-export type { ParsedDomain } from 'psl';
-
-/**
- * Theme mode options
- */
-export type ThemeMode = 'light' | 'dark' | 'auto';
-
-/**
- * Language options
- */
-export type LanguageMode = 'zh-CN' | 'zh-TW' | 'en-US' | 'auto';
-
-/**
- * Specific language codes (excluding 'auto')
- * Automatically derived from LanguageMode
- */
+export type ThemeMode = (typeof AVAILABLE_THEMES)[number];
+export type SpecificTheme = Exclude<ThemeMode, 'auto'>;
+export type LanguageMode = (typeof AVAILABLE_LANGUAGES)[number];
 export type SpecificLanguage = Exclude<LanguageMode, 'auto'>;
-
-/**
- * Global shortcut type
- * Automatically inferred from AVAILABLE_SHORTCUTS in constants.ts
- */
 export type GlobalShortcut = (typeof AVAILABLE_SHORTCUTS)[number];
 
-/**
- * Form settings configuration
- */
 export interface FormSettings {
   passwordLength: number;
   prefix: string;
   suffix: string;
 }
 
-/**
- * Application configuration
- */
 export interface AppConfig {
   theme: ThemeMode;
   language: LanguageMode;

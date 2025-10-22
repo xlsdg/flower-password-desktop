@@ -1,66 +1,55 @@
-import { Tray, Menu, nativeImage, app } from 'electron';
 import * as path from 'node:path';
-import { showWindow, hideWindow, getWindow } from './window';
-import { positionWindowBelowTray } from './position';
-import { t } from './i18n';
-import { ASSETS_PATH, IPC_CHANNELS } from '../shared/constants';
-import { getConfig, setTheme, setLanguage, setAutoLaunch, getAutoLaunch } from './config';
-import type { ThemeMode, LanguageMode } from '../shared/types';
-import { checkForUpdates } from './updater';
-import { showShortcutDialog } from './shortcut';
+
+import { app, Menu, nativeImage, Tray } from 'electron';
+
+import { ASSET_PATHS, IPC_CHANNELS } from '../shared/constants';
+import type { LanguageMode, ThemeMode } from '../shared/types';
+import { getAutoLaunch, readConfig, setAutoLaunch, setLanguage, setTheme } from './config';
 import { showMessageBox } from './dialog';
+import { t } from './i18n';
+import { positionWindowBelowTray } from './position';
+import { promptShortcutSelection } from './shortcut';
+import { checkForUpdates } from './updater';
+import { getWindow, hideWindow, showWindow } from './window';
 
 let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
 
-/**
- * Create system tray
- * @returns Created Tray instance
- */
 export function createTray(): Tray {
-  // Use __dirname (points to .vite/build/) for consistent path resolution across all environments
-  const iconPath = path.join(__dirname, ASSETS_PATH.TRAY_ICON);
-  const icon = nativeImage.createFromPath(iconPath);
-
+  const icon = nativeImage.createFromPath(path.join(__dirname, ASSET_PATHS.TRAY_ICON));
   if (process.platform === 'darwin') {
     icon.setTemplateImage(true);
   }
 
   tray = new Tray(icon);
   tray.setToolTip(t('tray.tooltip'));
-
   tray.on('click', () => {
     handleTrayClick();
   });
-
   tray.on('right-click', () => {
+    const win = getWindow();
+    if (win && win.isVisible()) {
+      hideWindow();
+    }
+
     if (tray && contextMenu) {
       tray.popUpContextMenu(contextMenu);
     }
   });
 
-  void updateTrayMenu();
-
+  void refreshTrayMenu();
   return tray;
 }
 
-/**
- * Update tray context menu
- * Rebuilds menu with current configuration state
- */
-export async function updateTrayMenu(): Promise<void> {
-  if (!tray) {
-    return;
-  }
-
-  const config = getConfig();
+async function refreshTrayMenu(): Promise<void> {
+  const config = readConfig();
   const autoLaunchEnabled = await getAutoLaunch();
 
   contextMenu = Menu.buildFromTemplate([
     {
       label: t('tray.show'),
       click: (): void => {
-        handleShowWindowBelowTray();
+        showWindowBelowTray();
       },
     },
     {
@@ -146,7 +135,7 @@ export async function updateTrayMenu(): Promise<void> {
     {
       label: t('menu.globalShortcut'),
       click: (): void => {
-        void showShortcutDialog();
+        void promptShortcutSelection();
       },
     },
     {
@@ -167,41 +156,25 @@ export async function updateTrayMenu(): Promise<void> {
   ]);
 }
 
-/**
- * Handle theme change from tray menu
- * @param theme - New theme mode
- */
 async function handleThemeChange(theme: ThemeMode): Promise<void> {
   setTheme(theme);
-  await updateTrayMenu();
+  await refreshTrayMenu();
   notifyRendererThemeChanged(theme);
 }
 
-/**
- * Handle language change from tray menu
- * @param language - New language mode
- */
 async function handleLanguageChange(language: LanguageMode): Promise<void> {
   setLanguage(language);
-  await updateTrayMenu();
+  await refreshTrayMenu();
   notifyRendererLanguageChanged(language);
 }
 
-/**
- * Handle auto-launch change from tray menu
- * @param enabled - Enable or disable auto-launch
- */
 async function handleAutoLaunchChange(enabled: boolean): Promise<void> {
   const success = await setAutoLaunch(enabled);
   if (success) {
-    await updateTrayMenu();
+    await refreshTrayMenu();
   }
 }
 
-/**
- * Notify renderer process of theme change
- * @param theme - New theme mode
- */
 function notifyRendererThemeChanged(theme: ThemeMode): void {
   const win = getWindow();
   if (win) {
@@ -209,10 +182,6 @@ function notifyRendererThemeChanged(theme: ThemeMode): void {
   }
 }
 
-/**
- * Notify renderer process of language change
- * @param language - New language mode
- */
 function notifyRendererLanguageChanged(language: LanguageMode): void {
   const win = getWindow();
   if (win) {
@@ -220,31 +189,16 @@ function notifyRendererLanguageChanged(language: LanguageMode): void {
   }
 }
 
-/**
- * Get tray instance
- * @returns Tray instance or null
- */
-export function getTray(): Tray | null {
-  return tray;
-}
-
-/**
- * Handle tray icon click
- * If window is already visible, hide it; otherwise show it below tray icon
- */
 function handleTrayClick(): void {
   const win = getWindow();
   if (win && win.isVisible()) {
     hideWindow();
   } else {
-    handleShowWindowBelowTray();
+    showWindowBelowTray();
   }
 }
 
-/**
- * Handle showing window below tray icon
- */
-export function handleShowWindowBelowTray(): void {
+function showWindowBelowTray(): void {
   const win = getWindow();
   if (win && tray) {
     positionWindowBelowTray(win, tray);
@@ -252,9 +206,6 @@ export function handleShowWindowBelowTray(): void {
   showWindow();
 }
 
-/**
- * Confirm quit application
- */
 export async function confirmQuit(): Promise<void> {
   hideWindow();
 

@@ -1,20 +1,18 @@
-import { ipcMain, clipboard, shell } from 'electron';
-import { hideWindow } from './window';
-import { confirmQuit } from './tray';
+import { clipboard, ipcMain, shell } from 'electron';
+
 import { IPC_CHANNELS } from '../shared/constants';
 import type { AppConfig, FormSettings } from '../shared/types';
-import { getConfig, updateFormSettings } from './config';
+import { readConfig, updateFormSettings } from './config';
 import { getCurrentLanguage } from './i18n';
+import { confirmQuit } from './tray';
+import { hideWindow } from './window';
 
-/**
- * Setup IPC message handlers
- */
-export function setupIPC(): void {
-  ipcMain.on(IPC_CHANNELS.HIDE, () => {
+export function registerIpcHandlers(): void {
+  ipcMain.on(IPC_CHANNELS.HIDE, (): void => {
     hideWindow();
   });
 
-  ipcMain.on(IPC_CHANNELS.QUIT, () => {
+  ipcMain.on(IPC_CHANNELS.QUIT, (): void => {
     void confirmQuit();
   });
 
@@ -31,7 +29,7 @@ export function setupIPC(): void {
   });
 
   ipcMain.handle(IPC_CHANNELS.GET_CONFIG, (): AppConfig => {
-    return getConfig();
+    return readConfig();
   });
 
   ipcMain.on(IPC_CHANNELS.UPDATE_FORM_SETTINGS, (_event, settings: Partial<FormSettings>): void => {

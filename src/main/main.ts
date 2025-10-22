@@ -1,47 +1,45 @@
 import { app, dialog } from 'electron';
-import { createWindow } from './window';
-import { createTray } from './tray';
-import { unregisterShortcuts } from './shortcut';
-import { setupIPC } from './ipc';
-import { initConfig } from './config';
-import { initUpdater } from './updater';
 
-process.on('uncaughtException', (err: Error) => {
-  dialog
+import { initConfig } from './config';
+import { registerIpcHandlers } from './ipc';
+import { unregisterGlobalShortcuts } from './shortcut';
+import { createTray } from './tray';
+import { initUpdater } from './updater';
+import { createWindow } from './window';
+
+process.on('uncaughtException', (error: Error) => {
+  void dialog
     .showMessageBox({
       type: 'error',
       title: 'Uncaught Exception',
-      message: err.message,
-      detail: err.stack || '',
+      message: error.message,
+      detail: error.stack ?? '',
     })
-    .then(() => {
-      app.quit();
+    .catch(dialogError => {
+      console.error('Failed to show error dialog:', dialogError);
     })
-    .catch((error: Error) => {
-      console.error('Failed to show error dialog:', error);
+    .finally(() => {
       app.quit();
     });
 });
 
-app
-  .whenReady()
-  .then(() => {
+async function boot(): Promise<void> {
+  try {
+    await app.whenReady();
+
     initConfig();
     initUpdater();
-
     createWindow();
     createTray();
-    setupIPC();
-  })
-  .catch((error: Error) => {
+    registerIpcHandlers();
+  } catch (error) {
     console.error('Failed to initialize app:', error);
     app.quit();
-  });
+  }
+}
 
-/**
- * Quit when all windows are closed (except on macOS)
- * macOS apps typically stay active until the user explicitly quits
- */
+void boot();
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -49,13 +47,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('will-quit', () => {
-  unregisterShortcuts();
+  unregisterGlobalShortcuts();
 });
 
-/**
- * macOS platform-specific settings
- * Hide Dock icon, app only shows in menu bar
- */
 if (process.platform === 'darwin' && app.dock) {
   app.dock.hide();
 }

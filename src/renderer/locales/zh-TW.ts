@@ -1,6 +1,3 @@
-/**
- * Traditional Chinese translations
- */
 export const zhTW = {
   app: {
     title: 'Flower Password',

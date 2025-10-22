@@ -1,17 +1,11 @@
-import { dialog, nativeImage, MessageBoxOptions, MessageBoxReturnValue } from 'electron';
 import * as path from 'node:path';
 
-import { ASSETS_PATH } from '../shared/constants';
+import { dialog, nativeImage, type MessageBoxOptions, type MessageBoxReturnValue } from 'electron';
 
-/**
- * Show message box with default app icon
- * Automatically adds the app icon to the dialog
- *
- * @param options - Message box options (icon will be auto-added)
- * @returns Promise resolving to user's response
- */
+import { ASSET_PATHS } from '../shared/constants';
+
 export async function showMessageBox(options: MessageBoxOptions): Promise<MessageBoxReturnValue> {
-  const iconPath = path.join(__dirname, ASSETS_PATH.DIALOG_ICON);
+  const iconPath = path.join(__dirname, ASSET_PATHS.DIALOG_ICON);
   const icon = nativeImage.createFromPath(iconPath);
 
   return dialog.showMessageBox({

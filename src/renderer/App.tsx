@@ -1,171 +1,158 @@
-import { useState, useEffect, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type JSX,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { fpCode } from 'flowerpassword.js';
-import { KEYBOARD_KEYS, ALLOWED_URL_PROTOCOLS } from '../shared/constants';
+
 import './styles/reset.less';
 import './styles/index.less';
 
 const PASSWORD_MIN_LENGTH = 6;
 const PASSWORD_MAX_LENGTH = 32;
-
-/**
- * Pre-computed password length options (6-32 characters)
- * Using a constant array to avoid recalculation on every render
- */
-const PASSWORD_LENGTH_OPTIONS = Array.from(
+const DEFAULT_PASSWORD_LENGTH = 16;
+const ENTER_KEY = 'Enter';
+const ALLOWED_PROTOCOLS = new Set(['https:', 'http:']);
+const PASSWORD_LENGTH_CHOICES = Array.from(
   { length: PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1 },
-  (_, i) => i + PASSWORD_MIN_LENGTH
+  (_, index) => index + PASSWORD_MIN_LENGTH
 );
 
-/**
- * Validate if URL is safe to open externally
- * @param url - URL string to validate
- * @returns True if URL is safe (http/https protocol only)
- */
-function validateExternalUrl(url: string): boolean {
+function isSafeExternalUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    return (ALLOWED_URL_PROTOCOLS as readonly string[]).includes(parsedUrl.protocol);
+    return ALLOWED_PROTOCOLS.has(parsedUrl.protocol);
   } catch {
     return false;
   }
 }
 
-/**
- * FlowerPassword main application component
- */
-export function App(): React.JSX.Element {
+export function App(): JSX.Element {
   const { t } = useTranslation();
-  const [password, setPassword] = useState<string>('');
-  const [key, setKey] = useState<string>('');
-  const [prefix, setPrefix] = useState<string>('');
-  const [suffix, setSuffix] = useState<string>('');
-  const [passwordLength, setPasswordLength] = useState<number>(16);
-  const [generatedPassword, setGeneratedPassword] = useState<string>(t('form.generateButton'));
+  const [password, setPassword] = useState('');
+  const [key, setKey] = useState('');
+  const [prefix, setPrefix] = useState('');
+  const [suffix, setSuffix] = useState('');
+  const [passwordLength, setPasswordLength] = useState(DEFAULT_PASSWORD_LENGTH);
+  const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
 
   const keyInputRef = useRef<HTMLInputElement>(null);
 
-  /**
-   * Generate password based on current form inputs
-   * @returns Generated password string or false if inputs are invalid
-   */
-  const generatePassword = useCallback((): string | false => {
+  const generatePassword = useCallback((): string | null => {
     if (!password || !key) {
-      return false;
+      return null;
     }
 
-    const distinguishCode = prefix + key + suffix;
-    const code = fpCode(password, distinguishCode, passwordLength);
-    return code;
+    const distinguishCode = `${prefix}${key}${suffix}`;
+    return fpCode(password, distinguishCode, passwordLength);
   }, [password, key, prefix, suffix, passwordLength]);
-
-  /**
-   * Copy password to clipboard and hide window
-   * Extracted to avoid duplication in handleCopyPassword and handleKeyPress
-   */
-  const copyPasswordAndHide = useCallback((code: string): void => {
-    window.electronAPI.writeText(code);
-    window.electronAPI.hide();
-  }, []);
 
   useEffect(() => {
     const code = generatePassword();
-    setGeneratedPassword(code !== false ? code : t('form.generateButton'));
+    setGenerateButtonLabel(code ?? t('form.generateButton'));
   }, [generatePassword, t]);
 
+  const copyAndHide = useCallback((code: string): void => {
+    window.rendererBridge.writeText(code);
+    window.rendererBridge.hide();
+  }, []);
+
   const handleClose = useCallback((): void => {
-    window.electronAPI.hide();
+    window.rendererBridge.hide();
   }, []);
 
   const handleCopyPassword = useCallback((): void => {
     const code = generatePassword();
-    if (code !== false) {
-      copyPasswordAndHide(code);
+    if (code) {
+      copyAndHide(code);
     }
-  }, [generatePassword, copyPasswordAndHide]);
+  }, [generatePassword, copyAndHide]);
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (event.key === KEYBOARD_KEYS.ENTER) {
-        event.preventDefault();
+      if (event.key !== ENTER_KEY) {
+        return;
+      }
 
-        const code = generatePassword();
-        if (code !== false) {
-          copyPasswordAndHide(code);
-        }
+      event.preventDefault();
+      const code = generatePassword();
+      if (code) {
+        copyAndHide(code);
       }
     },
-    [generatePassword, copyPasswordAndHide]
+    [generatePassword, copyAndHide]
   );
 
-  const handleExternalLink = useCallback((event: React.MouseEvent<HTMLAnchorElement>, url: string): void => {
+  const handleExternalLink = useCallback((event: MouseEvent<HTMLAnchorElement>, url: string): void => {
     event.preventDefault();
-    if (validateExternalUrl(url)) {
-      window.electronAPI.openExternal(url).catch((error: Error) => {
-        console.error('Failed to open external URL:', error);
-      });
+
+    if (!isSafeExternalUrl(url)) {
+      return;
+    }
+
+    window.rendererBridge.openExternal(url).catch(error => {
+      console.error('Failed to open external URL:', error);
+    });
+  }, []);
+
+  const loadInitialConfig = useCallback(async (): Promise<void> => {
+    try {
+      const config = await window.rendererBridge.getConfig();
+      setPasswordLength(config.formSettings.passwordLength);
+      setPrefix(config.formSettings.prefix);
+      setSuffix(config.formSettings.suffix);
+    } catch (error) {
+      console.error('Failed to load config:', error);
     }
   }, []);
 
-  /**
-   * Load configuration on component mount
-   */
   useEffect(() => {
-    window.electronAPI
-      .getConfig()
-      .then(config => {
-        setPasswordLength(config.formSettings.passwordLength);
-        setPrefix(config.formSettings.prefix);
-        setSuffix(config.formSettings.suffix);
-      })
-      .catch((error: Error) => {
-        console.error('Failed to load config:', error);
-      });
+    void loadInitialConfig();
+  }, [loadInitialConfig]);
+
+  const handleClipboardKey = useCallback((value: string): void => {
+    setKey(value);
   }, []);
 
-  /**
-   * Listen to clipboard domain extraction and window shown event
-   */
+  const handleWindowShown = useCallback((): void => {
+    keyInputRef.current?.focus();
+  }, []);
+
   useEffect(() => {
-    const handleClipboardKey = (message: string): void => {
-      setKey(message);
-    };
+    window.rendererBridge.onKeyFromClipboard(handleClipboardKey);
+    window.rendererBridge.onWindowShown(handleWindowShown);
+  }, [handleClipboardKey, handleWindowShown]);
 
-    const handleWindowShown = (): void => {
-      keyInputRef.current?.focus();
-    };
-
-    window.electronAPI.onKeyFromClipboard(handleClipboardKey);
-    window.electronAPI.onWindowShown(handleWindowShown);
-
-    // No cleanup needed: listener lifetime matches app lifetime
-    // (App component never unmounts in this single-window application)
+  const handlePasswordChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
+    setPassword(event.target.value);
   }, []);
 
-  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    setPassword(e.target.value);
+  const handleKeyChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
+    setKey(event.target.value);
   }, []);
 
-  const handleKeyChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    setKey(e.target.value);
-  }, []);
-
-  const handlePrefixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    const newPrefix = e.target.value;
+  const handlePrefixChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
+    const newPrefix = event.target.value;
     setPrefix(newPrefix);
-    window.electronAPI.updateFormSettings({ prefix: newPrefix });
+    window.rendererBridge.updateFormSettings({ prefix: newPrefix });
   }, []);
 
-  const handleSuffixChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    const newSuffix = e.target.value;
+  const handleSuffixChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
+    const newSuffix = event.target.value;
     setSuffix(newSuffix);
-    window.electronAPI.updateFormSettings({ suffix: newSuffix });
+    window.rendererBridge.updateFormSettings({ suffix: newSuffix });
   }, []);
 
-  const handlePasswordLengthChange = useCallback((e: ChangeEvent<HTMLSelectElement>): void => {
-    const newLength = parseInt(e.target.value, 10);
+  const handlePasswordLengthChange = useCallback((event: ChangeEvent<HTMLSelectElement>): void => {
+    const newLength = Number.parseInt(event.target.value, 10);
     setPasswordLength(newLength);
-    window.electronAPI.updateFormSettings({ passwordLength: newLength });
+    window.rendererBridge.updateFormSettings({ passwordLength: newLength });
   }, []);
 
   return (
@@ -211,7 +198,7 @@ export function App(): React.JSX.Element {
 
       <div className="app__controls">
         <button className="app__generate-btn" tabIndex={3} onClick={handleCopyPassword}>
-          {generatedPassword}
+          {generateButtonLabel}
         </button>
         <select
           className="app__length-select"
@@ -219,9 +206,9 @@ export function App(): React.JSX.Element {
           value={passwordLength}
           onChange={handlePasswordLengthChange}
         >
-          {PASSWORD_LENGTH_OPTIONS.map(len => (
-            <option key={len} value={len}>
-              {len.toString().padStart(2, '0')}
+          {PASSWORD_LENGTH_CHOICES.map(length => (
+            <option key={length} value={length}>
+              {length.toString().padStart(2, '0')}
               {t('form.lengthUnit')}
             </option>
           ))}
@@ -259,7 +246,7 @@ export function App(): React.JSX.Element {
           target="_blank"
           rel="noopener noreferrer"
           tabIndex={7}
-          onClick={e => handleExternalLink(e, 'https://flowerpassword.com/')}
+          onClick={event => handleExternalLink(event, 'https://flowerpassword.com/')}
         >
           https://flowerpassword.com/
         </a>

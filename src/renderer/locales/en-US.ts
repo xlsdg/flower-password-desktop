@@ -1,6 +1,3 @@
-/**
- * English translations
- */
 export const enUS = {
   app: {
     title: 'Flower Password',
