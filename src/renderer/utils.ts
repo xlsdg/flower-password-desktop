@@ -27,7 +27,7 @@ function refreshDocumentMetadata(): void {
   document.title = title;
 
   const metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) {
+  if (metaDescription !== null) {
     metaDescription.setAttribute('content', description);
   }
 }

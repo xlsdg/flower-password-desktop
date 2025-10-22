@@ -50,6 +50,6 @@ app.on('will-quit', () => {
   unregisterGlobalShortcuts();
 });
 
-if (process.platform === 'darwin' && app.dock) {
+if (process.platform === 'darwin' && app.dock !== undefined) {
   app.dock.hide();
 }

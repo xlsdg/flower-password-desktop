@@ -45,7 +45,7 @@ export function App(): JSX.Element {
   const keyInputRef = useRef<HTMLInputElement>(null);
 
   const generatePassword = useCallback((): string | null => {
-    if (!password || !key) {
+    if (password.length === 0 || key.length === 0) {
       return null;
     }
 
@@ -69,7 +69,7 @@ export function App(): JSX.Element {
 
   const handleCopyPassword = useCallback((): void => {
     const code = generatePassword();
-    if (code) {
+    if (code !== null) {
       copyAndHide(code);
     }
   }, [generatePassword, copyAndHide]);
@@ -82,7 +82,7 @@ export function App(): JSX.Element {
 
       event.preventDefault();
       const code = generatePassword();
-      if (code) {
+      if (code !== null) {
         copyAndHide(code);
       }
     },

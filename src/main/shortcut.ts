@@ -59,7 +59,7 @@ export async function promptShortcutSelection(): Promise<void> {
   }
 
   const newShortcut = alternativeShortcuts[result.response];
-  if (!newShortcut) {
+  if (newShortcut === undefined) {
     return;
   }
 

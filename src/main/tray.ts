@@ -28,11 +28,11 @@ export function createTray(): Tray {
   });
   tray.on('right-click', () => {
     const win = getWindow();
-    if (win && win.isVisible()) {
+    if (win !== null && win.isVisible()) {
       hideWindow();
     }
 
-    if (tray && contextMenu) {
+    if (tray !== null && contextMenu !== null) {
       tray.popUpContextMenu(contextMenu);
     }
   });
@@ -177,21 +177,21 @@ async function handleAutoLaunchChange(enabled: boolean): Promise<void> {
 
 function notifyRendererThemeChanged(theme: ThemeMode): void {
   const win = getWindow();
-  if (win) {
+  if (win !== null) {
     win.webContents.send(IPC_CHANNELS.THEME_CHANGED, theme);
   }
 }
 
 function notifyRendererLanguageChanged(language: LanguageMode): void {
   const win = getWindow();
-  if (win) {
+  if (win !== null) {
     win.webContents.send(IPC_CHANNELS.LANGUAGE_CHANGED, language);
   }
 }
 
 function handleTrayClick(): void {
   const win = getWindow();
-  if (win && win.isVisible()) {
+  if (win !== null && win.isVisible()) {
     hideWindow();
   } else {
     showWindowBelowTray();
@@ -200,7 +200,7 @@ function handleTrayClick(): void {
 
 function showWindowBelowTray(): void {
   const win = getWindow();
-  if (win && tray) {
+  if (win !== null && tray !== null) {
     positionWindowBelowTray(win, tray);
   }
   showWindow();

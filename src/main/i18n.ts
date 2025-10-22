@@ -48,7 +48,10 @@ export function applyLanguage(language: LanguageMode): void {
 
 export function t(key: string, replacements: Record<string, string> = {}): string {
   const value = key.split('.').reduce<unknown>((obj, k) => {
-    return obj && typeof obj === 'object' && k in obj ? (obj as Record<string, unknown>)[k] : undefined;
+    if (obj !== null && typeof obj === 'object' && k in (obj as Record<string, unknown>)) {
+      return (obj as Record<string, unknown>)[k];
+    }
+    return undefined;
   }, translations[currentLanguage]);
 
   if (typeof value === 'string') {

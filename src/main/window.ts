@@ -34,17 +34,21 @@ export function getWindow(): BrowserWindow | null {
 
 export function showWindow(): void {
   forwardClipboardDomain();
-  mainWindow?.show();
-  mainWindow?.focus();
-  mainWindow?.webContents.send(IPC_CHANNELS.WINDOW_SHOWN);
+  if (mainWindow !== null) {
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.webContents.send(IPC_CHANNELS.WINDOW_SHOWN);
+  }
 }
 
 export function hideWindow(): void {
-  mainWindow?.hide();
+  if (mainWindow !== null) {
+    mainWindow.hide();
+  }
 }
 
 export function showWindowAtCursor(): void {
-  if (!mainWindow) {
+  if (mainWindow === null) {
     return;
   }
 
@@ -64,7 +68,7 @@ function configurePlatformWindowBehavior(window: BrowserWindow): void {
 }
 
 function loadRendererEntry(window: BrowserWindow): void {
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (typeof MAIN_WINDOW_VITE_DEV_SERVER_URL === 'string') {
     void window.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     return;
   }
@@ -74,19 +78,21 @@ function loadRendererEntry(window: BrowserWindow): void {
 
 function forwardClipboardDomain(): void {
   const clipboardText = clipboard.readText('clipboard');
-  if (!clipboardText) {
+  if (clipboardText.length === 0) {
     return;
   }
 
   try {
     const { hostname } = new URL(clipboardText);
-    if (!hostname || !psl.isValid(hostname)) {
+    if (hostname.length === 0 || !psl.isValid(hostname)) {
       return;
     }
 
     const parsed = psl.parse(hostname) as ParsedDomain | null;
-    if (parsed?.sld) {
-      mainWindow?.webContents.send(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
+    if (parsed !== null && typeof parsed.sld === 'string' && parsed.sld.length > 0) {
+      if (mainWindow !== null) {
+        mainWindow.webContents.send(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
+      }
     }
   } catch (error) {
     if (isDevelopment) {
@@ -96,7 +102,7 @@ function forwardClipboardDomain(): void {
 }
 
 function handleBlur(): void {
-  if (!mainWindow) {
+  if (mainWindow === null) {
     return;
   }
 

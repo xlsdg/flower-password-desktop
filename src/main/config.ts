@@ -171,7 +171,7 @@ function defaultConfig(): AppConfig {
 }
 
 function ensureAutoLauncher(): AutoLaunch {
-  if (!autoLauncher) {
+  if (autoLauncher === null) {
     autoLauncher = new AutoLaunch({
       name: 'FlowerPassword',
       path: app.getPath('exe'),

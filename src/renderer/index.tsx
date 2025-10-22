@@ -27,7 +27,7 @@ async function bootstrap(): Promise<void> {
     await prepareRenderer();
 
     const rootElement = document.getElementById('root');
-    if (!rootElement) {
+    if (rootElement === null) {
       throw new Error('Root element not found');
     }
 
@@ -48,4 +48,3 @@ if (document.readyState === 'loading') {
 } else {
   void bootstrap();
 }
-
