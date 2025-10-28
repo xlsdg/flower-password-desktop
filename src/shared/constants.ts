@@ -24,7 +24,7 @@ export const MAIN_WINDOW_OPTIONS = {
 } as const;
 
 export const ASSET_PATHS = {
-  TRAY_ICON: isDevelopment ? '../../public/IconTemplate.png' : '../renderer/IconTemplate.png',
+  TRAY_ICON: isDevelopment ? '../../public/Tray.png' : '../renderer/Tray.png',
   DIALOG_ICON: isDevelopment ? '../../public/Icon.png' : '../renderer/Icon.png',
 } as const;
 
