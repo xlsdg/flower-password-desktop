@@ -4,7 +4,6 @@ import { initConfig } from './config';
 import { registerIpcHandlers } from './ipc';
 import { unregisterGlobalShortcuts } from './shortcut';
 import { createTray } from './tray';
-import { initUpdater } from './updater';
 import { createWindow } from './window';
 
 process.on('uncaughtException', (error: Error) => {
@@ -28,7 +27,6 @@ async function boot(): Promise<void> {
     await app.whenReady();
 
     initConfig();
-    initUpdater();
     createWindow();
     createTray();
     registerIpcHandlers();

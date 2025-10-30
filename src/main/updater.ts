@@ -1,57 +1,36 @@
-import { app } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import { app, shell } from 'electron';
 
 import { showMessageBox } from './dialog';
 import { t } from './i18n';
 
 let isCheckingForUpdates = false;
 
-export function initUpdater(): void {
-  if (!app.isPackaged) {
-    return;
+interface GitHubRelease {
+  tag_name: string;
+  html_url: string;
+  name: string;
+  body: string;
+}
+
+/**
+ * Compare two semantic version strings
+ * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+ */
+function compareVersions(v1: string, v2: string): number {
+  const parts1 = v1.replace(/^v/, '').split('.').map(Number);
+  const parts2 = v2.replace(/^v/, '').split('.').map(Number);
+
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const part1 = parts1[i] ?? 0;
+    const part2 = parts2[i] ?? 0;
+
+    if (part1 > part2) return 1;
+    if (part1 < part2) return -1;
   }
 
-  autoUpdater.setFeedURL({
-    provider: 'github',
-    owner: 'xlsdg',
-    repo: 'flower-password-desktop',
-  });
-
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = true;
-
-  autoUpdater.on('error', (error: Error) => {
-    console.error('Update error:', error);
-    if (isCheckingForUpdates) {
-      void showUpdateError(error.message);
-      isCheckingForUpdates = false;
-    }
-  });
-
-  autoUpdater.on('update-available', info => {
-    console.warn('Update available:', info.version);
-    isCheckingForUpdates = false;
-    void showUpdateAvailable(info.version);
-  });
-
-  autoUpdater.on('update-not-available', info => {
-    console.warn('Update not available. Current version:', info.version);
-    if (isCheckingForUpdates) {
-      void showNoUpdate(info.version);
-      isCheckingForUpdates = false;
-    }
-  });
-
-  autoUpdater.on('download-progress', progressInfo => {
-    const percent = Math.round(progressInfo.percent);
-    console.warn(`Download progress: ${percent}%`);
-  });
-
-  autoUpdater.on('update-downloaded', info => {
-    console.warn('Update downloaded:', info.version);
-    void showUpdateDownloaded(info.version);
-  });
+  return 0;
 }
+
 export async function checkForUpdates(): Promise<void> {
   if (isCheckingForUpdates) {
     return;
@@ -60,31 +39,49 @@ export async function checkForUpdates(): Promise<void> {
   isCheckingForUpdates = true;
 
   try {
-    await autoUpdater.checkForUpdates();
+    const response = await fetch('https://api.github.com/repos/xlsdg/flower-password-desktop/releases/latest');
+
+    if (!response.ok) {
+      throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
+    }
+
+    const release = (await response.json()) as GitHubRelease;
+    const latestVersion = release.tag_name.replace(/^v/, '');
+    const currentVersion = app.getVersion();
+
+    const comparison = compareVersions(latestVersion, currentVersion);
+
+    if (comparison > 0) {
+      await showUpdateAvailable(latestVersion, release.html_url);
+    } else {
+      await showNoUpdate(currentVersion);
+    }
   } catch (error) {
     console.error('Failed to check for updates:', error);
-    isCheckingForUpdates = false;
     void showUpdateError(error instanceof Error ? error.message : String(error));
+  } finally {
+    isCheckingForUpdates = false;
   }
 }
 
-async function showUpdateAvailable(version: string): Promise<void> {
+async function showUpdateAvailable(latestVersion: string, releaseUrl: string): Promise<void> {
   const currentVersion = app.getVersion();
 
   const result = await showMessageBox({
     type: 'info',
-    buttons: [t('dialog.update.download'), t('dialog.update.cancel')],
+    buttons: [t('dialog.update.ok'), t('dialog.update.cancel')],
     defaultId: 0,
     title: t('dialog.update.available.title'),
-    message: t('dialog.update.available.message', { current: currentVersion, latest: version }),
+    message: t('dialog.update.available.message', { current: currentVersion, latest: latestVersion }),
     detail: t('dialog.update.available.detail'),
     cancelId: 1,
   });
 
   if (result.response === 0) {
-    void downloadUpdate();
+    await shell.openExternal(releaseUrl);
   }
 }
+
 async function showNoUpdate(version: string): Promise<void> {
   await showMessageBox({
     type: 'info',
@@ -95,21 +92,7 @@ async function showNoUpdate(version: string): Promise<void> {
     detail: t('dialog.update.message', { version }),
   });
 }
-async function showUpdateDownloaded(version: string): Promise<void> {
-  const result = await showMessageBox({
-    type: 'info',
-    buttons: [t('dialog.update.downloaded.install'), t('dialog.update.downloaded.later')],
-    defaultId: 0,
-    title: t('dialog.update.downloaded.title'),
-    message: t('dialog.update.downloaded.message', { version }),
-    detail: t('dialog.update.downloaded.detail'),
-    cancelId: 1,
-  });
 
-  if (result.response === 0) {
-    autoUpdater.quitAndInstall(false, true);
-  }
-}
 async function showUpdateError(errorMessage: string): Promise<void> {
   await showMessageBox({
     type: 'error',
@@ -119,21 +102,4 @@ async function showUpdateError(errorMessage: string): Promise<void> {
     message: t('dialog.update.error.message'),
     detail: errorMessage,
   });
-}
-async function downloadUpdate(): Promise<void> {
-  void showMessageBox({
-    type: 'info',
-    buttons: [t('dialog.update.ok')],
-    defaultId: 0,
-    title: t('dialog.update.downloading.title'),
-    message: t('dialog.update.downloading.message'),
-    detail: t('dialog.update.downloading.detail'),
-  });
-
-  try {
-    await autoUpdater.downloadUpdate();
-  } catch (error) {
-    console.error('Failed to download update:', error);
-    void showUpdateError(error instanceof Error ? error.message : String(error));
-  }
 }

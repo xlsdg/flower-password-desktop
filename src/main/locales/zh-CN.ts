@@ -34,27 +34,14 @@ export const zhCN = {
       title: '检查更新',
       message: '当前版本：{version}',
       ok: '确定',
-      download: '下载',
       cancel: '取消',
       available: {
         title: '发现新版本',
         message: '发现新版本！\n\n当前版本：{current}\n最新版本：{latest}',
-        detail: '是否立即下载更新？',
+        detail: '点击确定将打开浏览器，跳转到下载页面。',
       },
       noUpdate: {
         message: '您正在使用最新版本。',
-      },
-      downloading: {
-        title: '正在下载更新',
-        message: '正在后台下载更新...',
-        detail: '下载完成后将通知您。',
-      },
-      downloaded: {
-        title: '更新已就绪',
-        message: '版本 {version} 已下载完成。',
-        detail: '是否立即重启并安装更新？',
-        install: '重启并安装',
-        later: '稍后',
       },
       error: {
         title: '更新错误',

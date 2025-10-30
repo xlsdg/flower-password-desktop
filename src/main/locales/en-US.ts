@@ -35,27 +35,14 @@ export const enUS = {
       title: 'Check for Updates',
       message: 'Current version: {version}',
       ok: 'OK',
-      download: 'Download',
       cancel: 'Cancel',
       available: {
         title: 'Update Available',
         message: 'A new version is available!\n\nCurrent: {current}\nLatest: {latest}',
-        detail: 'Would you like to download the update now?',
+        detail: 'Click OK to open the download page in your browser.',
       },
       noUpdate: {
         message: 'You are using the latest version.',
-      },
-      downloading: {
-        title: 'Downloading Update',
-        message: 'Downloading update in the background...',
-        detail: 'You will be notified when the download is complete.',
-      },
-      downloaded: {
-        title: 'Update Ready',
-        message: 'Version {version} has been downloaded.',
-        detail: 'Restart now to install the update?',
-        install: 'Restart & Install',
-        later: 'Later',
       },
       error: {
         title: 'Update Error',
