@@ -1,4 +1,4 @@
-import { clipboard, ipcMain, shell } from 'electron';
+import { ipcMain, shell } from 'electron';
 
 import { IPC_CHANNELS } from '../shared/constants';
 import type { AppConfig, FormSettings } from '../shared/types';
@@ -6,6 +6,7 @@ import { readConfig, updateFormSettings } from './config';
 import { getCurrentLanguage } from './i18n';
 import { confirmQuit } from './tray';
 import { hideWindow } from './window';
+import { clipboardManager } from './clipboard';
 
 export function registerIpcHandlers(): void {
   ipcMain.on(IPC_CHANNELS.HIDE, (): void => {
@@ -17,7 +18,7 @@ export function registerIpcHandlers(): void {
   });
 
   ipcMain.on(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, (_event, text: string): void => {
-    clipboard.writeText(text);
+    clipboardManager.writeText(text);
   });
 
   ipcMain.handle(IPC_CHANNELS.SHELL_OPEN_EXTERNAL, async (_event, url: string): Promise<void> => {

@@ -5,6 +5,7 @@ import { registerIpcHandlers } from './ipc';
 import { unregisterGlobalShortcuts } from './shortcut';
 import { createTray } from './tray';
 import { createWindow } from './window';
+import { clipboardManager } from './clipboard';
 
 process.on('uncaughtException', (error: Error) => {
   void dialog
@@ -46,6 +47,7 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
   unregisterGlobalShortcuts();
+  clipboardManager.clearTimer();
 });
 
 if (process.platform === 'darwin' && app.dock !== undefined) {

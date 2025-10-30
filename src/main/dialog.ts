@@ -8,8 +8,10 @@ export async function showMessageBox(options: MessageBoxOptions): Promise<Messag
   const iconPath = path.join(__dirname, ASSET_PATHS.DIALOG_ICON);
   const icon = nativeImage.createFromPath(iconPath);
 
-  return dialog.showMessageBox({
-    ...options,
-    icon: icon.isEmpty() ? undefined : icon,
-  });
+  const messageBoxOptions: MessageBoxOptions = { ...options };
+  if (!icon.isEmpty()) {
+    messageBoxOptions.icon = icon;
+  }
+
+  return dialog.showMessageBox(messageBoxOptions);
 }
