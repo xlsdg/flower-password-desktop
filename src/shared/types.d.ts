@@ -9,10 +9,10 @@ export interface RendererBridge {
   openExternal(url: string): Promise<void>;
   getSystemLocale(): Promise<string>;
   getConfig(): Promise<AppConfig>;
-  onKeyFromClipboard(callback: (value: string) => void): void;
-  onWindowShown(callback: () => void): void;
-  onThemeChanged(callback: (theme: ThemeMode) => void): void;
-  onLanguageChanged(callback: (language: LanguageMode) => void): void;
+  onKeyFromClipboard(callback: (value: string) => void): () => void;
+  onWindowShown(callback: () => void): () => void;
+  onThemeChanged(callback: (theme: ThemeMode) => void): () => void;
+  onLanguageChanged(callback: (language: LanguageMode) => void): () => void;
   updateFormSettings(settings: Partial<FormSettings>): void;
 }
 

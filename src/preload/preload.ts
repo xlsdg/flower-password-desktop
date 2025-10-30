@@ -31,28 +31,48 @@ const rendererBridge: RendererBridge = {
     return ipcRenderer.invoke(IPC_CHANNELS.GET_SYSTEM_LOCALE);
   },
 
-  onKeyFromClipboard(callback: (value: string) => void): void {
-    ipcRenderer.on(IPC_CHANNELS.KEY_FROM_CLIPBOARD, (_event, value: string) => {
+  onKeyFromClipboard(callback: (value: string) => void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, value: string): void => {
       callback(value);
-    });
+    };
+    ipcRenderer.on(IPC_CHANNELS.KEY_FROM_CLIPBOARD, listener);
+
+    return (): void => {
+      ipcRenderer.off(IPC_CHANNELS.KEY_FROM_CLIPBOARD, listener);
+    };
   },
 
-  onLanguageChanged(callback: (language: LanguageMode) => void): void {
-    ipcRenderer.on(IPC_CHANNELS.LANGUAGE_CHANGED, (_event, language: LanguageMode) => {
+  onLanguageChanged(callback: (language: LanguageMode) => void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, language: LanguageMode): void => {
       callback(language);
-    });
+    };
+    ipcRenderer.on(IPC_CHANNELS.LANGUAGE_CHANGED, listener);
+
+    return (): void => {
+      ipcRenderer.off(IPC_CHANNELS.LANGUAGE_CHANGED, listener);
+    };
   },
 
-  onThemeChanged(callback: (theme: ThemeMode) => void): void {
-    ipcRenderer.on(IPC_CHANNELS.THEME_CHANGED, (_event, theme: ThemeMode) => {
+  onThemeChanged(callback: (theme: ThemeMode) => void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, theme: ThemeMode): void => {
       callback(theme);
-    });
+    };
+    ipcRenderer.on(IPC_CHANNELS.THEME_CHANGED, listener);
+
+    return (): void => {
+      ipcRenderer.off(IPC_CHANNELS.THEME_CHANGED, listener);
+    };
   },
 
-  onWindowShown(callback: () => void): void {
-    ipcRenderer.on(IPC_CHANNELS.WINDOW_SHOWN, () => {
+  onWindowShown(callback: () => void): () => void {
+    const listener = (): void => {
       callback();
-    });
+    };
+    ipcRenderer.on(IPC_CHANNELS.WINDOW_SHOWN, listener);
+
+    return (): void => {
+      ipcRenderer.off(IPC_CHANNELS.WINDOW_SHOWN, listener);
+    };
   },
 };
 

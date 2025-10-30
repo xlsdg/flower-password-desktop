@@ -151,8 +151,13 @@ export function App(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    window.rendererBridge.onKeyFromClipboard(handleClipboardKey);
-    window.rendererBridge.onWindowShown(handleWindowShown);
+    const unsubscribeKeyFromClipboard = window.rendererBridge.onKeyFromClipboard(handleClipboardKey);
+    const unsubscribeWindowShown = window.rendererBridge.onWindowShown(handleWindowShown);
+
+    return (): void => {
+      unsubscribeKeyFromClipboard();
+      unsubscribeWindowShown();
+    };
   }, [handleClipboardKey, handleWindowShown]);
 
   const handlePasswordChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {

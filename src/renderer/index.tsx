@@ -13,12 +13,17 @@ async function prepareRenderer(): Promise<void> {
   await applyLanguage(config.language);
   applyTheme(config.theme);
 
-  window.rendererBridge.onLanguageChanged((language: LanguageMode) => {
+  const unsubscribeLanguage = window.rendererBridge.onLanguageChanged((language: LanguageMode) => {
     void applyLanguage(language);
   });
 
-  window.rendererBridge.onThemeChanged((theme: ThemeMode) => {
+  const unsubscribeTheme = window.rendererBridge.onThemeChanged((theme: ThemeMode) => {
     applyTheme(theme);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    unsubscribeLanguage();
+    unsubscribeTheme();
   });
 }
 
