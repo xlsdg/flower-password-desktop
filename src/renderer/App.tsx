@@ -220,6 +220,10 @@ export function App(): JSX.Element {
           tabIndex={1}
           value={password}
           onChange={handlePasswordChange}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
       </div>
 
@@ -234,6 +238,10 @@ export function App(): JSX.Element {
           value={key}
           onChange={handleKeyChange}
           onKeyDown={handleKeyPress}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
       </div>
 
@@ -271,6 +279,10 @@ export function App(): JSX.Element {
           tabIndex={5}
           value={prefix}
           onChange={handlePrefixChange}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
         <input
           className="app__input app__input--suffix"
@@ -280,6 +292,10 @@ export function App(): JSX.Element {
           tabIndex={6}
           value={suffix}
           onChange={handleSuffixChange}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
       </div>
 
