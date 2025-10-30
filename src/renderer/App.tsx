@@ -147,6 +147,7 @@ export function App(): JSX.Element {
       passwordInputRef.current?.focus();
     } else {
       keyInputRef.current?.focus();
+      keyInputRef.current?.select();
     }
   }, []);
 
