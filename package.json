@@ -1,7 +1,7 @@
 {
   "name": "FlowerPassword",
   "productName": "FlowerPassword",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "flower password electron app",
   "main": ".vite/build/main.js",
   "scripts": {
