@@ -41,6 +41,7 @@ export function App(): JSX.Element {
   const [suffix, setSuffix] = useState('');
   const [passwordLength, setPasswordLength] = useState(DEFAULT_PASSWORD_LENGTH);
   const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const keyInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,10 +54,25 @@ export function App(): JSX.Element {
     return fpCode(password, distinguishCode, passwordLength);
   }, [password, key, prefix, suffix, passwordLength]);
 
+  const maskPassword = useCallback((pwd: string): string => {
+    if (pwd.length <= 4) {
+      return '•'.repeat(pwd.length);
+    }
+    const start = pwd.slice(0, 2);
+    const end = pwd.slice(-2);
+    const middle = '•'.repeat(pwd.length - 4);
+    return `${start}${middle}${end}`;
+  }, []);
+
   useEffect(() => {
     const code = generatePassword();
-    setGenerateButtonLabel(code ?? t('form.generateButton'));
-  }, [generatePassword, t]);
+    if (code !== null) {
+      const displayLabel = isPasswordVisible ? code : maskPassword(code);
+      setGenerateButtonLabel(displayLabel);
+    } else {
+      setGenerateButtonLabel(t('form.generateButton'));
+    }
+  }, [generatePassword, isPasswordVisible, maskPassword, t]);
 
   const copyAndHide = useCallback((code: string): void => {
     window.rendererBridge.writeText(code);
@@ -155,6 +171,14 @@ export function App(): JSX.Element {
     window.rendererBridge.updateFormSettings({ passwordLength: newLength });
   }, []);
 
+  const handlePasswordMouseEnter = useCallback((): void => {
+    setIsPasswordVisible(true);
+  }, []);
+
+  const handlePasswordMouseLeave = useCallback((): void => {
+    setIsPasswordVisible(false);
+  }, []);
+
   return (
     <div className="app">
       <div className="app__header">
@@ -197,7 +221,13 @@ export function App(): JSX.Element {
       </div>
 
       <div className="app__controls">
-        <button className="app__generate-btn" tabIndex={3} onClick={handleCopyPassword}>
+        <button
+          className="app__generate-btn"
+          tabIndex={3}
+          onClick={handleCopyPassword}
+          onMouseEnter={handlePasswordMouseEnter}
+          onMouseLeave={handlePasswordMouseLeave}
+        >
           {generateButtonLabel}
         </button>
         <select
