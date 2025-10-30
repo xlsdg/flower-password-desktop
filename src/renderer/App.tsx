@@ -43,7 +43,13 @@ export function App(): JSX.Element {
   const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const keyInputRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef(password);
+
+  useEffect(() => {
+    passwordRef.current = password;
+  }, [password]);
 
   const generatePassword = useCallback((): string | null => {
     if (password.length === 0 || key.length === 0) {
@@ -137,7 +143,11 @@ export function App(): JSX.Element {
   }, []);
 
   const handleWindowShown = useCallback((): void => {
-    keyInputRef.current?.focus();
+    if (passwordRef.current.length === 0) {
+      passwordInputRef.current?.focus();
+    } else {
+      keyInputRef.current?.focus();
+    }
   }, []);
 
   useEffect(() => {
@@ -196,6 +206,7 @@ export function App(): JSX.Element {
 
       <div className="app__form-group">
         <input
+          ref={passwordInputRef}
           className="app__input app__input--password"
           name="password"
           type="password"
