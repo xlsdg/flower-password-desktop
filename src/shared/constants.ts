@@ -24,8 +24,8 @@ export const MAIN_WINDOW_OPTIONS = {
 } as const;
 
 export const ASSET_PATHS = {
-  TRAY_ICON: isDevelopment ? '../../public/Tray.png' : '../renderer/Tray.png',
-  DIALOG_ICON: isDevelopment ? '../../public/Icon.png' : '../renderer/Icon.png',
+  MONO_ICON: isDevelopment ? '../../public/Mono.png' : '../renderer/Mono.png',
+  COLOR_ICON: isDevelopment ? '../../public/Color.png' : '../renderer/Color.png',
 } as const;
 
 export const GLOBAL_SHORTCUTS = {

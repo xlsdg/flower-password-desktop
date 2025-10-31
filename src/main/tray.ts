@@ -16,7 +16,9 @@ let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
 
 export function createTray(): Tray {
-  const icon = nativeImage.createFromPath(path.join(__dirname, ASSET_PATHS.TRAY_ICON));
+  const iconPath = process.platform === 'win32' ? ASSET_PATHS.COLOR_ICON : ASSET_PATHS.MONO_ICON;
+  const icon = nativeImage.createFromPath(path.join(__dirname, iconPath));
+
   if (process.platform === 'darwin') {
     icon.setTemplateImage(true);
   }
