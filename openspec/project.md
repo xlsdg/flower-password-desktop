@@ -2,49 +2,38 @@
 
 ## Purpose
 
-FlowerPassword is a cross-platform desktop password manager application built with Electron. It provides a simple password management method where users only need to remember one "memory password" and set different "distinction codes" for different accounts. The app generates strong, unique passwords for each account through encryption algorithms.
+FlowerPassword is a cross-platform desktop application (macOS, Windows, Linux) that provides a deterministic password generation system. Users only need to remember one "memory password" and create different "distinguishing codes" for each account to generate unique, strong passwords. The application:
 
-**Core Functionality:**
-
-- Generate secure passwords using a master password + site-specific key
-- Global keyboard shortcut (Cmd+Alt+S on macOS) for quick access
-- System tray integration for easy access
-- Multi-language support (English, Simplified Chinese, Traditional Chinese)
-- Clipboard management with auto-clear functionality
-- Auto-launch on system startup
+- Generates consistent, cryptographically strong passwords from memory password + distinguishing code
+- Supports multi-language interface (English, Simplified Chinese, Traditional Chinese)
+- Provides global keyboard shortcut (Cmd+Alt+S) for quick access
+- Runs in system tray with minimal UI footprint
+- Manages clipboard security with automatic clearing
 
 ## Tech Stack
 
-### Core Technologies
+### Core Framework
 
-- **TypeScript 5.9+** - Strict type safety with exactOptionalPropertyTypes enabled
-- **Electron 38.4+** - Desktop application framework
-- **React 19.2** - UI framework with hooks-based architecture
-- **Vite 7.1+** - Build tool and dev server
+- **Electron 38**: Cross-platform desktop application framework
+- **React 19**: UI rendering with hooks and modern patterns
+- **TypeScript 5**: Strict type safety with enhanced compiler options
 
-### UI & Styling
+### Build & Development
 
-- **React 19.2** with JSX transform (`react-jsx`)
-- **Less** - CSS preprocessor for styling
-- **i18next & react-i18next** - Internationalization framework
+- **Vite 7**: Fast build tool and dev server
+- **Electron Forge**: Application packaging and distribution
+- **Electron Fuses**: Security hardening and configuration
+
+### Styling & UI
+
+- **Less**: CSS preprocessor for component styling
+- **React i18next**: Internationalization library
 
 ### Core Libraries
 
-- **flowerpassword.js 5.0+** - Password generation algorithm
-- **auto-launch 5.0+** - System startup integration
-- **psl 1.15+** - Public Suffix List for domain parsing
-
-### Build & Tooling
-
-- **Electron Forge 7.10+** - Building and packaging
-- **ESLint 9.38+** with TypeScript plugin - Linting
-- **Prettier 3.6+** - Code formatting
-
-### Supported Platforms
-
-- macOS (arm64 and x64)
-- Windows (x64 and ia32)
-- Linux (x64 and arm64)
+- **flowerpassword.js**: Password generation algorithm (deterministic password derivation)
+- **auto-launch**: System startup integration
+- **psl**: Public Suffix List for domain parsing
 
 ## Project Conventions
 
@@ -52,227 +41,186 @@ FlowerPassword is a cross-platform desktop password manager application built wi
 
 **TypeScript Configuration:**
 
-- Target: ES2022 with DOM and ES2022 lib
-- Strict mode enabled with additional strictness:
-  - `exactOptionalPropertyTypes: true`
-  - `noUncheckedIndexedAccess: true`
-  - `useUnknownInCatchVariables: true`
-  - `noUnusedLocals: true`
-  - `noUnusedParameters: true`
-  - `noImplicitReturns: true`
-  - `noFallthroughCasesInSwitch: true`
+- Strict mode enabled with additional strictness flags:
+  - `exactOptionalPropertyTypes`: true
+  - `noUncheckedIndexedAccess`: true
+  - `useUnknownInCatchVariables`: true
+- Explicit function return types required
+- No `any` types permitted
+- Strict boolean expressions (no truthy/falsy coercion)
+- Path alias: `@/*` maps to `./src/*`
+
+**Formatting (Prettier):**
+
+- Single quotes
+- 2-space indentation
+- Print width: 120 characters
+- Semicolons required
+- Arrow function parens: avoid
+- Trailing commas: ES5
+- End of line: LF
+
+**Linting (ESLint):**
+
+- TypeScript recommended rules + type-checking rules
+- Console statements: warn (except console.warn and console.error)
+- Unused parameters allowed if prefixed with underscore
+- No floating promises or unhandled async operations
+- No explicit any types
 
 **Naming Conventions:**
 
-- PascalCase for React components and TypeScript types/interfaces
-- camelCase for functions, variables, and file names (except components)
-- SCREAMING_SNAKE_CASE for constants
-- Kebab-case for OpenSpec change IDs
-- Files: `lowercase.ts` or `PascalCase.tsx` (for components)
-
-**Import Organization:**
-
-- React imports first
-- External libraries second
-- Internal modules/utils third
-- Styles last
-- Use type imports: `type JSX` from React
-
-**React Patterns:**
-
-- Functional components with hooks only
-- `useCallback` for event handlers
-- `useRef` for DOM references and stable values
-- `useEffect` for side effects and subscriptions
-- Export function components as named exports
-
-**Error Handling:**
-
-- Use try-catch with typed errors
-- Display user-friendly error dialogs for critical failures
-- Log errors to console for debugging
-- Graceful degradation where possible
+- Files: kebab-case (e.g., `main.ts`, `clipboard.ts`)
+- Components: PascalCase (e.g., `App.tsx`)
+- Constants: UPPER_SNAKE_CASE
+- Variables/Functions: camelCase
 
 ### Architecture Patterns
 
-**Electron Process Architecture:**
+**Electron Multi-Process Architecture:**
 
-- **Main Process** (`src/main/`): Node.js backend handling system integration
-  - `main.ts` - Application lifecycle and initialization
-  - `window.ts` - BrowserWindow management
-  - `tray.ts` - System tray integration
-  - `ipc.ts` - IPC handler registration
-  - `shortcut.ts` - Global keyboard shortcuts
-  - `clipboard.ts` - Clipboard operations with auto-clear
-  - `config.ts` - Application configuration
-  - `i18n.ts` - Backend internationalization
-  - `position.ts` - Window positioning logic
-  - `dialog.ts` - Native dialogs
-  - `updater.ts` - Auto-update functionality
+```
+src/
+├── main/          # Main process (Node.js environment)
+│   ├── main.ts    # Application entry point
+│   ├── window.ts  # Window management
+│   ├── tray.ts    # System tray integration
+│   ├── ipc.ts     # IPC handlers
+│   ├── config.ts  # Configuration management
+│   ├── clipboard.ts
+│   ├── shortcut.ts
+│   └── locales/   # Main process i18n
+├── preload/       # Preload script (IPC bridge)
+│   └── preload.ts # Exposes APIs to renderer
+├── renderer/      # Renderer process (Browser environment)
+│   ├── App.tsx    # Main React component
+│   ├── index.tsx  # React entry point
+│   ├── i18n.ts    # i18n configuration
+│   ├── locales/   # Renderer i18n
+│   └── styles/    # LESS stylesheets
+├── shared/        # Shared code between processes
+│   ├── types.d.ts # Common type definitions
+│   └── constants.ts
+└── types/         # Type declarations for libraries
+```
 
-- **Preload Script** (`src/preload/`): Context bridge for secure IPC
-  - Exposes safe `rendererBridge` API to renderer
+**Key Patterns:**
 
-- **Renderer Process** (`src/renderer/`): React-based UI
-  - `App.tsx` - Main application component
-  - `index.tsx` - React entry point
-  - `i18n.ts` - Frontend internationalization
-  - `utils.ts` - Utility functions
-  - `styles/` - Less stylesheets
-
-- **Shared** (`src/shared/`): Common types and constants
-  - `types.d.ts` - Shared TypeScript types
-  - `constants.ts` - Shared constants
-
-**State Management:**
-
-- Local component state with `useState`
-- Refs for stable references (`useRef`)
-- No external state management library (Redux, Zustand, etc.)
-
-**IPC Communication:**
-
-- Main → Renderer: Direct calls via context bridge
-- Renderer → Main: `ipcRenderer.invoke` with typed handlers
-- Preload script exposes limited, secure API surface
-
-**Security:**
-
-- Context isolation enabled
-- Node integration disabled in renderer
-- Preload script as sole bridge between processes
-- URL validation for external links (HTTPS/HTTP only)
+- **IPC Communication**: Renderer communicates with main process via preload bridge
+- **Configuration Persistence**: Electron Store for user preferences
+- **Global Shortcuts**: System-wide keyboard shortcuts for quick access
+- **Tray Application**: Runs in system tray, no dock icon on macOS
+- **Security**: Context isolation enabled, node integration disabled in renderer
 
 ### Testing Strategy
 
-**Current State:**
+Currently no automated testing framework configured. Manual testing approach:
 
-- No automated tests currently implemented
-- Manual testing for releases across platforms
-- Visual regression testing through screenshots
-
-**Future Considerations:**
-
-- Unit tests for password generation logic
-- Integration tests for IPC communication
-- E2E tests for critical user flows
+- Cross-platform builds verified on macOS, Windows, Linux
+- Multiple architectures: x64, arm64, ia32
+- Language switching validation
+- Clipboard management verification
+- Global shortcut testing
 
 ### Git Workflow
 
-**Branching:**
+**Branching Strategy:**
 
-- `main` - Production-ready code
-- `v4-claude` - Current development branch
-- Feature branches: `feature/[description]`
-- Bug fixes: `fix/[description]`
+- Main branch: `master`
+- Feature branches: descriptive names (e.g., `v4-claude` for major version work)
+- Development branches merged to master after review
 
-**Commits:**
+**Commit Conventions:**
 
-- Descriptive commit messages
-- Atomic commits (one logical change per commit)
+- Format: `<type>: <description>`
+- Types: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
+- Examples:
+  - `feat: add password input reference and focus management`
+  - `feat: disable autocomplete and spell check for input fields`
+  - `fix: update asset paths for tray and dialog icons`
 
 **Release Process:**
 
-- Version bumps in `package.json`
-- Build for all platforms (macOS, Windows, Linux)
-- Create GitHub releases with binaries
+- Version bumps in package.json
+- Tag releases with version numbers
+- Build artifacts for all platforms and architectures
 
 ## Domain Context
 
-**Password Generation Algorithm:**
+**Flower Password Algorithm:**
+The core concept is deterministic password generation:
 
-- Uses `flowerpassword.js` library implementing the "Flower Password" algorithm
-- Inputs: memory password + distinction code (prefix + key + suffix) + length
-- Output: Deterministic, cryptographically secure password
-- Length range: 6-32 characters (default: 16)
-- Same inputs always produce the same output (no randomness)
+1. User provides a "memory password" (master password they remember)
+2. User provides a "distinguishing code" (identifier for the service, e.g., "taobao", "gmail")
+3. Algorithm combines these inputs to generate a unique, strong password
+4. Same inputs always produce the same output (deterministic)
+5. Different distinguishing codes produce completely different passwords
 
-**User Workflow:**
+**Use Case:**
 
-1. User sets global shortcut or clicks tray icon
-2. Window appears (positioned near cursor or tray)
-3. User enters memory password (never stored)
-4. User enters distinction code (site identifier like "taobao", "tb", etc.)
-5. App generates password in real-time
-6. User clicks to copy, password copied to clipboard
-7. Window auto-hides
-8. Clipboard auto-clears after timeout
+- User only needs to remember one password
+- Each service gets a unique, strong password
+- No password storage required (passwords are generated on-demand)
+- If database is compromised, other accounts remain secure
 
 **Security Model:**
 
-- Zero knowledge: Master password never stored or transmitted
-- All computation happens locally
-- Clipboard auto-clear prevents password leakage
-- Password masking in UI (shows first/last 2 chars)
-
-**Internationalization:**
-
-- Three languages: en-US, zh-CN, zh-TW
-- Separate locale files for main and renderer processes
-- Language selection persists in config
-- RTL not required (all supported languages are LTR)
+- Passwords never stored, only generated
+- Clipboard auto-clear after configurable timeout
+- Memory password never leaves the application
+- Distinguishing codes can be simple memorable strings
 
 ## Important Constraints
 
-**Technical:**
+**Security Constraints:**
 
-- Must maintain Electron security best practices (context isolation, no nodeIntegration)
-- Must work offline (no network calls for password generation)
-- Must be lightweight and fast (< 100MB installed, < 500ms launch time)
-- Global shortcuts must not conflict with common OS/app shortcuts
+- Must never log or persist memory passwords
+- Clipboard must be cleared after password generation
+- No telemetry or analytics that could leak user data
+- Context isolation and node integration settings follow Electron security best practices
 
-**Platform-Specific:**
+**Platform Constraints:**
 
-- macOS: Proper app signing and notarization required for distribution
-- Windows: Code signing for avoiding security warnings
-- Linux: AppImage or deb/rpm packages
+- macOS: Hides dock icon, runs as menu bar app
+- Windows: Runs in system tray
+- Linux: System tray support varies by desktop environment
+- Global shortcuts may conflict with system or other apps
 
-**User Experience:**
+**Build Constraints:**
 
-- Window must appear instantly when triggered
-- Password generation must be real-time (no perceptible delay)
-- UI must be simple and uncluttered (single-window workflow)
-- Must support high-DPI displays
+- ASAR packaging enabled for performance
+- Code signing required for macOS distribution
+- Multiple architecture builds required (x64, arm64)
 
-**Privacy:**
+**UX Constraints:**
 
-- No telemetry or analytics
-- No network communication (except for update checks)
-- No password storage or logging
+- Minimal UI - quick in/out interaction model
+- Must support keyboard-only workflow
+- Language switching without restart
+- System startup integration optional
 
 ## External Dependencies
 
-**Core Libraries:**
+**Core Algorithm:**
 
-- `flowerpassword.js` - Password generation algorithm (critical)
-- `electron` - Desktop framework (critical)
-- `react` & `react-dom` - UI framework (critical)
+- `flowerpassword.js`: The password generation algorithm (maintained separately)
+  - GitHub: <https://github.com/xlsdg/flowerpassword.js>
+  - Deterministic password derivation function
+  - Must remain compatible with web and mobile versions
 
 **System Integration:**
 
-- `auto-launch` - System startup integration
-- `psl` - Public Suffix List for domain parsing (potential future use)
+- `auto-launch`: Cross-platform system startup integration
+- `psl`: Public Suffix List for domain parsing (helps with distinguishing code suggestions)
 
-**Internationalization:**
+**Official Resources:**
 
-- `i18next` - i18n framework
-- `react-i18next` - React bindings for i18next
-
-**Build Tools:**
-
-- `@electron-forge/*` - Build, package, and distribution
-- `vite` - Build tool and dev server
-- `@vitejs/plugin-react` - React plugin for Vite
-
-**Code Quality:**
-
-- `eslint` with TypeScript and Prettier plugins
-- `prettier` - Code formatting
-- `typescript` - Type checking
+- Website: <https://flowerpassword.com/>
+- Repository: <https://github.com/xlsdg/flower-password-desktop>
 
 **No External Services:**
 
-- No authentication services
-- No cloud storage or sync
-- No crash reporting services
-- No update server (using GitHub releases for updates)
+- Application is completely offline
+- No API calls or network requests
+- No update server (manual updates)
+- No crash reporting or analytics
