@@ -63,7 +63,14 @@ The system SHALL handle tray icon clicks to toggle window visibility, with platf
 #### Scenario: Click on macOS
 
 - **WHEN** user clicks tray icon on macOS
-- **THEN** context menu is displayed (macOS convention: no left/right distinction)
+- **THEN** window visibility is toggled (show if hidden, hide if visible)
+- **AND** behavior matches Windows/Linux left-click
+
+#### Scenario: Right-click on macOS
+
+- **WHEN** user right-clicks tray icon on macOS
+- **THEN** if window is visible, it is hidden first
+- **AND** context menu is displayed
 
 #### Scenario: Show hidden window via tray click
 

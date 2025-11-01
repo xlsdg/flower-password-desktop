@@ -78,28 +78,6 @@ The system SHALL prevent window close from terminating application.
 - **AND** window is destroyed
 - **AND** all resources are cleaned up
 
-### Requirement: Window Positioning
-
-The system SHALL manage window positioning across multiple displays.
-
-#### Scenario: Center window on first show
-
-- **WHEN** window is shown for the first time
-- **THEN** window is centered on primary display
-- **AND** position is calculated based on screen dimensions and window size
-
-#### Scenario: Remember window position
-
-- **WHEN** user moves window to custom position
-- **THEN** position is saved to configuration (optional enhancement)
-- **AND** on next show, window appears at saved position
-
-#### Scenario: Multi-monitor support
-
-- **WHEN** user has multiple displays
-- **THEN** window appears on display where last shown
-- **AND** if display is disconnected, window appears on primary display
-
 ### Requirement: Window Always-On-Top Behavior
 
 The system SHALL keep window above other applications on all platforms.

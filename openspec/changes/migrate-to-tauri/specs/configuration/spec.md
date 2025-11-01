@@ -91,3 +91,17 @@ The system SHALL propagate configuration changes to affected subsystems in real-
 - **THEN** Rust backend updates locale
 - **AND** tray menu items update to new language
 - **AND** frontend is notified to update UI
+
+#### Scenario: Theme configuration change
+
+- **WHEN** `set_config()` updates `theme` field
+- **THEN** Rust backend applies native theme (light/dark/auto)
+- **AND** tray menu is refreshed to reflect new theme selection
+- **AND** frontend is notified to update UI theme
+
+#### Scenario: AutoLaunch configuration change
+
+- **WHEN** `set_config()` updates `autoLaunch` field
+- **THEN** Rust backend enables or disables system startup registration
+- **AND** if operation fails, error is returned and previous state is maintained
+- **AND** tray menu is refreshed to reflect new autoLaunch status
