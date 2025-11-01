@@ -103,8 +103,10 @@ All core capabilities require specification updates:
 - **Development workflow**: New Rust toolchain requirement (rustc, cargo)
 - **Build process**: Different platform build commands and configuration
 - **Distribution**: Tauri-generated installers (DMG, MSI, AppImage, deb, rpm)
-- **Code signing**: Different approach for macOS/Windows signatures
 - **Update mechanism**: Manual update checker (same as current Electron version) - queries GitHub Releases API, shows dialog, opens release page in browser
+- **Code signing**: Not implemented in initial release (users may see security warnings on first run)
+- **Automatic updates**: Not implemented (users manually download new versions)
+- **Configuration**: Tauri and Electron apps maintain separate config files (no migration)
 
 ### Migration Risks
 
@@ -112,6 +114,83 @@ All core capabilities require specification updates:
 - **Platform parity**: Ensure system tray, shortcuts, and auto-launch work on all platforms (macOS, Windows, Linux)
 - **Development complexity**: Team needs Rust knowledge for backend maintenance
 - **Plugin ecosystem**: Tauri is younger; some Electron features may require custom implementations
+
+### Old Electron Code Handling
+
+The existing Electron codebase will remain in the main branch history via Git. No separate archive folder is needed as Git provides full version control:
+
+- All Electron code is preserved in Git history (commits before migration)
+- Users can checkout the last Electron version using Git tags (v4.x.x)
+- No "old-electron/" folder in the new codebase to avoid confusion
+- Clean migration: remove Electron code entirely, replaced by Tauri equivalents
+
+### Icon and Image File Requirements
+
+**Current Electron Icon Files:**
+
+The existing project has:
+
+- **App icons** (in `assets/`): `FlowerPassword.icns`, `FlowerPassword.ico`, `FlowerPassword.png`
+- **Tray icons** (in `public/`): `Mono.png`, `Mono@2x.png` (macOS/Linux), `Color.png` (Windows)
+
+**Tauri Icon Requirements:**
+
+- **App icons**:
+  - Source: 1024x1024 PNG with transparency (can use existing `FlowerPassword.png` as base)
+  - Run `npm run tauri icon path/to/icon.png` to generate all platform formats
+  - Tauri generates: icns (macOS), ico (Windows), PNG set (Linux)
+  - Output: `src-tauri/icons/` directory
+
+- **Tray icons**:
+  - **macOS**: Monochrome PNG (black with alpha channel), ~18x18 or 22x22 points
+    - Name: Can reuse existing `Mono.png` / `Mono@2x.png`
+    - Must be template-style (black/white) for automatic dark mode inversion
+    - Set as template image in Tauri code: `icon.set_as_template(true)`
+  - **Windows**: Color PNG/ICO, 16x16 and 32x32 for high DPI
+    - Can reuse existing `Color.png`
+  - **Linux**: PNG, 22x22 or 24x24 standard
+    - Can reuse existing `Mono.png`
+
+**Migration Strategy:**
+
+- Copy existing `Mono.png`, `Mono@2x.png`, `Color.png` to `src-tauri/icons/`
+- Use existing `FlowerPassword.png` (512x512) as source for app icon generation
+- Tauri's icon plugin handles platform-specific bundling
+- May need to upscale source to 1024x1024 for optimal quality
+
+**Platform-Specific Considerations:**
+
+- macOS tray icons invert automatically in dark mode when set as template
+- Windows tray icons remain same color in dark/light themes
+- Linux tray icon appearance depends on desktop environment theme
+
+### System Permissions Requirements
+
+**macOS:**
+
+- **Accessibility**: Not required for global shortcuts or clipboard
+- **Notifications**: Optional (if adding notification features)
+- **Auto-Launch**: User consent via System Settings (no code permission needed)
+- **Clipboard**: Automatic access, no permission dialog
+- **Keychain**: Not used in this app
+
+**Windows:**
+
+- **Clipboard**: Automatic access, no permission required
+- **Auto-Launch**: Registry entry, no user permission dialog
+- **Global Shortcuts**: No permission required
+
+**Linux:**
+
+- **Clipboard**: Depends on desktop environment, typically automatic
+- **Auto-Launch**: Desktop file in `~/.config/autostart/`, no permission required
+- **Global Shortcuts**: May require X11 or Wayland permissions (handled by Tauri plugin)
+
+**Permission Handling:**
+
+- No runtime permission requests required for core features
+- macOS may show permission dialogs on first use (system-level, not app-level)
+- Document any platform-specific permission requirements in README
 
 ### Algorithm Implementation Details
 
@@ -130,10 +209,47 @@ The flowerpassword.js algorithm will be ported to native Rust using MD5 hashing:
 - **Performance**: Native system integration without JavaScript overhead
 - **Maintainability**: Clearer separation between frontend (React/TS) and backend (Rust)
 - **Future-proof**: Modern architecture aligned with native app trends
+- **Simplified release process**: GitHub Actions automate cross-platform builds
+- **Algorithm stability**: Core flowerpassword.js algorithm is frozen (no sync needed)
 
 ### Timeline Estimate
 
 - Prototype phase (Rust backend + basic IPC): 2-3 weeks
 - Full implementation (all features parity): 6-8 weeks
 - Testing and refinement (cross-platform validation): 2-3 weeks
-- **Total**: 10-14 weeks for production-ready release
+- GitHub Actions CI/CD setup: 1 week
+- **Total**: 11-15 weeks for production-ready release
+
+### Release and Distribution Strategy
+
+**GitHub Actions Automation:**
+
+- Automated cross-platform builds triggered on version tags (v5.x.x)
+- Matrix build for all platforms: macOS (x64, arm64, universal), Windows (x64, ia32), Linux (x64, arm64)
+- Automatic artifact upload to GitHub Releases
+- Build outputs: DMG, MSI, AppImage, deb, rpm
+- No code signing certificates required (unsigned builds)
+- Users manually download installers from GitHub Releases page
+
+**Manual Update Process:**
+
+- App checks GitHub API for latest release
+- User prompted with download dialog
+- Opens GitHub Releases page in browser
+- User manually downloads and installs new version
+- No automatic installation or background downloads
+
+**Configuration Independence:**
+
+- Tauri app (v5.x.x) uses `com.xlsdg.flowerpassword` config directory
+- Electron app (v4.x.x) uses `FlowerPassword` config directory
+- Both apps can coexist without conflict (separate configs)
+- No automatic config migration from Electron to Tauri
+- Users can run both versions side-by-side if needed
+
+**Algorithm Stability:**
+
+- Core password generation algorithm is stable and frozen
+- No need to sync with flowerpassword.js library updates
+- Rust implementation is a one-time port with comprehensive tests
+- Algorithm version locked to match flowerpassword.js v5.0.2

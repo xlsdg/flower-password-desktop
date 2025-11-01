@@ -43,9 +43,9 @@
 - [ ] 3.13 Handle corrupted config file (use defaults, overwrite)
 - [ ] 3.14 Handle missing config file (create with defaults)
 - [ ] 3.15 Handle write failures (log error, continue with in-memory config)
-- [ ] 3.16 Write Electron config migration function (detect and copy old config)
-- [ ] 3.17 Update frontend to use Tauri store APIs
-- [ ] 3.18 Test config persistence across app restarts
+- [ ] 3.16 Update frontend to use Tauri store APIs
+- [ ] 3.17 Test config persistence across app restarts
+- [ ] 3.18 Verify Tauri and Electron configs use separate directories (no migration)
 
 ## 4. Clipboard Management
 
@@ -64,12 +64,20 @@
 ## 5. System Tray Integration
 
 - [ ] 5.1 Implement src-tauri/src/tray.rs module
-- [ ] 5.2 Create tray menu with items (Show, Settings, Quit)
-- [ ] 5.3 Add localized menu items (support en, zh-CN, zh-TW)
-- [ ] 5.4 Implement tray click handler (toggle window visibility)
-- [ ] 5.5 Handle platform-specific icon formats (Template.png for macOS)
-- [ ] 5.6 Test tray menu on macOS, Windows, Linux
-- [ ] 5.7 Verify tray icon visibility in dark/light modes
+- [ ] 5.2 Create tray menu with items (Show, Settings, Check for Updates, Quit)
+- [ ] 5.3 Add localized menu items (support en-US, zh-CN, zh-TW)
+- [ ] 5.4 Implement tray icon click handlers:
+  - [ ] 5.4.1 Left-click: toggle window visibility (all platforms)
+  - [ ] 5.4.2 Right-click: show context menu (Windows/Linux)
+  - [ ] 5.4.3 macOS: single click shows menu (macOS convention)
+- [ ] 5.5 Handle platform-specific icon formats:
+  - [ ] 5.5.1 macOS: Use Mono.png/Mono@2x.png, set as template icon (auto-inverts in dark mode)
+  - [ ] 5.5.2 Windows: Use Color.png (16x16 and 32x32 for high DPI)
+  - [ ] 5.5.3 Linux: Use Mono.png (22x22 or 24x24 standard)
+- [ ] 5.6 Ensure tray behavior matches Electron version exactly
+- [ ] 5.7 Test tray menu on macOS, Windows, Linux
+- [ ] 5.8 Verify tray icon visibility in dark/light modes
+- [ ] 5.9 Verify "Quit" menu shows confirmation dialog (matches Electron)
 
 ## 6. Window Management
 
@@ -106,10 +114,11 @@
   - [ ] 6.8.1 Add WINDOW_SHOWN IPC event
   - [ ] 6.8.2 Frontend: focus password field if empty
   - [ ] 6.8.3 Frontend: focus and select key field if password exists
-- [ ] 6.9 Handle window close event (hide instead of quit)
-- [ ] 6.10 Test window behavior on multi-monitor setups
-- [ ] 6.11 Verify no dock icon on macOS (app.dock.hide() or LSUIElement in Info.plist)
-- [ ] 6.12 Test positioning algorithms on all platforms
+- [ ] 6.9 Implement window close/hide command (IPC command for UI close button)
+- [ ] 6.10 Handle window close event (hide instead of quit)
+- [ ] 6.11 Test window behavior on multi-monitor setups
+- [ ] 6.12 Verify no dock icon on macOS (app.dock.hide() or LSUIElement in Info.plist)
+- [ ] 6.13 Test positioning algorithms on all platforms
 
 ## 7. Global Shortcuts
 
@@ -280,13 +289,19 @@
 ## 13. Build Configuration
 
 - [ ] 13.1 Configure tauri.conf.json bundler settings
-- [ ] 13.2 Set up macOS code signing (Apple Developer certificate)
-- [ ] 13.3 Set up Windows code signing (optional for initial release)
-- [ ] 13.4 Configure platform-specific permissions
-- [ ] 13.5 Add build scripts for all target platforms
-- [ ] 13.6 Test build process for macOS (x64, arm64, universal)
-- [ ] 13.7 Test build process for Windows (x64, ia32)
-- [ ] 13.8 Test build process for Linux (x64, arm64)
+- [ ] 13.2 Configure platform-specific permissions
+- [ ] 13.3 Set up icon generation workflow:
+  - [ ] 13.3.1 Upscale FlowerPassword.png to 1024x1024 if needed
+  - [ ] 13.3.2 Run `npm run tauri icon assets/FlowerPassword.png` to generate app icons
+  - [ ] 13.3.3 Copy existing tray icons (Mono.png, Mono@2x.png, Color.png) to src-tauri/icons/
+  - [ ] 13.3.4 Verify all icons in src-tauri/icons/ directory
+  - [ ] 13.3.5 Configure Tauri to use Mono.png as template icon for macOS tray
+- [ ] 13.4 Add build scripts for all target platforms
+- [ ] 13.5 Test build process for macOS (x64, arm64, universal)
+- [ ] 13.6 Test build process for Windows (x64, ia32)
+- [ ] 13.7 Test build process for Linux (x64, arm64)
+- [ ] 13.8 Document unsigned build security warnings in README
+- [ ] 13.9 Add instructions for users to bypass Gatekeeper (macOS) and SmartScreen (Windows)
 
 ## 14. Cross-Platform Testing
 
@@ -354,37 +369,62 @@
 - [ ] 18.18 Test update checker on all platforms (macOS, Windows, Linux)
 - [ ] 18.19 Test GitHub API error handling (network failures, rate limits)
 
-## 19. Release Preparation
+## 19. GitHub Actions CI/CD Setup
 
-- [ ] 19.1 Create release notes highlighting improvements
-- [ ] 19.2 Document breaking changes (config migration)
-- [ ] 19.3 Update version to 5.0.0 (major version bump)
-- [ ] 19.4 Tag Git release (v5.0.0)
-- [ ] 19.5 Build release artifacts for all platforms
-- [ ] 19.6 Test installers on clean systems
-- [ ] 19.7 Upload releases to GitHub with proper tag format (v5.0.0)
-- [ ] 19.8 Update flowerpassword.com website with new downloads
-- [ ] 19.9 Verify update checker correctly detects new version
+- [ ] 19.1 Create .github/workflows/release.yml workflow file
+- [ ] 19.2 Configure matrix build for all platforms:
+  - [ ] 19.2.1 macOS: universal-apple-darwin, x86_64-apple-darwin, aarch64-apple-darwin
+  - [ ] 19.2.2 Windows: x86_64-pc-windows-msvc, i686-pc-windows-msvc
+  - [ ] 19.2.3 Linux: x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu
+- [ ] 19.3 Add Rust toolchain setup step
+- [ ] 19.4 Add Node.js setup step
+- [ ] 19.5 Configure artifact upload to GitHub Releases
+- [ ] 19.6 Test workflow with a pre-release tag
+- [ ] 19.7 Verify all platform builds complete successfully
+- [ ] 19.8 Verify artifacts are uploaded correctly
 
-## 20. Post-Release Monitoring
+## 20. Release Preparation
 
-- [ ] 20.1 Monitor GitHub issues for migration bugs
-- [ ] 20.2 Track user feedback on bundle size/performance
-- [ ] 20.3 Document common migration issues
-- [ ] 20.4 Maintain Electron v4.0.x as fallback (6 months)
-- [ ] 20.5 Plan follow-up improvements based on user feedback
+- [ ] 20.1 Create release notes highlighting improvements
+- [ ] 20.2 Document breaking changes (no config migration, unsigned builds)
+- [ ] 20.3 Update version to 5.0.0 (major version bump)
+- [ ] 20.4 Create Git tag (v5.0.0)
+- [ ] 20.5 Push tag to trigger GitHub Actions workflow
+- [ ] 20.6 Wait for automated builds to complete
+- [ ] 20.7 Test installers on clean systems for each platform
+- [ ] 20.8 Verify security warning bypasses work (macOS Gatekeeper, Windows SmartScreen)
+- [ ] 20.9 Update flowerpassword.com website with new downloads
+- [ ] 20.10 Verify update checker correctly detects new version
+- [ ] 20.11 Document that Electron v4.x.x remains available as fallback
 
-## 21. Future Enhancements (Post v5.0.0)
+## 21. Post-Release Monitoring
+
+- [ ] 21.1 Monitor GitHub issues for migration bugs
+- [ ] 21.2 Track user feedback on bundle size/performance
+- [ ] 21.3 Document common migration issues
+- [ ] 21.4 Maintain Electron v4.0.x as fallback (6-12 months)
+- [ ] 21.5 Plan follow-up improvements based on user feedback
+
+## 22. Future Enhancements (Post v5.0.0)
 
 **Note**: These are optional future improvements, not required for initial migration.
+
+### Code Signing (Optional Future Feature)
+
+- [ ] 22.1 Obtain code signing certificates:
+  - [ ] 22.1.1 macOS: Apple Developer ID Application certificate
+  - [ ] 22.1.2 Windows: Authenticode certificate from trusted CA
+- [ ] 22.2 Configure code signing in tauri.conf.json
+- [ ] 22.3 Update GitHub Actions workflow with signing secrets
+- [ ] 22.4 Test signed builds on all platforms
+- [ ] 22.5 Verify no security warnings on installation
 
 ### Automatic Update Installation (Optional Future Feature)
 
 If code signing certificates become available, automatic update installation can be added:
 
-- [ ] 21.1 Obtain code signing certificates (macOS Developer ID, Windows Authenticode)
-- [ ] 21.2 Evaluate tauri-plugin-updater for automatic installation
-- [ ] 21.3 Implement background download with progress indicator
-- [ ] 21.4 Add signature verification for downloaded packages
-- [ ] 21.5 Implement "Install and Restart" flow
-- [ ] 21.6 Create signed update manifest generation pipeline
+- [ ] 22.6 Evaluate tauri-plugin-updater for automatic installation
+- [ ] 22.7 Implement background download with progress indicator
+- [ ] 22.8 Add signature verification for downloaded packages
+- [ ] 22.9 Implement "Install and Restart" flow
+- [ ] 22.10 Create signed update manifest generation pipeline

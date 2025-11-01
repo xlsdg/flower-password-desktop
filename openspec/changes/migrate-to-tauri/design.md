@@ -182,12 +182,17 @@ fn generate_password(memory: String, distinguishing: String) -> Result<String, S
 - `generate_password(memory: String, distinguishing: String) -> String`
 - `get_config() -> Config`
 - `set_config(config: Config) -> Result<(), String>`
+- `update_form_settings(settings: FormSettings) -> Result<(), String>`
 - `copy_to_clipboard(text: String) -> Result<(), String>`
 - `clear_clipboard() -> Result<(), String>`
 - `set_global_shortcut(shortcut: String) -> Result<(), String>`
 - `set_auto_launch(enabled: bool) -> Result<(), String>`
 - `get_locale() -> String`
 - `set_locale(locale: String) -> Result<(), String>`
+- `show_window() -> Result<(), String>`
+- `hide_window() -> Result<(), String>` (for UI close button)
+- `toggle_window() -> Result<(), String>`
+- `check_for_updates() -> Result<UpdateCheckResult, String>`
 
 ### 4. Configuration Storage
 
@@ -219,10 +224,13 @@ let store = app.store("config.json")?;
 store.set("language", "en");
 ```
 
-**Migration path:**
+**No Migration Path:**
 
-- Convert existing electron-store data to Tauri store format on first launch
-- Map Electron Store defaults to Tauri Store schema
+- Tauri app maintains separate configuration from Electron version
+- Users can run both Electron and Tauri versions side-by-side
+- Each app has independent config (no automatic migration)
+- Tauri config path: `com.xlsdg.flowerpassword/`
+- Electron config path: `FlowerPassword/`
 
 ### 5. System Tray Implementation
 
@@ -347,8 +355,53 @@ fn get_translation(key: &str, locale: &str) -> String {
 
 **Code Signing:**
 
-- macOS: Use Apple Developer certificate via tauri.conf.json
-- Windows: Use code signing certificate via signtool configuration
+- **Not implemented** in initial release
+- Unsigned builds will show security warnings on first run
+- Users must manually approve installation (macOS Gatekeeper, Windows SmartScreen)
+- Future enhancement: Add code signing when certificates become available
+
+**GitHub Actions Workflow:**
+
+```yaml
+# .github/workflows/release.yml
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          - os: macos-latest
+            target: universal-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.platform.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm install
+      - run: npm run tauri build -- --target ${{ matrix.platform.target }}
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: src-tauri/target/release/bundle/**/*
+```
+
+**Deployment Process:**
+
+1. Create Git tag (e.g., `v5.0.0`)
+2. Push tag to GitHub: `git push origin v5.0.0`
+3. GitHub Actions automatically builds for all platforms
+4. Artifacts uploaded to GitHub Releases
+5. Users download installers from Releases page
 
 ### 9. Update Checker Implementation
 
@@ -475,6 +528,13 @@ async function checkForUpdates() {
 - No manifest generation
 - No certificate management
 - Works identically to current Electron version
+
+**Automatic Updates:**
+
+- **Not implemented** - users manually download new versions
+- Manual update checker remains (queries GitHub API, opens browser)
+- Simpler distribution model without update infrastructure
+- Future enhancement: Consider tauri-plugin-updater if code signing added
 
 ### 10. Window Management and Positioning
 
@@ -1358,26 +1418,13 @@ fn setup_logging() {
 - Windows: `%APPDATA%/com.xlsdg.flowerpassword/config.json`
 - Linux: `~/.config/com.xlsdg.flowerpassword/config.json`
 
-**Migration strategy:**
+**No Migration Strategy:**
 
-1. On first Tauri launch, check for Electron config
-2. If found, copy to Tauri location
-3. Preserve original (don't delete)
-4. Log migration success
-
-**Code:**
-
-```rust
-fn migrate_electron_config(app: &AppHandle) -> Result<()> {
-  let electron_path = get_electron_config_path()?;
-  if electron_path.exists() {
-    let tauri_path = app.path().app_config_dir()?;
-    fs::copy(electron_path, tauri_path.join("config.json"))?;
-    log::info!("Migrated Electron config to Tauri");
-  }
-  Ok(())
-}
-```
+- Tauri and Electron apps use separate config directories
+- No automatic config migration on first launch
+- Users manually reconfigure Tauri app if switching from Electron
+- Both versions can coexist without conflicts
+- Simpler implementation without migration code
 
 ## Open Questions
 
@@ -1386,19 +1433,22 @@ fn migrate_electron_config(app: &AppHandle) -> Result<()> {
    - Option: Add auto-check on startup (configurable)
    - Recommendation: Keep manual-only initially, add auto-check as optional enhancement
 
-2. **Should we maintain compatibility layer for future algorithm updates?**
-   - Benefits: Easier to sync with flowerpassword.js updates
-   - Risks: Additional complexity
-   - Recommendation: Document algorithm version and ensure Rust implementation matches v5.0.2 exactly
-
-3. **How to handle users who don't upgrade from Electron version?**
+2. **How to handle users who don't upgrade from Electron version?**
    - Keep Electron v4.0.x available for download?
    - Recommendation: Yes, maintain for 6-12 months as fallback
 
-4. **Should we add telemetry for migration success metrics?**
+3. **Should we add telemetry for migration success metrics?**
    - Project principle: No telemetry
    - Recommendation: No - rely on GitHub issues and user feedback
 
-5. **Linux WebView compatibility - which distributions to officially support?**
+4. **Linux WebView compatibility - which distributions to officially support?**
    - Tauri requires WebKitGTK 2.40+
    - Recommendation: Document Ubuntu 22.04+, Fedora 38+, Arch as supported
+
+## Resolved Decisions
+
+1. **Algorithm compatibility layer**: Not needed - flowerpassword.js algorithm is stable and frozen
+2. **Config migration**: Not implemented - separate configs for Electron and Tauri versions
+3. **Code signing**: Deferred to future enhancement (v5.1+)
+4. **Automatic updates**: Not implemented - manual download workflow only
+5. **GitHub Actions**: Implemented for automated cross-platform builds
