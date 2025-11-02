@@ -293,7 +293,7 @@
 - [ ] 13.3 Set up icon generation workflow:
   - [ ] 13.3.1 Upscale FlowerPassword.png to 1024x1024 if needed
   - [ ] 13.3.2 Run `npm run tauri icon assets/FlowerPassword.png` to generate app icons
-  - [ ] 13.3.3 Copy existing tray icons (Mono.png, Mono@2x.png, Color.png) to src-tauri/icons/
+  - [ ] 13.3.3 Copy existing tray icons (Mono.png, <Mono@2x.png>, Color.png) to src-tauri/icons/
   - [ ] 13.3.4 Verify all icons in src-tauri/icons/ directory
   - [ ] 13.3.5 Configure Tauri to use Mono.png as template icon for macOS tray
 - [ ] 13.4 Add build scripts for all target platforms
@@ -342,10 +342,9 @@
 - [ ] 17.2 Document Rust toolchain requirements
 - [ ] 17.3 Update build instructions for all platforms
 - [ ] 17.4 Create migration guide for contributors
-- [ ] 17.5 Document new architecture in CLAUDE.md project context
-- [ ] 17.6 Update code signing documentation
-- [ ] 17.7 Add troubleshooting section for common Tauri issues
-- [ ] 17.8 Update contribution guidelines with Rust standards
+- [ ] 17.5 Update code signing documentation
+- [ ] 17.6 Add troubleshooting section for common Tauri issues
+- [ ] 17.7 Update contribution guidelines with Rust standards
 
 ## 18. Update Checker Implementation
 
