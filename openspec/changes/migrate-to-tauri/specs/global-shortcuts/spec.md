@@ -15,8 +15,10 @@ The system SHALL register system-wide keyboard shortcuts using tauri-plugin-glob
 #### Scenario: Shortcut activation
 
 - **WHEN** user presses registered global shortcut
-- **THEN** application window toggles visibility (show if hidden, hide if visible)
+- **THEN** application window is shown at cursor position
+- **AND** window is positioned near cursor with smart bounds checking
 - **AND** shortcut works regardless of which application has focus
+- **AND** if window is already visible, it remains visible (does not toggle)
 
 ### Requirement: Multiple Shortcut Options
 

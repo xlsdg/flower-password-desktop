@@ -80,6 +80,6 @@ The system SHALL implement the flowerpassword.js algorithm with exact fidelity t
 #### Scenario: Length validation
 
 - **WHEN** length parameter is provided
-- **THEN** length must be integer between 2 and 32 (inclusive)
+- **THEN** length must be integer between 6 and 32 (inclusive)
 - **AND** output password is truncated to specified length
 - **AND** invalid length returns error

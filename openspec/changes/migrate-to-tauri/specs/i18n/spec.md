@@ -53,27 +53,29 @@ The system SHALL support English, Simplified Chinese, Traditional Chinese, and a
 
 ### Requirement: Tauri Command for Locale Management
 
-The system SHALL expose locale selection via Tauri commands for synchronization between frontend and backend.
+The system SHALL expose locale detection via Tauri commands, with language changes managed through configuration system.
 
-#### Scenario: Get current locale
+#### Scenario: Get system locale
 
-- **WHEN** frontend invokes `get_locale()` Tauri command
-- **THEN** Rust backend returns current locale code from configuration
-- **AND** frontend uses value to initialize react-i18next
+- **WHEN** frontend invokes `get_system_locale()` Tauri command
+- **THEN** Rust backend detects and returns system locale code
+- **AND** frontend uses value when language mode is "auto"
+- **AND** frontend uses config language value when not "auto"
 
-#### Scenario: Set new locale
+#### Scenario: Change language via configuration
 
-- **WHEN** frontend invokes `set_locale(locale)` Tauri command with valid locale
-- **THEN** Rust backend updates configuration
+- **WHEN** user changes language in tray menu or settings
+- **THEN** language is updated via `set_config()` with new language value
+- **AND** Rust backend updates configuration
 - **AND** backend reloads translations
 - **AND** tray menu items update to new language
-- **AND** command returns success
+- **AND** frontend is notified via LANGUAGE_CHANGED IPC event
 
 #### Scenario: Invalid locale handling
 
-- **WHEN** frontend invokes `set_locale(locale)` with unsupported locale
-- **THEN** Tauri command returns error
-- **AND** current locale remains unchanged
+- **WHEN** configuration contains unsupported locale
+- **THEN** configuration validation falls back to "auto"
+- **AND** system locale detection is used
 
 ### Requirement: System Locale Detection
 
@@ -100,8 +102,9 @@ The system SHALL support language switching without application restart.
 
 #### Scenario: Language switch in settings
 
-- **WHEN** user changes language in settings UI
-- **THEN** frontend immediately updates to new language via react-i18next
-- **AND** frontend invokes `set_locale(locale)` Tauri command
-- **AND** backend updates tray menu to new language
+- **WHEN** user changes language in tray menu
+- **THEN** backend updates configuration with new language
+- **AND** backend reloads translations and refreshes tray menu
+- **AND** backend sends LANGUAGE_CHANGED IPC event to frontend
+- **AND** frontend immediately updates to new language via react-i18next
 - **AND** no application restart is required

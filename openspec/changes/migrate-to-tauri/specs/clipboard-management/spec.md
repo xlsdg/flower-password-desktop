@@ -44,22 +44,16 @@ The system SHALL automatically clear clipboard after a fixed timeout using Rust 
 - **AND** clipboard is cleared only if content matches original password
 - **AND** if user copied something else, clipboard is not cleared
 
-### Requirement: Manual Clipboard Clearing
+### Requirement: Timer Cleanup on Application Quit
 
-The system SHALL provide explicit command to clear clipboard on demand.
+The system SHALL cancel auto-clear timer when application terminates.
 
-#### Scenario: Manual clipboard clear
-
-- **WHEN** frontend invokes `clear_clipboard()` Tauri command
-- **THEN** Rust backend clears system clipboard immediately
-- **AND** any running auto-clear timer is cancelled
-- **AND** operation succeeds regardless of clipboard content
-
-#### Scenario: Clear on application quit
+#### Scenario: Timer cleanup on quit
 
 - **WHEN** application is terminating
-- **THEN** clipboard is cleared if it contains password
+- **THEN** any running auto-clear timer is cancelled
 - **AND** cleanup completes before process exits
+- **AND** clipboard content is left as-is (not cleared)
 
 ### Requirement: Cross-Platform Clipboard Compatibility
 

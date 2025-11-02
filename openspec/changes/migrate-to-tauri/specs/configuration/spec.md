@@ -30,11 +30,11 @@ The system SHALL store user preferences with typed configuration structure.
 - **WHEN** configuration is initialized
 - **THEN** configuration includes fields:
   - `language`: string (en-US, zh-CN, zh-TW, auto)
-  - `shortcut`: string (global shortcut combination)
-  - `autoLaunch`: boolean (start on system boot)
+  - `globalShortcut`: string (global shortcut combination)
   - `theme`: string (light, dark, auto)
   - `formSettings`: object with passwordLength (6-32), prefix, suffix
 - **AND** all fields have documented default values
+- **AND** autoLaunch state is NOT stored in config (queried from system via tauri-plugin-autostart)
 
 ### Requirement: Tauri Command Interface
 
@@ -68,11 +68,11 @@ The system SHALL provide sensible defaults when no configuration is found.
 - **WHEN** application starts with no Electron or Tauri config
 - **THEN** default configuration is created:
   - `language`: "auto" (detects system locale)
-  - `shortcut`: "CmdOrCtrl+Alt+S"
-  - `autoLaunch`: false
+  - `globalShortcut`: "CmdOrCtrl+Alt+S"
   - `theme`: "auto" (follows system theme)
   - `formSettings`: { passwordLength: 16, prefix: "", suffix: "" }
 - **AND** defaults are persisted to store
+- **AND** autoLaunch defaults to false (managed by tauri-plugin-autostart, not stored in config)
 
 ### Requirement: Configuration Reactivity
 
@@ -80,7 +80,7 @@ The system SHALL propagate configuration changes to affected subsystems in real-
 
 #### Scenario: Shortcut configuration change
 
-- **WHEN** `set_config()` updates `shortcut` field
+- **WHEN** `set_config()` updates `globalShortcut` field
 - **THEN** Rust backend unregisters old global shortcut
 - **AND** registers new global shortcut
 - **AND** if registration fails, reverts to previous shortcut and returns error
@@ -99,9 +99,10 @@ The system SHALL propagate configuration changes to affected subsystems in real-
 - **AND** tray menu is refreshed to reflect new theme selection
 - **AND** frontend is notified to update UI theme
 
-#### Scenario: AutoLaunch configuration change
+#### Scenario: AutoLaunch state change
 
-- **WHEN** `set_config()` updates `autoLaunch` field
-- **THEN** Rust backend enables or disables system startup registration
+- **WHEN** user toggles autoLaunch via tray menu or settings
+- **THEN** Rust backend calls tauri-plugin-autostart to enable/disable
 - **AND** if operation fails, error is returned and previous state is maintained
 - **AND** tray menu is refreshed to reflect new autoLaunch status
+- **AND** autoLaunch state is NOT stored in config file (managed by system)

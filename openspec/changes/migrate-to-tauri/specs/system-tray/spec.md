@@ -27,7 +27,17 @@ The system SHALL provide a context menu with localized menu items implemented vi
 #### Scenario: Tray menu display
 
 - **WHEN** user right-clicks tray icon (Windows/Linux) or clicks (macOS)
-- **THEN** context menu appears with items: Show, Settings, Check for Updates, Quit
+- **THEN** context menu appears with following structure:
+  1. Show
+  2. --- (separator) ---
+  3. Theme (submenu: Light, Dark, Auto - with checkboxes)
+  4. Language (submenu: zh-CN, zh-TW, en-US, Auto - with checkboxes)
+  5. --- (separator) ---
+  6. Auto Launch (checkbox)
+  7. Global Shortcut
+  8. Check for Updates
+  9. --- (separator) ---
+  10. Quit
 - **AND** menu items are displayed in user's selected language
 - **AND** menu structure matches Electron version exactly
 
@@ -35,7 +45,53 @@ The system SHALL provide a context menu with localized menu items implemented vi
 
 - **WHEN** user selects "Show" from tray menu
 - **THEN** application window becomes visible and focused
-- **AND** if window was minimized, it is restored
+- **AND** window is positioned below tray icon
+- **AND** clipboard is checked for domain URLs before showing
+
+#### Scenario: Theme submenu interaction
+
+- **WHEN** user opens Theme submenu
+- **THEN** three options are shown: Light, Dark, Auto
+- **AND** current theme selection is checked
+- **WHEN** user selects new theme option
+- **THEN** theme configuration is updated
+- **AND** native theme is applied immediately
+- **AND** tray menu is refreshed to show new selection
+- **AND** frontend is notified via THEME_CHANGED IPC event
+
+#### Scenario: Language submenu interaction
+
+- **WHEN** user opens Language submenu
+- **THEN** four options are shown: zh-CN, zh-TW, en-US, Auto
+- **AND** current language selection is checked
+- **WHEN** user selects new language option
+- **THEN** language configuration is updated
+- **AND** backend reloads translations
+- **AND** tray menu is refreshed with new language labels
+- **AND** frontend is notified via LANGUAGE_CHANGED IPC event
+
+#### Scenario: Auto Launch checkbox toggle
+
+- **WHEN** user clicks Auto Launch menu item
+- **THEN** auto-launch state is toggled (enable if disabled, disable if enabled)
+- **AND** system startup registration is updated via tauri-plugin-autostart
+- **AND** if operation succeeds, tray menu is refreshed to show new checkbox state
+- **AND** if operation fails, error dialog is shown and checkbox remains unchanged
+
+#### Scenario: Global Shortcut menu action
+
+- **WHEN** user selects "Global Shortcut" from tray menu
+- **THEN** dialog is displayed showing current shortcut
+- **AND** dialog offers alternative shortcut options as buttons
+- **AND** user can select new shortcut or cancel
+- **AND** if new shortcut is selected, it is registered and saved to configuration
+
+#### Scenario: Check for Updates menu action
+
+- **WHEN** user selects "Check for Updates" from tray menu
+- **THEN** update check is initiated
+- **AND** GitHub API is queried for latest release
+- **AND** appropriate dialog is shown based on result (update available or up-to-date)
 
 #### Scenario: Quit menu action
 
@@ -74,12 +130,13 @@ The system SHALL handle tray icon clicks to toggle window visibility, with platf
 
 #### Scenario: Show hidden window via tray click
 
-- **WHEN** window is hidden and user left-clicks tray icon (Windows/Linux)
+- **WHEN** window is hidden and user left-clicks tray icon (Windows/Linux) or clicks on macOS
 - **THEN** window becomes visible and focused
+- **AND** window is positioned below tray icon
 
 #### Scenario: Hide visible window via tray click
 
-- **WHEN** window is visible and user left-clicks tray icon (Windows/Linux)
+- **WHEN** window is visible and user left-clicks tray icon (Windows/Linux) or clicks on macOS
 - **THEN** window is hidden
 - **AND** application remains running in tray
 

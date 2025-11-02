@@ -8,17 +8,17 @@ The system SHALL manage auto-launch functionality using tauri-plugin-autostart i
 
 #### Scenario: Auto-launch enablement
 
-- **WHEN** user enables auto-launch in settings
-- **THEN** frontend invokes `enable_auto_launch()` Tauri command
-- **AND** Rust backend registers application for system startup
-- **AND** setting is persisted to configuration
+- **WHEN** user enables auto-launch in tray menu
+- **THEN** Rust backend calls tauri-plugin-autostart to enable
+- **AND** application is registered for system startup
+- **AND** setting is stored in system (NOT in application config)
 
 #### Scenario: Auto-launch disablement
 
-- **WHEN** user disables auto-launch in settings
-- **THEN** frontend invokes `disable_auto_launch()` Tauri command
-- **AND** Rust backend removes application from system startup
-- **AND** setting is persisted to configuration
+- **WHEN** user disables auto-launch in tray menu
+- **THEN** Rust backend calls tauri-plugin-autostart to disable
+- **AND** application is removed from system startup
+- **AND** setting is removed from system (NOT stored in application config)
 
 ### Requirement: Auto-Launch Status Query
 
@@ -26,17 +26,17 @@ The system SHALL provide command to query current auto-launch status.
 
 #### Scenario: Query auto-launch status
 
-- **WHEN** frontend invokes `is_auto_launch_enabled()` Tauri command
-- **THEN** Rust backend checks system startup registration
+- **WHEN** application needs to display current auto-launch status
+- **THEN** Rust backend queries tauri-plugin-autostart for actual system state
 - **AND** returns boolean indicating current status
-- **AND** frontend updates settings UI toggle accordingly
+- **AND** tray menu reflects correct state
 
 #### Scenario: Status synchronization
 
 - **WHEN** auto-launch is changed externally (e.g., system settings)
-- **THEN** application queries actual system status
-- **AND** configuration is updated to reflect reality
-- **AND** settings UI shows correct state
+- **THEN** application queries actual system status when building tray menu
+- **AND** tray menu checkbox reflects actual system state
+- **AND** state is NOT cached in application config
 
 ### Requirement: Cross-Platform Auto-Launch Support
 
@@ -67,18 +67,13 @@ The system SHALL support auto-launch on macOS, Windows, and Linux using Tauri's 
 
 The system SHALL configure application behavior when launched at system startup.
 
-#### Scenario: Silent startup
+#### Scenario: Window starts hidden regardless of launch method
 
-- **WHEN** application is launched via auto-launch mechanism
-- **THEN** application starts in hidden mode (window not shown)
+- **WHEN** application is launched (via auto-launch or manually)
+- **THEN** application always starts with window hidden
 - **AND** application runs in system tray only
-- **AND** no user interaction required on startup
-
-#### Scenario: Manual startup
-
-- **WHEN** application is launched manually by user
-- **THEN** application may show window based on configuration
-- **AND** behavior can be configured independently of auto-launch
+- **AND** window is only shown when user triggers it (tray click, global shortcut)
+- **AND** behavior is same for both auto-launch and manual launch
 
 ### Requirement: Permission Handling
 
@@ -110,16 +105,17 @@ The system SHALL gracefully handle auto-launch registration failures.
 #### Scenario: Registration failure
 
 - **WHEN** auto-launch registration fails
-- **THEN** Tauri command returns error with descriptive message
-- **AND** frontend displays error to user
-- **AND** auto-launch setting remains disabled in configuration
+- **THEN** error dialog is displayed to user
+- **AND** auto-launch remains disabled in system
+- **AND** tray menu checkbox remains unchecked
 
 #### Scenario: Deregistration failure
 
 - **WHEN** auto-launch deregistration fails
-- **THEN** Tauri command logs warning
-- **AND** setting is updated in configuration regardless
+- **THEN** warning is logged
+- **AND** error dialog is displayed to user
 - **AND** user is informed of partial failure
+- **AND** tray menu reflects actual system state on next refresh
 
 #### Scenario: Startup failure recovery
 
