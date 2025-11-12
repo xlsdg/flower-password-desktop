@@ -4,7 +4,15 @@ import * as path from 'node:path';
 import AutoLaunch from 'auto-launch';
 import { app, nativeTheme } from 'electron';
 
-import { AVAILABLE_LANGUAGES, AVAILABLE_SHORTCUTS, AVAILABLE_THEMES, GLOBAL_SHORTCUTS } from '../shared/constants';
+import {
+  AVAILABLE_LANGUAGES,
+  AVAILABLE_SHORTCUTS,
+  AVAILABLE_THEMES,
+  DEFAULT_PASSWORD_LENGTH,
+  GLOBAL_SHORTCUTS,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+} from '../shared/constants';
 import type { AppConfig, FormSettings, GlobalShortcut, LanguageMode, ThemeMode } from '../shared/types';
 import { showMessageBox } from './dialog';
 import { applyLanguage, t } from './i18n';
@@ -13,7 +21,7 @@ import { registerGlobalShortcut } from './shortcut';
 const CONFIG_FILE_PATH = path.join(app.getPath('userData'), 'config.json');
 
 const DEFAULT_FORM_SETTINGS = {
-  passwordLength: 16,
+  passwordLength: DEFAULT_PASSWORD_LENGTH,
   prefix: '',
   suffix: '',
 } as const satisfies FormSettings;
@@ -204,7 +212,10 @@ function isValidFormSettings(settings: unknown): settings is FormSettings {
   const candidate = settings as Partial<FormSettings>;
   const passwordLength = candidate.passwordLength;
 
-  const hasValidLength = typeof passwordLength === 'number' && passwordLength >= 6 && passwordLength <= 32;
+  const hasValidLength =
+    typeof passwordLength === 'number' &&
+    passwordLength >= PASSWORD_MIN_LENGTH &&
+    passwordLength <= PASSWORD_MAX_LENGTH;
   const hasValidPrefix = typeof candidate.prefix === 'string';
   const hasValidSuffix = typeof candidate.suffix === 'string';
 

@@ -1,11 +1,12 @@
 import { app, dialog } from 'electron';
 
+import { clipboardManager } from './clipboard';
 import { initConfig } from './config';
 import { registerIpcHandlers } from './ipc';
+import { platformAdapter } from './platform';
 import { unregisterGlobalShortcuts } from './shortcut';
 import { createTray } from './tray';
 import { createWindow } from './window';
-import { clipboardManager } from './clipboard';
 
 process.on('uncaughtException', (error: Error) => {
   void dialog
@@ -50,6 +51,6 @@ app.on('will-quit', () => {
   clipboardManager.clearTimer();
 });
 
-if (process.platform === 'darwin' && app.dock !== undefined) {
+if (platformAdapter.shouldHideDock() && app.dock !== undefined) {
   app.dock.hide();
 }

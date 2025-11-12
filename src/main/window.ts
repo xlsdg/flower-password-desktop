@@ -5,9 +5,39 @@ import * as psl from 'psl';
 
 import { IPC_CHANNELS, MAIN_WINDOW_OPTIONS, isDevelopment } from '../shared/constants';
 import type { ParsedDomain } from '../shared/types';
+import { platformAdapter } from './platform';
 import { positionWindowAtCursor } from './position';
 
+class WindowOperations {
+  constructor(private window: BrowserWindow) {}
+
+  sendMessage(channel: string, ...args: unknown[]): void {
+    this.window.webContents.send(channel, ...args);
+  }
+
+  isDevToolsOpen(): boolean {
+    return this.window.webContents.isDevToolsOpened();
+  }
+
+  show(): void {
+    this.window.show();
+  }
+
+  focus(): void {
+    this.window.focus();
+  }
+
+  hide(): void {
+    this.window.hide();
+  }
+
+  isVisible(): boolean {
+    return this.window.isVisible();
+  }
+}
+
 let mainWindow: BrowserWindow | null = null;
+let windowOps: WindowOperations | null = null;
 
 export function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -20,7 +50,8 @@ export function createWindow(): BrowserWindow {
     },
   });
 
-  configurePlatformWindowBehavior(mainWindow);
+  windowOps = new WindowOperations(mainWindow);
+  platformAdapter.configureWindowBehavior(mainWindow);
   loadRendererEntry(mainWindow);
   mainWindow.on('blur', () => {
     handleBlur();
@@ -33,18 +64,18 @@ export function getWindow(): BrowserWindow | null {
 }
 
 export function showWindow(): void {
-  forwardClipboardDomain();
-  if (mainWindow !== null) {
-    mainWindow.show();
-    mainWindow.focus();
-    mainWindow.webContents.send(IPC_CHANNELS.WINDOW_SHOWN);
+  if (windowOps === null) {
+    return;
   }
+
+  forwardClipboardDomain();
+  windowOps.show();
+  windowOps.focus();
+  windowOps.sendMessage(IPC_CHANNELS.WINDOW_SHOWN);
 }
 
 export function hideWindow(): void {
-  if (mainWindow !== null) {
-    mainWindow.hide();
-  }
+  windowOps?.hide();
 }
 
 export function showWindowAtCursor(): void {
@@ -54,17 +85,6 @@ export function showWindowAtCursor(): void {
 
   positionWindowAtCursor(mainWindow);
   showWindow();
-}
-
-function configurePlatformWindowBehavior(window: BrowserWindow): void {
-  if (process.platform === 'darwin') {
-    window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    window.setAlwaysOnTop(true, 'floating');
-    return;
-  }
-
-  window.setVisibleOnAllWorkspaces(true);
-  window.setAlwaysOnTop(true);
 }
 
 function loadRendererEntry(window: BrowserWindow): void {
@@ -90,9 +110,7 @@ function forwardClipboardDomain(): void {
 
     const parsed = psl.parse(hostname) as ParsedDomain | null;
     if (parsed !== null && typeof parsed.sld === 'string' && parsed.sld.length > 0) {
-      if (mainWindow !== null) {
-        mainWindow.webContents.send(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
-      }
+      windowOps?.sendMessage(IPC_CHANNELS.KEY_FROM_CLIPBOARD, parsed.sld);
     }
   } catch (error) {
     if (isDevelopment) {
@@ -102,11 +120,11 @@ function forwardClipboardDomain(): void {
 }
 
 function handleBlur(): void {
-  if (mainWindow === null) {
+  if (windowOps === null) {
     return;
   }
 
-  if (!mainWindow.webContents.isDevToolsOpened()) {
-    mainWindow.hide();
+  if (!windowOps.isDevToolsOpen()) {
+    windowOps.hide();
   }
 }

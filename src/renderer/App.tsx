@@ -9,16 +9,15 @@ import {
   type MouseEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { fpCode } from 'flowerpassword.js';
+
+import { ALLOWED_PROTOCOLS, ENTER_KEY, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '../shared/constants';
+import { useFormSettings } from './hooks/useFormSettings';
+import { usePasswordGenerator } from './hooks/usePasswordGenerator';
+import { useWindowEvents } from './hooks/useWindowEvents';
 
 import './styles/reset.less';
 import './styles/index.less';
 
-const PASSWORD_MIN_LENGTH = 6;
-const PASSWORD_MAX_LENGTH = 32;
-const DEFAULT_PASSWORD_LENGTH = 16;
-const ENTER_KEY = 'Enter';
-const ALLOWED_PROTOCOLS = new Set(['https:', 'http:']);
 const PASSWORD_LENGTH_CHOICES = Array.from(
   { length: PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1 },
   (_, index) => index + PASSWORD_MIN_LENGTH
@@ -33,52 +32,59 @@ function isSafeExternalUrl(url: string): boolean {
   }
 }
 
+function createInputHandler<T>(
+  setter: (value: T) => void,
+  onUpdate?: (value: T) => void
+): (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void {
+  return (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    const value = event.target.value as T;
+    setter(value);
+    onUpdate?.(value);
+  };
+}
+
+function createNumberInputHandler(
+  setter: (value: number) => void,
+  onUpdate?: (value: number) => void
+): (event: ChangeEvent<HTMLSelectElement>) => void {
+  return (event: ChangeEvent<HTMLSelectElement>): void => {
+    const value = Number.parseInt(event.target.value, 10);
+    setter(value);
+    onUpdate?.(value);
+  };
+}
+
 export function App(): JSX.Element {
   const { t } = useTranslation();
-  const [password, setPassword] = useState('');
-  const [key, setKey] = useState('');
-  const [prefix, setPrefix] = useState('');
-  const [suffix, setSuffix] = useState('');
-  const [passwordLength, setPasswordLength] = useState(DEFAULT_PASSWORD_LENGTH);
-  const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const {
+    password,
+    key,
+    prefix,
+    suffix,
+    passwordLength,
+    setPassword,
+    setKey,
+    setPrefix,
+    setSuffix,
+    setPasswordLength,
+    setIsPasswordVisible,
+    generatePassword,
+    getPasswordDisplay,
+  } = usePasswordGenerator();
 
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const keyInputRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef(password);
+
+  useFormSettings(setPasswordLength, setPrefix, setSuffix);
+
+  useWindowEvents(password, passwordInputRef, keyInputRef, setKey);
+
+  const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
 
   useEffect(() => {
-    passwordRef.current = password;
-  }, [password]);
-
-  const generatePassword = useCallback((): string | null => {
-    if (password.length === 0 || key.length === 0) {
-      return null;
-    }
-
-    const distinguishCode = `${prefix}${key}${suffix}`;
-    return fpCode(password, distinguishCode, passwordLength);
-  }, [password, key, prefix, suffix, passwordLength]);
-
-  const maskPassword = useCallback((pwd: string): string => {
-    if (pwd.length <= 4) {
-      return '•'.repeat(pwd.length);
-    }
-    const start = pwd.slice(0, 2);
-    const end = pwd.slice(-2);
-    const middle = '•'.repeat(pwd.length - 4);
-    return `${start}${middle}${end}`;
-  }, []);
-
-  useEffect(() => {
-    const code = generatePassword();
-    if (code !== null) {
-      const displayLabel = isPasswordVisible ? code : maskPassword(code);
-      setGenerateButtonLabel(displayLabel);
-    } else {
-      setGenerateButtonLabel(t('form.generateButton'));
-    }
-  }, [generatePassword, isPasswordVisible, maskPassword, t]);
+    setGenerateButtonLabel(getPasswordDisplay(t('form.generateButton')));
+  }, [getPasswordDisplay, t]);
 
   const copyAndHide = useCallback((code: string): void => {
     window.rendererBridge.writeText(code);
@@ -123,69 +129,29 @@ export function App(): JSX.Element {
     });
   }, []);
 
-  const loadInitialConfig = useCallback(async (): Promise<void> => {
-    try {
-      const config = await window.rendererBridge.getConfig();
-      setPasswordLength(config.formSettings.passwordLength);
-      setPrefix(config.formSettings.prefix);
-      setSuffix(config.formSettings.suffix);
-    } catch (error) {
-      console.error('Failed to load config:', error);
-    }
-  }, []);
+  const handlePasswordChange = useCallback(createInputHandler(setPassword), [setPassword]);
+  const handleKeyChange = useCallback(createInputHandler(setKey), [setKey]);
 
-  useEffect(() => {
-    void loadInitialConfig();
-  }, [loadInitialConfig]);
+  const handlePrefixChange = useCallback(
+    createInputHandler(setPrefix, (value: string) => {
+      window.rendererBridge.updateFormSettings({ prefix: value });
+    }),
+    [setPrefix]
+  );
 
-  const handleClipboardKey = useCallback((value: string): void => {
-    setKey(value);
-  }, []);
+  const handleSuffixChange = useCallback(
+    createInputHandler(setSuffix, (value: string) => {
+      window.rendererBridge.updateFormSettings({ suffix: value });
+    }),
+    [setSuffix]
+  );
 
-  const handleWindowShown = useCallback((): void => {
-    if (passwordRef.current.length === 0) {
-      passwordInputRef.current?.focus();
-    } else {
-      keyInputRef.current?.focus();
-      keyInputRef.current?.select();
-    }
-  }, []);
-
-  useEffect(() => {
-    const unsubscribeKeyFromClipboard = window.rendererBridge.onKeyFromClipboard(handleClipboardKey);
-    const unsubscribeWindowShown = window.rendererBridge.onWindowShown(handleWindowShown);
-
-    return (): void => {
-      unsubscribeKeyFromClipboard();
-      unsubscribeWindowShown();
-    };
-  }, [handleClipboardKey, handleWindowShown]);
-
-  const handlePasswordChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    setPassword(event.target.value);
-  }, []);
-
-  const handleKeyChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    setKey(event.target.value);
-  }, []);
-
-  const handlePrefixChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    const newPrefix = event.target.value;
-    setPrefix(newPrefix);
-    window.rendererBridge.updateFormSettings({ prefix: newPrefix });
-  }, []);
-
-  const handleSuffixChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    const newSuffix = event.target.value;
-    setSuffix(newSuffix);
-    window.rendererBridge.updateFormSettings({ suffix: newSuffix });
-  }, []);
-
-  const handlePasswordLengthChange = useCallback((event: ChangeEvent<HTMLSelectElement>): void => {
-    const newLength = Number.parseInt(event.target.value, 10);
-    setPasswordLength(newLength);
-    window.rendererBridge.updateFormSettings({ passwordLength: newLength });
-  }, []);
+  const handlePasswordLengthChange = useCallback(
+    createNumberInputHandler(setPasswordLength, (value: number) => {
+      window.rendererBridge.updateFormSettings({ passwordLength: value });
+    }),
+    [setPasswordLength]
+  );
 
   const handlePasswordMouseEnter = useCallback((): void => {
     setIsPasswordVisible(true);

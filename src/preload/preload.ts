@@ -2,6 +2,28 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { AppConfig, FormSettings, LanguageMode, RendererBridge, ThemeMode } from '../shared/types';
 import { IPC_CHANNELS } from '../shared/constants';
 
+function createEventListener<T>(channel: string, callback: (value: T) => void): () => void {
+  const listener = (_event: Electron.IpcRendererEvent, value: T): void => {
+    callback(value);
+  };
+  ipcRenderer.on(channel, listener);
+
+  return (): void => {
+    ipcRenderer.off(channel, listener);
+  };
+}
+
+function createVoidEventListener(channel: string, callback: () => void): () => void {
+  const listener = (): void => {
+    callback();
+  };
+  ipcRenderer.on(channel, listener);
+
+  return (): void => {
+    ipcRenderer.off(channel, listener);
+  };
+}
+
 const rendererBridge: RendererBridge = {
   hide(): void {
     ipcRenderer.send(IPC_CHANNELS.HIDE);
@@ -32,47 +54,19 @@ const rendererBridge: RendererBridge = {
   },
 
   onKeyFromClipboard(callback: (value: string) => void): () => void {
-    const listener = (_event: Electron.IpcRendererEvent, value: string): void => {
-      callback(value);
-    };
-    ipcRenderer.on(IPC_CHANNELS.KEY_FROM_CLIPBOARD, listener);
-
-    return (): void => {
-      ipcRenderer.off(IPC_CHANNELS.KEY_FROM_CLIPBOARD, listener);
-    };
+    return createEventListener<string>(IPC_CHANNELS.KEY_FROM_CLIPBOARD, callback);
   },
 
   onLanguageChanged(callback: (language: LanguageMode) => void): () => void {
-    const listener = (_event: Electron.IpcRendererEvent, language: LanguageMode): void => {
-      callback(language);
-    };
-    ipcRenderer.on(IPC_CHANNELS.LANGUAGE_CHANGED, listener);
-
-    return (): void => {
-      ipcRenderer.off(IPC_CHANNELS.LANGUAGE_CHANGED, listener);
-    };
+    return createEventListener<LanguageMode>(IPC_CHANNELS.LANGUAGE_CHANGED, callback);
   },
 
   onThemeChanged(callback: (theme: ThemeMode) => void): () => void {
-    const listener = (_event: Electron.IpcRendererEvent, theme: ThemeMode): void => {
-      callback(theme);
-    };
-    ipcRenderer.on(IPC_CHANNELS.THEME_CHANGED, listener);
-
-    return (): void => {
-      ipcRenderer.off(IPC_CHANNELS.THEME_CHANGED, listener);
-    };
+    return createEventListener<ThemeMode>(IPC_CHANNELS.THEME_CHANGED, callback);
   },
 
   onWindowShown(callback: () => void): () => void {
-    const listener = (): void => {
-      callback();
-    };
-    ipcRenderer.on(IPC_CHANNELS.WINDOW_SHOWN, listener);
-
-    return (): void => {
-      ipcRenderer.off(IPC_CHANNELS.WINDOW_SHOWN, listener);
-    };
+    return createVoidEventListener(IPC_CHANNELS.WINDOW_SHOWN, callback);
   },
 };
 

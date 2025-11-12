@@ -1,44 +1,51 @@
 import { clipboard } from 'electron';
 
-interface ClipboardManager {
-  originalText: string;
-  timeoutId: NodeJS.Timeout | null;
-  writeText: (text: string, timeout?: number) => void;
-  clearTimer: () => void;
+import { CLIPBOARD_CLEAR_TIMEOUT } from '../shared/constants';
+
+interface ClipboardState {
+  readonly originalText: string;
+  readonly timeoutId: NodeJS.Timeout | null;
 }
 
-export const clipboardManager: ClipboardManager = {
+let clipboardState: ClipboardState = {
   originalText: '',
   timeoutId: null,
-  writeText,
-  clearTimer,
 };
 
 function clearTimer(): void {
-  if (clipboardManager.timeoutId !== null) {
-    clearTimeout(clipboardManager.timeoutId);
-    clipboardManager.timeoutId = null;
+  if (clipboardState.timeoutId !== null) {
+    clearTimeout(clipboardState.timeoutId);
   }
 
-  clipboardManager.originalText = '';
+  clipboardState = {
+    originalText: '',
+    timeoutId: null,
+  };
 }
 
 function clearClipboardIfUnchanged(): void {
   const currentContent = clipboard.readText();
-  if (currentContent === clipboardManager.originalText) {
+  if (currentContent === clipboardState.originalText) {
     clipboard.writeText('');
   }
 
   clearTimer();
 }
 
-function writeText(text: string, timeout: number = 10000): void {
+function writeText(text: string, timeout: number = CLIPBOARD_CLEAR_TIMEOUT): void {
   clearTimer();
 
   clipboard.writeText(text);
-  clipboardManager.originalText = text;
 
-  clipboardManager.timeoutId = setTimeout(() => {
-    clearClipboardIfUnchanged();
-  }, timeout);
+  clipboardState = {
+    originalText: text,
+    timeoutId: setTimeout(() => {
+      clearClipboardIfUnchanged();
+    }, timeout),
+  };
 }
+
+export const clipboardManager = {
+  writeText,
+  clearTimer,
+} as const;
