@@ -22,7 +22,9 @@ export function useWindowEvents(
         passwordInputRef.current?.focus();
       } else {
         keyInputRef.current?.focus();
-        keyInputRef.current?.select();
+        setTimeout(() => {
+          keyInputRef.current?.select();
+        });
       }
     };
 
