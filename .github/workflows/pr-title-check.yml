@@ -29,3 +29,24 @@ jobs:
             revert
             breaking
           requireScope: false
+          subjectPattern: ^.+$
+          subjectPatternError: |
+            The subject must be a non-empty string
+
+  auto-merge-release:
+    name: Auto Merge Release PR
+    runs-on: ubuntu-latest
+    needs: validate
+    if: startsWith(github.head_ref, 'release-please--')
+    steps:
+      - name: Auto approve
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Enable auto-merge
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
