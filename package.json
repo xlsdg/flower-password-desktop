@@ -32,7 +32,7 @@
   "dependencies": {
     "auto-launch": "^5.0.6",
     "flowerpassword.js": "^5.0.2",
-    "i18next": "^25.7.2",
+    "i18next": "^25.7.3",
     "psl": "^1.15.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -52,16 +52,16 @@
     "@types/node": "^22.19.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
     "@vitejs/plugin-react": "^5.1.2",
     "electron": "^39.2.7",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "less": "^4.4.2",
+    "less": "^4.5.1",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
-    "vite": "^7.2.7"
+    "vite": "^7.3.0"
   }
 }
