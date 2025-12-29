@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_call:
 
 jobs:
   build-macos:
@@ -187,54 +186,9 @@ jobs:
 
           ls -lh release/
 
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
           files: release/*
-          body: |
-            ## FlowerPassword v${{ steps.get_version.outputs.VERSION }}
-
-            ### macOS
-            - [FlowerPassword-macOS-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-macOS-arm64.zip) - Apple Silicon (M1/M2/M3/M4)
-            - [FlowerPassword-macOS-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-macOS-x64.zip) - Intel
-
-            ### Windows
-            - [FlowerPassword-Windows-x64-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-x64-Setup.exe) - 64-bit Installer
-            - [FlowerPassword-Windows-ia32-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-ia32-Setup.exe) - 32-bit Installer
-            - [FlowerPassword-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-x64.zip) - 64-bit Portable
-            - [FlowerPassword-Windows-ia32.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Windows-ia32.zip) - 32-bit Portable
-
-            ### Linux
-            - [FlowerPassword-Linux-x64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.deb) - Debian/Ubuntu x64
-            - [FlowerPassword-Linux-arm64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.deb) - Debian/Ubuntu ARM64
-            - [FlowerPassword-Linux-x64.rpm](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.rpm) - RedHat/Fedora x64
-            - [FlowerPassword-Linux-arm64.rpm](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.rpm) - RedHat/Fedora ARM64
-            - [FlowerPassword-Linux-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-x64.zip) - x64 Portable
-            - [FlowerPassword-Linux-arm64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FlowerPassword-Linux-arm64.zip) - ARM64 Portable
-
-            ### Installation
-
-            **macOS:**
-            1. Download the appropriate version for your Mac (Apple Silicon or Intel)
-            2. Extract the zip file
-            3. Drag FlowerPassword.app to Applications folder
-
-            **Windows:**
-            - Use the installer (.exe) for automatic installation
-            - Or download the portable version (.zip) and extract
-
-            **Linux:**
-            - Debian/Ubuntu: `sudo dpkg -i FlowerPassword-Linux-*.deb`
-            - RedHat/Fedora: `sudo rpm -i FlowerPassword-Linux-*.rpm`
-            - Or extract the .zip for portable usage
-
-            ### Changelog
-            See full changelog: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
