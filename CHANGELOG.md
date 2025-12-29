@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.0...v4.1.1) (2025-12-29)
+
+
+### Bug Fixes
+
+* trigger release for dependency updates ([#9](https://github.com/xlsdg/flower-password-desktop/issues/9)) ([57a747f](https://github.com/xlsdg/flower-password-desktop/commit/57a747fca0fd6a60cd52a2fb290b0c2d5bffe711))
+
 ## [4.1.0](https://github.com/xlsdg/flower-password-desktop/compare/v4.0.6...v4.1.0) (2025-12-29)
 
 
