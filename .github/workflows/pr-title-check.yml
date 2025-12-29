@@ -42,7 +42,7 @@ jobs:
       - name: Auto approve
         uses: hmarr/auto-approve-action@v4
         with:
-          github-token: ${{ secrets.RELEASE_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge
         uses: peter-evans/enable-pull-request-automerge@v3
