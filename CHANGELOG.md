@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.7](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.6...v4.1.7) (2026-05-31)
+
+
+### Bug Fixes
+
+* update action-gh-release to version 3 in release workflow ([#22](https://github.com/xlsdg/flower-password-desktop/issues/22)) ([6288563](https://github.com/xlsdg/flower-password-desktop/commit/62885639e4f1dc6d3e54b842eba7d04170a3713c))
+
 ## [4.1.6](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.5...v4.1.6) (2026-05-31)
 
 
