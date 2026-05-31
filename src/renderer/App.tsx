@@ -1,13 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type JSX,
-  type KeyboardEvent,
-  type MouseEvent,
-} from 'react';
+import { useCallback, useRef, type ChangeEvent, type JSX, type KeyboardEvent, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ALLOWED_PROTOCOLS, ENTER_KEY, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '../shared/constants';
@@ -15,8 +6,8 @@ import { useFormSettings } from './hooks/useFormSettings';
 import { usePasswordGenerator } from './hooks/usePasswordGenerator';
 import { useWindowEvents } from './hooks/useWindowEvents';
 
-import './styles/reset.less';
 import './styles/index.less';
+import './styles/reset.less';
 
 const PASSWORD_LENGTH_CHOICES = Array.from(
   { length: PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1 },
@@ -30,28 +21,6 @@ function isSafeExternalUrl(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-function createInputHandler<T>(
-  setter: (value: T) => void,
-  onUpdate?: (value: T) => void
-): (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void {
-  return (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-    const value = event.target.value as T;
-    setter(value);
-    onUpdate?.(value);
-  };
-}
-
-function createNumberInputHandler(
-  setter: (value: number) => void,
-  onUpdate?: (value: number) => void
-): (event: ChangeEvent<HTMLSelectElement>) => void {
-  return (event: ChangeEvent<HTMLSelectElement>): void => {
-    const value = Number.parseInt(event.target.value, 10);
-    setter(value);
-    onUpdate?.(value);
-  };
 }
 
 export function App(): JSX.Element {
@@ -80,11 +49,7 @@ export function App(): JSX.Element {
 
   useWindowEvents(password, passwordInputRef, keyInputRef, setKey);
 
-  const [generateButtonLabel, setGenerateButtonLabel] = useState(t('form.generateButton'));
-
-  useEffect(() => {
-    setGenerateButtonLabel(getPasswordDisplay(t('form.generateButton')));
-  }, [getPasswordDisplay, t]);
+  const generateButtonLabel = getPasswordDisplay(t('form.generateButton'));
 
   const copyAndHide = useCallback((code: string): void => {
     window.rendererBridge.writeText(code);
@@ -129,43 +94,61 @@ export function App(): JSX.Element {
     });
   }, []);
 
-  const handlePasswordChange = useCallback(createInputHandler(setPassword), [setPassword]);
-  const handleKeyChange = useCallback(createInputHandler(setKey), [setKey]);
+  const handlePasswordChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      setPassword(event.target.value);
+    },
+    [setPassword]
+  );
+
+  const handleKeyChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      setKey(event.target.value);
+    },
+    [setKey]
+  );
 
   const handlePrefixChange = useCallback(
-    createInputHandler(setPrefix, (value: string) => {
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const value = event.target.value;
+      setPrefix(value);
       window.rendererBridge.updateFormSettings({ prefix: value });
-    }),
+    },
     [setPrefix]
   );
 
   const handleSuffixChange = useCallback(
-    createInputHandler(setSuffix, (value: string) => {
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const value = event.target.value;
+      setSuffix(value);
       window.rendererBridge.updateFormSettings({ suffix: value });
-    }),
+    },
     [setSuffix]
   );
 
   const handlePasswordLengthChange = useCallback(
-    createNumberInputHandler(setPasswordLength, (value: number) => {
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      const value = Number.parseInt(event.target.value, 10);
+      setPasswordLength(value);
       window.rendererBridge.updateFormSettings({ passwordLength: value });
-    }),
+    },
     [setPasswordLength]
   );
 
   const handlePasswordMouseEnter = useCallback((): void => {
     setIsPasswordVisible(true);
-  }, []);
+  }, [setIsPasswordVisible]);
 
   const handlePasswordMouseLeave = useCallback((): void => {
     setIsPasswordVisible(false);
-  }, []);
+  }, [setIsPasswordVisible]);
 
   return (
     <div className="app">
       <div className="app__header">
         <h1 className="app__title">{t('app.title')}</h1>
         <button
+          type="button"
           className="app__close-btn"
           title={t('app.close')}
           aria-label={t('app.close')}
@@ -183,7 +166,7 @@ export function App(): JSX.Element {
           name="password"
           type="password"
           placeholder={t('form.passwordPlaceholder')}
-          tabIndex={1}
+          aria-label={t('form.passwordPlaceholder')}
           value={password}
           onChange={handlePasswordChange}
           autoComplete="off"
@@ -200,7 +183,7 @@ export function App(): JSX.Element {
           name="key"
           type="text"
           placeholder={t('form.keyPlaceholder')}
-          tabIndex={2}
+          aria-label={t('form.keyPlaceholder')}
           value={key}
           onChange={handleKeyChange}
           onKeyDown={handleKeyPress}
@@ -213,20 +196,15 @@ export function App(): JSX.Element {
 
       <div className="app__controls">
         <button
+          type="button"
           className="app__generate-btn"
-          tabIndex={3}
           onClick={handleCopyPassword}
           onMouseEnter={handlePasswordMouseEnter}
           onMouseLeave={handlePasswordMouseLeave}
         >
           {generateButtonLabel}
         </button>
-        <select
-          className="app__length-select"
-          tabIndex={4}
-          value={passwordLength}
-          onChange={handlePasswordLengthChange}
-        >
+        <select className="app__length-select" value={passwordLength} onChange={handlePasswordLengthChange}>
           {PASSWORD_LENGTH_CHOICES.map(length => (
             <option key={length} value={length}>
               {length.toString().padStart(2, '0')}
@@ -242,7 +220,7 @@ export function App(): JSX.Element {
           name="prefix"
           type="text"
           placeholder={t('form.prefixPlaceholder')}
-          tabIndex={5}
+          aria-label={t('form.prefixPlaceholder')}
           value={prefix}
           onChange={handlePrefixChange}
           autoComplete="off"
@@ -255,7 +233,7 @@ export function App(): JSX.Element {
           name="suffix"
           type="text"
           placeholder={t('form.suffixPlaceholder')}
-          tabIndex={6}
+          aria-label={t('form.suffixPlaceholder')}
           value={suffix}
           onChange={handleSuffixChange}
           autoComplete="off"
@@ -274,7 +252,6 @@ export function App(): JSX.Element {
           href="https://flowerpassword.com/"
           target="_blank"
           rel="noopener noreferrer"
-          tabIndex={7}
           onClick={event => handleExternalLink(event, 'https://flowerpassword.com/')}
         >
           https://flowerpassword.com/

@@ -7,9 +7,8 @@ import { initI18n } from './i18n';
 import { applyLanguage, applyTheme } from './utils';
 
 async function prepareRenderer(): Promise<void> {
-  const config = await window.rendererBridge.getConfig();
+  const [config] = await Promise.all([window.rendererBridge.getConfig(), initI18n()]);
 
-  await initI18n();
   await applyLanguage(config.language);
   applyTheme(config.theme);
 

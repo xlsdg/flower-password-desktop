@@ -16,7 +16,6 @@ import {
 import type { AppConfig, FormSettings, GlobalShortcut, LanguageMode, ThemeMode } from '../shared/types';
 import { showMessageBox } from './dialog';
 import { applyLanguage, t } from './i18n';
-import { registerGlobalShortcut } from './shortcut';
 
 const CONFIG_FILE_PATH = path.join(app.getPath('userData'), 'config.json');
 
@@ -114,14 +113,13 @@ export function setGlobalShortcut(shortcut: GlobalShortcut): void {
 
   const config = readConfig();
   writeConfig({ ...config, globalShortcut: shortcut });
-  registerGlobalShortcut(shortcut);
 }
 
-export function initConfig(): void {
+export function initConfig(): AppConfig {
   const config = readConfig();
   applyNativeTheme(config.theme);
   applyLanguage(config.language);
-  registerGlobalShortcut(config.globalShortcut);
+  return config;
 }
 
 export function readConfig(): AppConfig {

@@ -64,4 +64,5 @@ export async function promptShortcutSelection(): Promise<void> {
   }
 
   setGlobalShortcut(newShortcut);
+  registerGlobalShortcut(newShortcut);
 }

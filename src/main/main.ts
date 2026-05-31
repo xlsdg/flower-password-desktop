@@ -4,7 +4,7 @@ import { clipboardManager } from './clipboard';
 import { initConfig } from './config';
 import { registerIpcHandlers } from './ipc';
 import { platformAdapter } from './platform';
-import { unregisterGlobalShortcuts } from './shortcut';
+import { registerGlobalShortcut, unregisterGlobalShortcuts } from './shortcut';
 import { createTray } from './tray';
 import { createWindow } from './window';
 
@@ -28,7 +28,8 @@ async function boot(): Promise<void> {
   try {
     await app.whenReady();
 
-    initConfig();
+    const config = initConfig();
+    registerGlobalShortcut(config.globalShortcut);
     createWindow();
     createTray();
     registerIpcHandlers();
