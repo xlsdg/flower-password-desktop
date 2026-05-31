@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.6](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.5...v4.1.6) (2026-05-31)
+
+
+### Bug Fixes
+
+* update GitHub Actions to use version 7 of upload-artifact and download-artifact ([#20](https://github.com/xlsdg/flower-password-desktop/issues/20)) ([ecbe256](https://github.com/xlsdg/flower-password-desktop/commit/ecbe256ffe8513479f4dd28e33b60a36813f0929))
+
 ## [4.1.5](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.4...v4.1.5) (2026-05-31)
 
 
