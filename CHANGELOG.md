@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.5](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.4...v4.1.5) (2026-05-31)
+
+
+### Bug Fixes
+
+* update GitHub Actions to use latest versions of checkout, setup-node, upload-artifact, and action-gh-release ([#18](https://github.com/xlsdg/flower-password-desktop/issues/18)) ([dd24943](https://github.com/xlsdg/flower-password-desktop/commit/dd24943e78ec911a6e6d79e59bc83a21bdf9a82a))
+
 ## [4.1.4](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.3...v4.1.4) (2026-05-31)
 
 
