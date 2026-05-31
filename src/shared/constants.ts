@@ -19,6 +19,9 @@ export const MAIN_WINDOW_OPTIONS = {
   height: 334,
   show: false,
   frame: false,
+  transparent: true,
+  vibrancy: 'under-window',
+  visualEffectState: 'active',
   resizable: false,
   skipTaskbar: true,
 } as const;

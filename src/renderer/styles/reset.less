@@ -27,6 +27,8 @@ body {
   // Prevent text size adjustment on Windows/Linux high DPI displays
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 // Input and form element normalization for cross-platform consistency
@@ -58,7 +60,14 @@ button {
   appearance: none;
   background: none;
   border: none;
-  cursor: pointer;
+  cursor: default;
+}
+
+// Input and textarea elements should remain selectable
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 // Select element normalization
