@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.4](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.3...v4.1.4) (2026-05-31)
+
+
+### Bug Fixes
+
+* improve global shortcut registration and config initialization ([#16](https://github.com/xlsdg/flower-password-desktop/issues/16)) ([e5e445a](https://github.com/xlsdg/flower-password-desktop/commit/e5e445a79b676af50cbc9d319d957c8f0e4a6ef7))
+
 ## [4.1.3](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.2...v4.1.3) (2026-05-31)
 
 
