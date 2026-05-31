@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.2](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.1...v4.1.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* enhance UI styling and improve theme support ([#11](https://github.com/xlsdg/flower-password-desktop/issues/11)) ([bde5ded](https://github.com/xlsdg/flower-password-desktop/commit/bde5dedf5bc48d746cd875818446fef55b4fd83f))
+
 ## [4.1.1](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.0...v4.1.1) (2025-12-29)
 
 
