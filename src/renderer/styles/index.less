@@ -1,7 +1,7 @@
 // Light theme colors
 :root,
 :root[data-theme='light'] {
-  --bg-color: #fff;
+  --bg-color: rgba(255, 255, 255, 0.72);
   --text-primary: #168bc3;
   --text-secondary: #999;
   --text-tertiary: #666;
@@ -20,7 +20,7 @@
 
 // Dark theme colors - mixin for reuse
 .dark-theme-vars() {
-  --bg-color: #1e1e1e;
+  --bg-color: rgba(30, 30, 30, 0.72);
   --text-primary: #4db8e8;
   --text-secondary: #aaa;
   --text-tertiary: #999;
@@ -98,7 +98,7 @@
     padding: 0;
     background: var(--close-btn-bg);
     color: var(--btn-text);
-    cursor: pointer;
+    cursor: default;
     font-size: @font-size-small;
   }
 
@@ -167,11 +167,10 @@
     border-radius: @border-radius;
     border-top-right-radius: @border-radius-none;
     border-bottom-right-radius: @border-radius-none;
-    cursor: pointer;
+    cursor: default;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    transition: background-color @transition-duration @transition-timing;
 
     &:hover {
       background-color: var(--btn-primary-hover);
@@ -190,7 +189,7 @@
     border-radius: @border-radius;
     border-top-left-radius: @border-radius-none;
     border-bottom-left-radius: @border-radius-none;
-    cursor: pointer;
+    cursor: default;
     text-align: center;
   }
 
