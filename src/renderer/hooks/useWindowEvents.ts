@@ -26,7 +26,16 @@ export function useWindowEvents(
       if (document.hasFocus()) {
         focusTarget();
       } else {
-        window.addEventListener('focus', focusTarget, { once: true });
+        let timerId: ReturnType<typeof setTimeout> | undefined;
+        const onFocus = (): void => {
+          clearTimeout(timerId);
+          focusTarget();
+        };
+        window.addEventListener('focus', onFocus, { once: true });
+        timerId = setTimeout(() => {
+          window.removeEventListener('focus', onFocus);
+          focusTarget();
+        }, 100);
       }
     };
 

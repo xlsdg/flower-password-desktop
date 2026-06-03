@@ -25,6 +25,7 @@ class WindowOperations {
 
   focus(): void {
     this.window.focus();
+    this.window.webContents.focus();
   }
 
   hide(): void {
