@@ -17,24 +17,15 @@ export function useWindowEvents(
       onClipboardKey(value);
     };
 
-    const focusTarget = (): void => {
+    const handleWindowShown = (): void => {
       const targetInput = passwordRef.current.length === 0 ? passwordInputRef.current : keyInputRef.current;
       targetInput?.focus();
-    };
-
-    const handleWindowShown = (): void => {
-      if (document.hasFocus()) {
-        focusTarget();
-      } else {
-        window.addEventListener('focus', focusTarget, { once: true });
-      }
     };
 
     const unsubscribeKeyFromClipboard = window.rendererBridge.onKeyFromClipboard(handleClipboardKey);
     const unsubscribeWindowShown = window.rendererBridge.onWindowShown(handleWindowShown);
 
     return (): void => {
-      window.removeEventListener('focus', focusTarget);
       unsubscribeKeyFromClipboard();
       unsubscribeWindowShown();
     };
