@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.9](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.8...v4.1.9) (2026-06-06)
+
+
+### Bug Fixes
+
+* improve window focus handling and adjust focus delay in useWindowEvents ([#27](https://github.com/xlsdg/flower-password-desktop/issues/27)) ([7cb6a7b](https://github.com/xlsdg/flower-password-desktop/commit/7cb6a7befb7a1c568d3264c5b923dc93385f796c))
+* specify repository in auto-approve command for PR review ([#29](https://github.com/xlsdg/flower-password-desktop/issues/29)) ([b493529](https://github.com/xlsdg/flower-password-desktop/commit/b493529951c7f33d7b380e5290d11eb98062837a))
+
 ## [4.1.8](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.7...v4.1.8) (2026-06-03)
 
 
