@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.10](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.9...v4.1.10) (2026-06-06)
+
+
+### Bug Fixes
+
+* streamline focus handling in window operations and useWindowEvents ([#31](https://github.com/xlsdg/flower-password-desktop/issues/31)) ([061218b](https://github.com/xlsdg/flower-password-desktop/commit/061218b80be62003e9bdcd3f131e2391260affb7))
+
 ## [4.1.9](https://github.com/xlsdg/flower-password-desktop/compare/v4.1.8...v4.1.9) (2026-06-06)
 
 
