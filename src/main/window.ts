@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { BrowserWindow, clipboard } from 'electron';
+import { app, BrowserWindow, clipboard } from 'electron';
 import * as psl from 'psl';
 
 import { IPC_CHANNELS, MAIN_WINDOW_OPTIONS, isDevelopment } from '../shared/constants';
@@ -71,6 +71,7 @@ export function showWindow(): void {
 
   forwardClipboardDomain();
   windowOps.show();
+  app.focus({ steal: true });
   windowOps.focus();
   windowOps.sendMessage(IPC_CHANNELS.WINDOW_SHOWN);
 }

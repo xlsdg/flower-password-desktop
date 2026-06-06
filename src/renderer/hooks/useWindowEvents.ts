@@ -35,7 +35,7 @@ export function useWindowEvents(
         timerId = setTimeout(() => {
           window.removeEventListener('focus', onFocus);
           focusTarget();
-        }, 100);
+        }, 300);
       }
     };
 
