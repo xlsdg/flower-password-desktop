@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { app, BrowserWindow, clipboard } from 'electron';
+import { BrowserWindow, clipboard } from 'electron';
 import * as psl from 'psl';
 
 import { IPC_CHANNELS, MAIN_WINDOW_OPTIONS, isDevelopment } from '../shared/constants';
@@ -25,7 +25,6 @@ class WindowOperations {
 
   focus(): void {
     this.window.focus();
-    this.window.webContents.focus();
   }
 
   hide(): void {
@@ -71,7 +70,6 @@ export function showWindow(): void {
 
   forwardClipboardDomain();
   windowOps.show();
-  app.focus({ steal: true });
   windowOps.focus();
   windowOps.sendMessage(IPC_CHANNELS.WINDOW_SHOWN);
 }
